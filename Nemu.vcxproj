@@ -76,6 +76,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="includes\OpCodes.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="OpCodes.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
