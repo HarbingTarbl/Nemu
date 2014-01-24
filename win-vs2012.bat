@@ -1,1 +1,1 @@
-tools\\premake5.exe vs2012
+tools\\premake4.exe vs2012
