@@ -258,38 +258,38 @@ enum modeEnum
 
 char* namesTable[] =
 {
-	"BRK", "ORA", NULL, NULL, NULL, "ORA", "ASL", NULL,
-	"PHP", "ORA", "ASL", NULL, NULL, "ORA", "ASL", NULL,
-	"BPL", "ORA", NULL, NULL, NULL, "ORA", "ASL", NULL,
-	"CLC", "ORA", NULL, NULL, NULL, "ORA", "ASL", NULL,
-	"JSR", "AND", NULL, NULL, "BIT", "AND", "ROL", NULL,
-	"PLP", "AND", "ROL", NULL, "BIT", "AND", "ROL", NULL,
-	"BMI", "AND", NULL, NULL, NULL, "AND", "ROL", NULL,
-	"SEC", "AND", NULL, NULL, NULL, "AND", "ROL", NULL,
-	"RTI", "EOR", NULL, NULL, NULL, "EOR", "LSR", NULL,
-	"PHA", "EOR", "LSR", NULL, "JMP", "EOR", "LSR", NULL,
-	"BVC", "EOR", NULL, NULL, NULL, "EOR", "LSR", NULL,
-	"CLI", "EOR", NULL, NULL, NULL, "EOR", "LSR", NULL,
-	"RTS", "ADC", NULL, NULL, NULL, "ADC", "ROR", NULL,
-	"PLA", "ADC", "ROR", NULL, "JMP", "ADC", "ROR", NULL,
-	"BVS", "ADC", NULL, NULL, NULL, "ADC", "ROR", NULL,
-	"SEI", "ADC", NULL, NULL, NULL, "ADC", "ROR", NULL,
-	"BCS", "STA", NULL, NULL, "STY", "STA", "STX", NULL,
-	"DEY", NULL, "TXA", NULL, "STY", "STA", "STX", NULL,
-	"BCC", "STA", NULL, NULL, "STY", "STA", "STX", NULL,
-	"TYA", "STA", "TXS", NULL, NULL, "STA", NULL, NULL,
-	"LDY", "LDA", "LDX", NULL, "LDY", "LDA", "LDX", NULL,
-	"TAY", "LDA", "TAX", NULL, "LDY", "LDA", "LDX", NULL,
-	"BCS", "LDA", NULL, NULL, "LDY", "LDA", "LDX", NULL,
-	"CLV", "LDA", "TSX", NULL, "LDY", "LDA", "LDX", NULL,
-	"CPY", "CMP", NULL, NULL, "CPY", "CMP", "DEC", NULL,
-	"INY", "CMP", "DEX", NULL, "CPY", "CMP", "DEC", NULL,
-	"BNE", "CMP", NULL, NULL, NULL, "CMP", "DEC", NULL,
-	"CLD", "CMP", NULL, NULL, NULL, "CMP", "DEC", NULL,
-	"CPX", "SBC", NULL, NULL, "CPX", "SBC", "INC", NULL,
-	"INX", "SBC", "NOP", NULL, "CPX", "SBC", "INC", NULL,
-	"BEQ", "SBC", NULL, NULL, NULL, "SBC", "INC", NULL,
-	"SED", "SBC", NULL, NULL, NULL, "SBC", "INC", NULL
+	"BRK", "ORA", nullptr, nullptr, nullptr, "ORA", "ASL", nullptr,
+	"PHP", "ORA", "ASL", nullptr, nullptr, "ORA", "ASL", nullptr,
+	"BPL", "ORA", nullptr, nullptr, nullptr, "ORA", "ASL", nullptr,
+	"CLC", "ORA", nullptr, nullptr, nullptr, "ORA", "ASL", nullptr,
+	"JSR", "AND", nullptr, nullptr, "BIT", "AND", "ROL", nullptr,
+	"PLP", "AND", "ROL", nullptr, "BIT", "AND", "ROL", nullptr,
+	"BMI", "AND", nullptr, nullptr, nullptr, "AND", "ROL", nullptr,
+	"SEC", "AND", nullptr, nullptr, nullptr, "AND", "ROL", nullptr,
+	"RTI", "EOR", nullptr, nullptr, nullptr, "EOR", "LSR", nullptr,
+	"PHA", "EOR", "LSR", nullptr, "JMP", "EOR", "LSR", nullptr,
+	"BVC", "EOR", nullptr, nullptr, nullptr, "EOR", "LSR", nullptr,
+	"CLI", "EOR", nullptr, nullptr, nullptr, "EOR", "LSR", nullptr,
+	"RTS", "ADC", nullptr, nullptr, nullptr, "ADC", "ROR", nullptr,
+	"PLA", "ADC", "ROR", nullptr, "JMP", "ADC", "ROR", nullptr,
+	"BVS", "ADC", nullptr, nullptr, nullptr, "ADC", "ROR", nullptr,
+	"SEI", "ADC", nullptr, nullptr, nullptr, "ADC", "ROR", nullptr,
+	"BCS", "STA", nullptr, nullptr, "STY", "STA", "STX", nullptr,
+	"DEY", nullptr, "TXA", nullptr, "STY", "STA", "STX", nullptr,
+	"BCC", "STA", nullptr, nullptr, "STY", "STA", "STX", nullptr,
+	"TYA", "STA", "TXS", nullptr, nullptr, "STA", nullptr, nullptr,
+	"LDY", "LDA", "LDX", nullptr, "LDY", "LDA", "LDX", nullptr,
+	"TAY", "LDA", "TAX", nullptr, "LDY", "LDA", "LDX", nullptr,
+	"BCS", "LDA", nullptr, nullptr, "LDY", "LDA", "LDX", nullptr,
+	"CLV", "LDA", "TSX", nullptr, "LDY", "LDA", "LDX", nullptr,
+	"CPY", "CMP", nullptr, nullptr, "CPY", "CMP", "DEC", nullptr,
+	"INY", "CMP", "DEX", nullptr, "CPY", "CMP", "DEC", nullptr,
+	"BNE", "CMP", nullptr, nullptr, nullptr, "CMP", "DEC", nullptr,
+	"CLD", "CMP", nullptr, nullptr, nullptr, "CMP", "DEC", nullptr,
+	"CPX", "SBC", nullptr, nullptr, "CPX", "SBC", "INC", nullptr,
+	"INX", "SBC", "NOP", nullptr, "CPX", "SBC", "INC", nullptr,
+	"BEQ", "SBC", nullptr, nullptr, nullptr, "SBC", "INC", nullptr,
+	"SED", "SBC", nullptr, nullptr, nullptr, "SBC", "INC", nullptr
 };
 
 int mode[] = 
@@ -358,7 +358,7 @@ int mode[] =
 	NUL, ZPX, ZPX, NUL, // 0xf4-0xf7
 	IMP, ABY, NUL, NUL, // 0xf8-0xfb
 	NUL, ABX, ABX, NUL // 0xfc-0xff
-}
+};
 
 int sizeTable[] = 
 {
@@ -398,6 +398,6 @@ int cyclesTable[] =
 	2, 5, 0, 0, 0, 4, 6, 0, 2, 4, 0, 0, 0, 4, 7, 0,
 	2, 6, 0, 0, 3, 3, 5, 0, 2, 2, 2, 0, 4, 4, 6, 0,
 	2, 5, 0, 0, 0, 4, 6, 0, 2, 4, 0, 0, 0, 4, 7, 0
-}
+};
 
 #endif
