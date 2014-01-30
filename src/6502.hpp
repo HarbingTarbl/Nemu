@@ -3,6 +3,29 @@
 #define _6502_H_PP
 #include <cstdint>
 
+template<int Size>
+class MemoryPage
+{
+private:
+	uint8_t m_Data[Size];
+
+public:
+	inline void Write(uint8_t offset, uint8_t value)
+	{
+		m_Data[offset] = value;
+	}
+
+	inline uint8_t Read(uint8_t offset)
+	{
+		return m_Data[offset];
+	}
+
+	inline uint8_t& operator[](int offset)
+	{
+		return m_Data[offset];
+	}
+};
+
 class NesCPU
 {
 private:
@@ -32,8 +55,6 @@ public:
 	} StatusReg;
 
 	uint16_t PCReg;
-
-	uint8_t Stack[0xFF];
 };
 
 #endif
