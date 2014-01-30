@@ -34,7 +34,6 @@ public:
 	uint16_t PCReg;
 
 	uint8_t Stack[0xFF];
-	uint8_t 
 };
 
 #endif
