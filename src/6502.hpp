@@ -3,6 +3,7 @@
 #define _6502_H_PP
 #include <cstdint>
 #include <vector>
+#include <algorithm>
 #include <exception>
 #include "OpCodes.hpp"
 
@@ -59,12 +60,12 @@ public:
 
 	uint8_t Read(uint16_t addr) const
 	{
-		return m_Target->Read(addr);
+		return m_Target->Read(addr - m_Delta);
 	}
 
 	void Write(uint16_t addr, uint8_t val)
 	{
-		return m_Target->Write(addr, val);
+		return m_Target->Write(addr - m_Delta, val);
 	}
 };
 
@@ -122,6 +123,25 @@ public:
 	{
 		range->m_Bus = this;
 		m_Ranges.push_back(range);
+	}
+
+	MemoryRange* GetRange(uint16_t addr) const
+	{
+
+		for(auto& range : m_Ranges)
+			if(range->Contains(addr))
+				return range;
+
+		return nullptr;
+	}
+
+	MemoryRange* RemoveRange(MemoryRange* range)
+	{
+		if(!range)
+			return nullptr;
+
+		std::remove(m_Ranges.begin(), m_Ranges.end(), range);
+		return range;
 	}
 
 	void Write(uint16_t addr, uint8_t val)
