@@ -2,15 +2,6 @@
 #ifndef _OPCODES_HPP_
 #define _OPCODES_HPP_
 
-struct instructionInfo
-{
-	char* name;
-	int size;
-	int cycles;
-	int mode;
-
-
-};
 
 enum modeEnum
 {

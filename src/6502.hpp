@@ -2,15 +2,32 @@
 #ifndef _6502_H_PP
 #define _6502_H_PP
 #include <cstdint>
+#include <vector>
+#include <exception>
 #include "OpCodes.hpp"
 
 class MemoryRange
 {
 private:
+	friend class MemoryBus;
+
 	uint16_t m_Start;
 	uint16_t m_End;
 
+	MemoryBus* m_Bus;
+
 public:
+	MemoryRange(uint16_t start, uint16_t end)
+		: m_Start(start), m_End(end)
+	{
+
+	}
+
+	virtual ~MemoryRange()
+	{
+
+	}
+
 	inline uint16_t Begin() { return m_Start; }
 	inline uint16_t End() { return m_End; }
 	inline uint16_t Size() { return End() - Begin(); }
@@ -20,23 +37,112 @@ public:
 		return addr > Begin() && addr < End();
 	}
 
-	void Read();
-	void Write();
+	virtual uint8_t Read(uint16_t addr ) const = 0;
+	virtual void Write(uint16_t addr, uint16_t val) = 0;
 };
+
+class MirroredMemoryRange
+	: MemoryRange
+{
+private:
+	MemoryRange* m_Target;
+	int16_t m_Delta;
+
+public:
+	MirroredMemoryRange(MemoryRange* target, uint16_t start, uint16_t end)
+		: MemoryRange(start, end), m_Target(target), m_Delta(start - m_Target->Begin())
+	{
+
+	}
+
+	uint8_t Read(uint16_t addr) const
+	{
+		return m_Target->Read(addr);
+	}
+
+	void Write(uint16_t addr, uint8_t val)
+	{
+		return m_Target->Write(addr, val);
+	}
+};
+
+template<int Size>
+class BufferedMemoryRange
+	: MemoryRange
+{
+private:
+	uint8_t m_Data[Size];
+
+public:
+	BufferedMemoryRange(uint16_t start, uint16_t end)
+		: MemoryRange(start, end)
+	{
+
+	}
+
+	uint8_t Read(uint16_t addr) const
+	{
+		return m_Data[addr - Begin()];
+	}
+
+	void Write(uint16_t addr, uint8_t val)
+	{
+		m_Data[addr - Begin()] = val;
+	}
+};
+
 
 class MemoryBus
 {
 private:
 	uint16_t m_StartAddress;
 	uint16_t m_EndAddress;
+	std::vector<MemoryRange*> m_Ranges;
 
 public:
+	MemoryBus(uint16_t start, uint16_t end)
+		: m_StartAddress(start), m_EndAddress(end)
+	{
+
+	}
+
+	~MemoryBus()
+	{
+		for(auto& range : m_Ranges)
+			delete range;
+	}
+
 	inline uint16_t Begin() { return m_StartAddress; }
 	inline uint16_t End() { return m_EndAddress; }
 	inline uint16_t Size() { return Begin() - End(); }
 
-	void Read();
-	void Write();
+	void AddRange(MemoryRange* range)
+	{
+		range->m_Bus = this;
+		m_Ranges.push_back(range);
+	}
+
+	void Write(uint16_t addr, uint8_t val)
+	{
+		for(auto& range : m_Ranges)
+		{
+			if(range->Contains(addr))
+				return range->Write(addr, val);
+		}
+
+		throw std::runtime_error("Attempt to write outside of mapped memory range");
+	}
+
+	uint8_t Read(uint16_t addr)
+	{
+		for(auto& range : m_Ranges)
+		{
+			if(range->Contains(addr))
+				return range->Read(addr);
+		}
+
+		throw std::runtime_error("Attempt to read outside of mapped memory range");
+	}
 };
 
 class CPUState
