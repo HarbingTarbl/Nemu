@@ -6,6 +6,8 @@
 #include <exception>
 #include "OpCodes.hpp"
 
+class MemoryBus;
+
 class MemoryRange
 {
 private:
@@ -66,12 +68,12 @@ public:
 	}
 };
 
-template<int Size>
+template<int BufferSize>
 class BufferedMemoryRange
 	: MemoryRange
 {
 private:
-	uint8_t m_Data[Size];
+	uint8_t m_Data[BufferSize];
 
 public:
 	BufferedMemoryRange(uint16_t start, uint16_t end)
