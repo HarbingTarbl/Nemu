@@ -17,7 +17,7 @@ enum modeEnum
 	NUL, ACC, ABS, ABX, ABY, IMM, IMP, IND, XIN, INY, REL, ZPG, ZPX, ZPY
 };
 
-char* namesTable[] =
+const char* namesTable[] =
 {
 	"BRK", "ORA", nullptr, nullptr, nullptr, "ORA", "ASL", nullptr,
 	"PHP", "ORA", "ASL", nullptr, nullptr, "ORA", "ASL", nullptr,
