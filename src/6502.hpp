@@ -30,21 +30,21 @@ public:
 
 	}
 
-	inline uint16_t Begin() { return m_Start; }
-	inline uint16_t End() { return m_End; }
-	inline uint16_t Size() { return End() - Begin(); }
+	inline uint16_t Begin() const { return m_Start; }
+	inline uint16_t End() const { return m_End; }
+	inline uint16_t Size() const { return End() - Begin(); }
 
-	inline bool Contains(uint16_t addr)
+	inline bool Contains(uint16_t addr) const
 	{
-		return addr > Begin() && addr < End();
+		return addr >= Begin() && addr <= End();
 	}
 
 	virtual uint8_t Read(uint16_t addr ) const = 0;
-	virtual void Write(uint16_t addr, uint16_t val) = 0;
+	virtual void Write(uint16_t addr, uint8_t val) = 0;
 };
 
 class MirroredMemoryRange
-	: MemoryRange
+	: public MemoryRange
 {
 private:
 	MemoryRange* m_Target;
@@ -70,7 +70,7 @@ public:
 
 template<int BufferSize>
 class BufferedMemoryRange
-	: MemoryRange
+	: public MemoryRange
 {
 private:
 	uint8_t m_Data[BufferSize];
