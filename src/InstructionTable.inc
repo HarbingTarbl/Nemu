@@ -5,15 +5,15 @@ const InstructionPack const Table[] = {
 	{ NOP , NOP , NOP }, //0x3
 	{ NOP , NOP , NOP }, //0x4
 	{ NOP , NOP , NOP }, //0x5
-	{ NOP , NOP , NOP }, //0x6
+	{ ZP , ASL , NOP }, //0x6
 	{ NOP , NOP , NOP }, //0x7
 	{ NOP , NOP , NOP }, //0x8
 	{ NOP , NOP , NOP }, //0x9
-	{ NOP , NOP , NOP }, //0xa
+	{ ACC , ASL , NOP }, //0xa
 	{ NOP , NOP , NOP }, //0xb
 	{ NOP , NOP , NOP }, //0xc
 	{ NOP , NOP , NOP }, //0xd
-	{ NOP , NOP , NOP }, //0xe
+	{ ABS , ASL , NOP }, //0xe
 	{ NOP , NOP , NOP }, //0xf
 	{ NOP , NOP , NOP }, //0x10
 	{ NOP , NOP , NOP }, //0x11
@@ -21,7 +21,7 @@ const InstructionPack const Table[] = {
 	{ NOP , NOP , NOP }, //0x13
 	{ NOP , NOP , NOP }, //0x14
 	{ NOP , NOP , NOP }, //0x15
-	{ NOP , NOP , NOP }, //0x16
+	{ ZPX , ASL , NOP }, //0x16
 	{ NOP , NOP , NOP }, //0x17
 	{ NOP , NOP , NOP }, //0x18
 	{ NOP , NOP , NOP }, //0x19
@@ -29,38 +29,38 @@ const InstructionPack const Table[] = {
 	{ NOP , NOP , NOP }, //0x1b
 	{ NOP , NOP , NOP }, //0x1c
 	{ NOP , NOP , NOP }, //0x1d
-	{ NOP , NOP , NOP }, //0x1e
+	{ ABX , ASL , NOP }, //0x1e
 	{ NOP , NOP , NOP }, //0x1f
 	{ NOP , NOP , NOP }, //0x20
-	{ NOP , NOP , NOP }, //0x21
+	{ IIX , AND , NOP }, //0x21
 	{ NOP , NOP , NOP }, //0x22
 	{ NOP , NOP , NOP }, //0x23
 	{ NOP , NOP , NOP }, //0x24
-	{ NOP , NOP , NOP }, //0x25
+	{ ZP , AND , NOP }, //0x25
 	{ NOP , NOP , NOP }, //0x26
 	{ NOP , NOP , NOP }, //0x27
 	{ NOP , NOP , NOP }, //0x28
-	{ NOP , NOP , NOP }, //0x29
+	{ IMM , AND , NOP }, //0x29
 	{ NOP , NOP , NOP }, //0x2a
 	{ NOP , NOP , NOP }, //0x2b
 	{ NOP , NOP , NOP }, //0x2c
-	{ NOP , NOP , NOP }, //0x2d
+	{ ABS , AND , NOP }, //0x2d
 	{ NOP , NOP , NOP }, //0x2e
 	{ NOP , NOP , NOP }, //0x2f
 	{ NOP , NOP , NOP }, //0x30
-	{ NOP , NOP , NOP }, //0x31
+	{ IIY , AND , NOP }, //0x31
 	{ NOP , NOP , NOP }, //0x32
 	{ NOP , NOP , NOP }, //0x33
 	{ NOP , NOP , NOP }, //0x34
-	{ NOP , NOP , NOP }, //0x35
+	{ ZPX , AND , NOP }, //0x35
 	{ NOP , NOP , NOP }, //0x36
 	{ NOP , NOP , NOP }, //0x37
 	{ NOP , NOP , NOP }, //0x38
-	{ NOP , NOP , NOP }, //0x39
+	{ ABY , AND , NOP }, //0x39
 	{ NOP , NOP , NOP }, //0x3a
 	{ NOP , NOP , NOP }, //0x3b
 	{ NOP , NOP , NOP }, //0x3c
-	{ NOP , NOP , NOP }, //0x3d
+	{ ABX , AND , NOP }, //0x3d
 	{ NOP , NOP , NOP }, //0x3e
 	{ NOP , NOP , NOP }, //0x3f
 	{ NOP , NOP , NOP }, //0x40
@@ -143,7 +143,7 @@ const InstructionPack const Table[] = {
 	{ NOP , NOP , NOP }, //0x8d
 	{ NOP , NOP , NOP }, //0x8e
 	{ NOP , NOP , NOP }, //0x8f
-	{ NOP , NOP , NOP }, //0x90
+	{ REL , BCC , NOP }, //0x90
 	{ NOP , NOP , NOP }, //0x91
 	{ NOP , NOP , NOP }, //0x92
 	{ NOP , NOP , NOP }, //0x93
