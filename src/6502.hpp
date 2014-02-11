@@ -155,6 +155,7 @@ public:
 		throw std::runtime_error("Attempt to write outside of mapped memory range");
 	}
 
+	//Todo add large reads/writes This may not even be needed honestly. 
 	uint8_t Read(uint16_t addr)
 	{
 		for(auto& range : m_Ranges)
@@ -172,10 +173,17 @@ class CPUState
 public:
 	uint8_t SP;
 	uint8_t IR;
+	union
+	{
+		uint8_t Arg8[4];
+		uint16_t Arg16[2];
+	};
+	uint16_t Out;
 	uint16_t PC;
 	uint8_t X;
 	uint8_t Y;
-	uint8_t A;
+	int8_t A;
+	uint16_t EffectiveAddr;
 	union 
 	{
 		bool CarryFlag : 1;
@@ -189,6 +197,24 @@ public:
 		uint8_t Status;
 	};
 	bool HasAsserted;
+};
+
+class CPU
+{
+private:
+
+
+
+
+
+public:
+	CPUState State;
+	MemoryBus Bus;
+
+
+
+
+
 };
 
 
