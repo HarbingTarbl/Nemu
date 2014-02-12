@@ -1,9 +1,11 @@
 #include "OpCodes.hpp"
+#ifndef __INTELLISENSE__
 namespace InstructionTable
 {
 	using namespace AddressingModes;
 #include "InstructionTable.inc"
 };
+#endif
 
 namespace InstructionTable
 {
@@ -12,103 +14,117 @@ namespace InstructionTable
 		int8_t r = cpu.State.A + (int8_t)cpu.State.Arg8[0] + cpu.State.CarryFlag;
 		cpu.State.OverflowFlag = (r  ^ cpu.State.A) & (r ^ cpu.State.Arg8[0]) & 0x80;
 		cpu.State.ZeroFlag = r == 0;
+		cpu.State.SignFlag = r & 0x80;
+		cpu.State.A = r;
 	}
 
 	void AND(CPU& cpu)
 	{
-
+		cpu.State.A &= cpu.State.Arg8[0];
+		cpu.State.ZeroFlag = cpu.State.A == 0;
+		cpu.State.SignFlag = cpu.State.A & 0x80;
 	}
 
 	void ASL(CPU& cpu)
 	{
+		///TODO The rotate instructions will be difficult. Maybe. Idk
 
 	}
 
-
 	void BCC(CPU& cpu)
 	{
-
+		cpu.State.PC += !cpu.State.CarryFlag * cpu.State.Arg8[0];
 	}
 
 	void BCS(CPU& cpu)
 	{
-
+		cpu.State.PC += cpu.State.CarryFlag * cpu.State.Arg8[0];
 	}
 
 	void BEQ(CPU& cpu)
 	{
-
+		cpu.State.PC += cpu.State.ZeroFlag * cpu.State.Arg8[0];
 	}
 
 	void BIT(CPU& cpu)
 	{
-
+		
 	}
 
 	void BMI(CPU& cpu)
 	{
-
+		cpu.State.PC += cpu.State.SignFlag * cpu.State.Arg8[0];
 	}
 
 	void BNE(CPU& cpu)
 	{
-
+		cpu.State.PC += !cpu.State.ZeroFlag * cpu.State.Arg8[0];
 	}
 
 	void BPL(CPU& cpu)
 	{
-
+		cpu.State.PC += !cpu.State.SignFlag * cpu.State.Arg8[0];
 	}
 
 	void BRK(CPU& cpu)
 	{
-
+		cpu.State.InterruptFlag = true;
+		///TODO Interrupt Handling, Push
 	}
 
 	void BVC(CPU& cpu)
 	{
-
+		cpu.State.PC += !cpu.State.OverflowFlag * cpu.State.Arg8[0];
 	}
 
 	void BVS(CPU& cpu)
 	{
-
+		cpu.State.PC += cpu.State.OverflowFlag * cpu.State.Arg8[0];
 	}
 
 
 	void CLC(CPU& cpu)
 	{
-
+		cpu.State.CarryFlag = false;
 	}
 
 	void CLD(CPU& cpu)
 	{
-
+		cpu.State.DecimalFlag = false;
 	}
 
 	void CLI(CPU& cpu)
 	{
-
+		cpu.State.InterruptFlag = false;
 	}
 
 	void CLV(CPU& cpu)
 	{
-
+		cpu.State.OverflowFlag = false;
 	}
 
 	void CMP(CPU& cpu)
 	{
-
+		const int8_t r = cpu.State.A - cpu.State.Arg8[0];
+		cpu.State.SignFlag = r & 0x80;
+		cpu.State.ZeroFlag = r == 0;
+		cpu.State.CarryFlag = cpu.State.A >= cpu.State.Arg8[0];
 	}
 
 	void CPX(CPU& cpu)
 	{
-
+		const int8_t r = cpu.State.X - cpu.State.Arg8[0];
+		cpu.State.SignFlag = r & 0x80;
+		cpu.State.ZeroFlag = r == 0;
+		cpu.State.CarryFlag = cpu.State.X >= cpu.State.Arg8[0];
 	}
 
 	void CPY(CPU& cpu)
 	{
-
+		const int8_t r = cpu.State.Y - cpu.State.Arg8[0];
+		cpu.State.SignFlag = r & 0x80;
+		cpu.State.ZeroFlag = r == 0;
+		cpu.State.CarryFlag = cpu.State.Y >= cpu.State.Arg8[0];
 	}
 
 

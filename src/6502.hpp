@@ -175,7 +175,7 @@ public:
 	uint8_t IR;
 	union
 	{
-		uint8_t Arg8[4];
+		int8_t Arg8[4];
 		uint16_t Arg16[2];
 	};
 	uint16_t Out;
@@ -203,18 +203,33 @@ class CPU
 {
 private:
 
-
-
-
-
 public:
+	CPU()
+		: 
+		RAM(0, 0x800),
+		PPU(0x2000, 0x2008),
+		APU(0x4000, 0x4020),
+		MirrorRAM(&RAM, 0x800, 0x2000),
+		MirrorPPU(&PPU, 0x2008, 0x4000),
+		Bus(0x0, 0x4000)
+	{
+
+		Bus.AddRange(&RAM);
+		Bus.AddRange(&MirrorRAM);
+		Bus.AddRange(&PPU);
+		Bus.AddRange(&MirrorPPU);
+		Bus.AddRange(&APU);
+	}
+
 	CPUState State;
 	MemoryBus Bus;
 
+	BufferedMemoryRange<0x800> RAM;
+	BufferedMemoryRange<0x8> PPU;
+	BufferedMemoryRange<0x20> APU;
 
-
-
-
+	MirroredMemoryRange MirrorRAM;
+	MirroredMemoryRange MirrorPPU;
 };
 
 
