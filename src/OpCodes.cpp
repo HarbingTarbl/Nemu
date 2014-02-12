@@ -14,10 +14,294 @@ namespace InstructionTable
 		cpu.State.ZeroFlag = r == 0;
 	}
 
+	void AND(CPU& cpu)
+	{
+
+	}
+
+	void ASL(CPU& cpu)
+	{
+
+	}
+
+
+	void BCC(CPU& cpu)
+	{
+
+	}
+
+	void BCS(CPU& cpu)
+	{
+
+	}
+
+	void BEQ(CPU& cpu)
+	{
+
+	}
+
+	void BIT(CPU& cpu)
+	{
+
+	}
+
+	void BMI(CPU& cpu)
+	{
+
+	}
+
+	void BNE(CPU& cpu)
+	{
+
+	}
+
+	void BPL(CPU& cpu)
+	{
+
+	}
+
+	void BRK(CPU& cpu)
+	{
+
+	}
+
+	void BVC(CPU& cpu)
+	{
+
+	}
+
+	void BVS(CPU& cpu)
+	{
+
+	}
+
+
+	void CLC(CPU& cpu)
+	{
+
+	}
+
+	void CLD(CPU& cpu)
+	{
+
+	}
+
+	void CLI(CPU& cpu)
+	{
+
+	}
+
+	void CLV(CPU& cpu)
+	{
+
+	}
+
+	void CMP(CPU& cpu)
+	{
+
+	}
+
+	void CPX(CPU& cpu)
+	{
+
+	}
+
+	void CPY(CPU& cpu)
+	{
+
+	}
+
+
+	void DEC(CPU& cpu)
+	{
+
+	}
+
+	void DEX(CPU& cpu)
+	{
+
+	}
+
+	void DEY(CPU& cpu)
+	{
+
+	}
+
+
+	void EOR(CPU& cpu)
+	{
+
+	}
+
+
+	void INC(CPU& cpu)
+	{
+
+	}
+
+	void INX(CPU& cpu)
+	{
+
+	}
+
+	void INY(CPU& cpu)
+	{
+
+	}
+
+
+	void JMP(CPU& cpu)
+	{
+
+	}
+
+	void JSR(CPU& cpu)
+	{
+
+	}
+
+
+	void LDA(CPU& cpu)
+	{
+
+	}
+
+	void LDX(CPU& cpu)
+	{
+
+	}
+
+	void LDY(CPU& cpu)
+	{
+
+	}
+
+	void LSR(CPU& cpu)
+	{
+
+	}
+
+
 	void NOP(CPU& cpu)
 	{
 
 	}
+
+
+	void ORA(CPU& cpu)
+	{
+
+	}
+
+
+	void PHA(CPU& cpu)
+	{
+
+	}
+
+	void PHP(CPU& cpu)
+	{
+
+	}
+
+	void PLA(CPU& cpu)
+	{
+
+	}
+
+	void PLP(CPU& cpu)
+	{
+
+	}
+
+
+	void ROL(CPU& cpu)
+	{
+
+	}
+
+	void ROR(CPU& cpu)
+	{
+
+	}
+
+	void RTI(CPU& cpu)
+	{
+
+	}
+
+	void RTS(CPU& cpu)
+	{
+
+	}
+
+
+	void SBC(CPU& cpu)
+	{
+
+	}
+
+	void SEC(CPU& cpu)
+	{
+
+	}
+
+	void SED(CPU& cpu)
+	{
+
+	}
+
+	void SEI(CPU& cpu)
+	{
+
+	}
+
+	void STA(CPU& cpu)
+	{
+
+	}
+
+	void STX(CPU& cpu)
+	{
+
+	}
+
+	void STY(CPU& cpu)
+	{
+
+	}
+
+
+	void TAX(CPU& cpu)
+	{
+
+	}
+
+	void TAY(CPU& cpu)
+	{
+
+	}
+
+	void TSX(CPU& cpu)
+	{
+
+	}
+
+	void TXA(CPU& cpu)
+	{
+
+	}
+
+	void TXS(CPU& cpu)
+	{
+
+	}
+
+	void TYA(CPU& cpu)
+	{
+
+	}
+
 };
 
 namespace AddressingModes
