@@ -1,131 +1,131 @@
 const InstructionPack const Table[] = {
-	{ NOP , NOP , NOP }, //0x0
-	{ NOP , NOP , NOP }, //0x1
+	{ IMP , BRK , NOP }, //0x0
+	{ IIX , ORA , NOP }, //0x1
 	{ NOP , NOP , NOP }, //0x2
 	{ NOP , NOP , NOP }, //0x3
 	{ NOP , NOP , NOP }, //0x4
-	{ NOP , NOP , NOP }, //0x5
+	{ ZP , ORA , NOP }, //0x5
 	{ ZP , ASL , NOP }, //0x6
 	{ NOP , NOP , NOP }, //0x7
-	{ NOP , NOP , NOP }, //0x8
-	{ NOP , NOP , NOP }, //0x9
+	{ IMP , PHP , NOP }, //0x8
+	{ IMM , ORA , NOP }, //0x9
 	{ ACC , ASL , NOP }, //0xa
 	{ NOP , NOP , NOP }, //0xb
 	{ NOP , NOP , NOP }, //0xc
-	{ NOP , NOP , NOP }, //0xd
+	{ ABS , ORA , NOP }, //0xd
 	{ ABS , ASL , NOP }, //0xe
 	{ NOP , NOP , NOP }, //0xf
-	{ NOP , NOP , NOP }, //0x10
-	{ NOP , NOP , NOP }, //0x11
+	{ REL , BPL , NOP }, //0x10
+	{ IIY , ORA , NOP }, //0x11
 	{ NOP , NOP , NOP }, //0x12
 	{ NOP , NOP , NOP }, //0x13
 	{ NOP , NOP , NOP }, //0x14
-	{ NOP , NOP , NOP }, //0x15
+	{ ZPX , ORA , NOP }, //0x15
 	{ ZPX , ASL , NOP }, //0x16
 	{ NOP , NOP , NOP }, //0x17
-	{ NOP , NOP , NOP }, //0x18
-	{ NOP , NOP , NOP }, //0x19
+	{ IMP , CLC , NOP }, //0x18
+	{ ABY , ORA , NOP }, //0x19
 	{ NOP , NOP , NOP }, //0x1a
 	{ NOP , NOP , NOP }, //0x1b
 	{ NOP , NOP , NOP }, //0x1c
-	{ NOP , NOP , NOP }, //0x1d
+	{ ABX , ORA , NOP }, //0x1d
 	{ ABX , ASL , NOP }, //0x1e
 	{ NOP , NOP , NOP }, //0x1f
-	{ NOP , NOP , NOP }, //0x20
+	{ ABS , JSR , NOP }, //0x20
 	{ IIX , AND , NOP }, //0x21
 	{ NOP , NOP , NOP }, //0x22
 	{ NOP , NOP , NOP }, //0x23
-	{ NOP , NOP , NOP }, //0x24
+	{ ZP , BIT , NOP }, //0x24
 	{ ZP , AND , NOP }, //0x25
-	{ NOP , NOP , NOP }, //0x26
+	{ ZP , ROL , NOP }, //0x26
 	{ NOP , NOP , NOP }, //0x27
-	{ NOP , NOP , NOP }, //0x28
+	{ IMP , PLP , NOP }, //0x28
 	{ IMM , AND , NOP }, //0x29
-	{ NOP , NOP , NOP }, //0x2a
+	{ ACC , ROL , NOP }, //0x2a
 	{ NOP , NOP , NOP }, //0x2b
-	{ NOP , NOP , NOP }, //0x2c
+	{ ABS , BIT , NOP }, //0x2c
 	{ ABS , AND , NOP }, //0x2d
-	{ NOP , NOP , NOP }, //0x2e
+	{ ABS , ROL , NOP }, //0x2e
 	{ NOP , NOP , NOP }, //0x2f
-	{ NOP , NOP , NOP }, //0x30
+	{ REL , BMI , NOP }, //0x30
 	{ IIY , AND , NOP }, //0x31
 	{ NOP , NOP , NOP }, //0x32
 	{ NOP , NOP , NOP }, //0x33
 	{ NOP , NOP , NOP }, //0x34
 	{ ZPX , AND , NOP }, //0x35
-	{ NOP , NOP , NOP }, //0x36
+	{ ZPX , ROL , NOP }, //0x36
 	{ NOP , NOP , NOP }, //0x37
-	{ NOP , NOP , NOP }, //0x38
+	{ IMP , SEC , NOP }, //0x38
 	{ ABY , AND , NOP }, //0x39
 	{ NOP , NOP , NOP }, //0x3a
 	{ NOP , NOP , NOP }, //0x3b
 	{ NOP , NOP , NOP }, //0x3c
 	{ ABX , AND , NOP }, //0x3d
-	{ NOP , NOP , NOP }, //0x3e
+	{ ABX , ROL , NOP }, //0x3e
 	{ NOP , NOP , NOP }, //0x3f
-	{ NOP , NOP , NOP }, //0x40
-	{ NOP , NOP , NOP }, //0x41
+	{ ABS , EOR , NOP }, //0x40
+	{ IIX , EOR , NOP }, //0x41
 	{ NOP , NOP , NOP }, //0x42
 	{ NOP , NOP , NOP }, //0x43
 	{ NOP , NOP , NOP }, //0x44
-	{ NOP , NOP , NOP }, //0x45
-	{ NOP , NOP , NOP }, //0x46
+	{ ZP , EOR , NOP }, //0x45
+	{ ZP , LSR , NOP }, //0x46
 	{ NOP , NOP , NOP }, //0x47
-	{ NOP , NOP , NOP }, //0x48
-	{ NOP , NOP , NOP }, //0x49
-	{ NOP , NOP , NOP }, //0x4a
+	{ IMP , PHA , NOP }, //0x48
+	{ IMM , EOR , NOP }, //0x49
+	{ ACC , LSR , NOP }, //0x4a
 	{ NOP , NOP , NOP }, //0x4b
-	{ NOP , NOP , NOP }, //0x4c
-	{ NOP , NOP , NOP }, //0x4d
-	{ NOP , NOP , NOP }, //0x4e
+	{ ABS , JMP , NOP }, //0x4c
+	{ IMP , RTI , NOP }, //0x4d
+	{ ABS , LSR , NOP }, //0x4e
 	{ NOP , NOP , NOP }, //0x4f
-	{ NOP , NOP , NOP }, //0x50
-	{ NOP , NOP , NOP }, //0x51
+	{ ABX , EOR , NOP }, //0x50
+	{ IIY , EOR , NOP }, //0x51
 	{ NOP , NOP , NOP }, //0x52
 	{ NOP , NOP , NOP }, //0x53
 	{ NOP , NOP , NOP }, //0x54
-	{ NOP , NOP , NOP }, //0x55
-	{ NOP , NOP , NOP }, //0x56
+	{ ZPX , EOR , NOP }, //0x55
+	{ ZPX , LSR , NOP }, //0x56
 	{ NOP , NOP , NOP }, //0x57
-	{ NOP , NOP , NOP }, //0x58
-	{ NOP , NOP , NOP }, //0x59
+	{ IMP , CLI , NOP }, //0x58
+	{ ABY , EOR , NOP }, //0x59
 	{ NOP , NOP , NOP }, //0x5a
 	{ NOP , NOP , NOP }, //0x5b
 	{ NOP , NOP , NOP }, //0x5c
 	{ NOP , NOP , NOP }, //0x5d
-	{ NOP , NOP , NOP }, //0x5e
+	{ ABX , LSR , NOP }, //0x5e
 	{ NOP , NOP , NOP }, //0x5f
-	{ ABS , ADC , NOP }, //0x60
+	{ IMP , RTS , NOP }, //0x60
 	{ IIX , ADC , NOP }, //0x61
 	{ NOP , NOP , NOP }, //0x62
 	{ NOP , NOP , NOP }, //0x63
 	{ NOP , NOP , NOP }, //0x64
 	{ ZP , ADC , NOP }, //0x65
-	{ NOP , NOP , NOP }, //0x66
+	{ ZP , ROR , NOP }, //0x66
 	{ NOP , NOP , NOP }, //0x67
-	{ NOP , NOP , NOP }, //0x68
+	{ IMP , PLA , NOP }, //0x68
 	{ IMM , ADC , NOP }, //0x69
-	{ NOP , NOP , NOP }, //0x6a
+	{ ACC , ROR , NOP }, //0x6a
 	{ NOP , NOP , NOP }, //0x6b
-	{ NOP , NOP , NOP }, //0x6c
+	{ IND , JMP , NOP }, //0x6c
 	{ NOP , NOP , NOP }, //0x6d
-	{ NOP , NOP , NOP }, //0x6e
+	{ ABS , ROR , NOP }, //0x6e
 	{ NOP , NOP , NOP }, //0x6f
-	{ ABX , ADC , NOP }, //0x70
+	{ REL , BVS , NOP }, //0x70
 	{ IIY , ADC , NOP }, //0x71
 	{ NOP , NOP , NOP }, //0x72
 	{ NOP , NOP , NOP }, //0x73
 	{ NOP , NOP , NOP }, //0x74
 	{ ZPX , ADC , NOP }, //0x75
-	{ NOP , NOP , NOP }, //0x76
+	{ ZPX , ROR , NOP }, //0x76
 	{ NOP , NOP , NOP }, //0x77
-	{ NOP , NOP , NOP }, //0x78
+	{ IMP , SEI , NOP }, //0x78
 	{ ABY , ADC , NOP }, //0x79
 	{ NOP , NOP , NOP }, //0x7a
 	{ NOP , NOP , NOP }, //0x7b
 	{ NOP , NOP , NOP }, //0x7c
 	{ NOP , NOP , NOP }, //0x7d
-	{ NOP , NOP , NOP }, //0x7e
+	{ ABX , ROR , NOP }, //0x7e
 	{ NOP , NOP , NOP }, //0x7f
 	{ NOP , NOP , NOP }, //0x80
 	{ NOP , NOP , NOP }, //0x81
@@ -159,99 +159,100 @@ const InstructionPack const Table[] = {
 	{ NOP , NOP , NOP }, //0x9d
 	{ NOP , NOP , NOP }, //0x9e
 	{ NOP , NOP , NOP }, //0x9f
-	{ NOP , NOP , NOP }, //0xa0
-	{ NOP , NOP , NOP }, //0xa1
-	{ NOP , NOP , NOP }, //0xa2
+	{ IMM , LDY , NOP }, //0xa0
+	{ IIX , LDA , NOP }, //0xa1
+	{ IMM , LDX , NOP }, //0xa2
 	{ NOP , NOP , NOP }, //0xa3
-	{ NOP , NOP , NOP }, //0xa4
-	{ NOP , NOP , NOP }, //0xa5
-	{ NOP , NOP , NOP }, //0xa6
+	{ ZP , LDY , NOP }, //0xa4
+	{ ZP , LDA , NOP }, //0xa5
+	{ ZP , LDX , NOP }, //0xa6
 	{ NOP , NOP , NOP }, //0xa7
 	{ NOP , NOP , NOP }, //0xa8
-	{ NOP , NOP , NOP }, //0xa9
+	{ IMM , LDA , NOP }, //0xa9
 	{ NOP , NOP , NOP }, //0xaa
 	{ NOP , NOP , NOP }, //0xab
-	{ NOP , NOP , NOP }, //0xac
-	{ NOP , NOP , NOP }, //0xad
-	{ NOP , NOP , NOP }, //0xae
+	{ ABS , LDY , NOP }, //0xac
+	{ ABS , LDA , NOP }, //0xad
+	{ ABS , LDX , NOP }, //0xae
 	{ NOP , NOP , NOP }, //0xaf
-	{ NOP , NOP , NOP }, //0xb0
-	{ NOP , NOP , NOP }, //0xb1
+	{ REL , BCS , NOP }, //0xb0
+	{ IIY , LDA , NOP }, //0xb1
 	{ NOP , NOP , NOP }, //0xb2
 	{ NOP , NOP , NOP }, //0xb3
-	{ NOP , NOP , NOP }, //0xb4
-	{ NOP , NOP , NOP }, //0xb5
-	{ NOP , NOP , NOP }, //0xb6
+	{ ZPX , LDY , NOP }, //0xb4
+	{ ZPX , LDA , NOP }, //0xb5
+	{ ZPX , LDX , NOP }, //0xb6
 	{ NOP , NOP , NOP }, //0xb7
-	{ NOP , NOP , NOP }, //0xb8
-	{ NOP , NOP , NOP }, //0xb9
+	{ IMP , CLV , NOP }, //0xb8
+	{ ABY , LDA , NOP }, //0xb9
 	{ NOP , NOP , NOP }, //0xba
 	{ NOP , NOP , NOP }, //0xbb
-	{ NOP , NOP , NOP }, //0xbc
-	{ NOP , NOP , NOP }, //0xbd
-	{ NOP , NOP , NOP }, //0xbe
+	{ ABX , LDY , NOP }, //0xbc
+	{ ABX , LDA , NOP }, //0xbd
+	{ ABY , LDX , NOP }, //0xbe
 	{ NOP , NOP , NOP }, //0xbf
-	{ NOP , NOP , NOP }, //0xc0
-	{ NOP , NOP , NOP }, //0xc1
+	{ IMM , CPY , NOP }, //0xc0
+	{ IIX , CMP , NOP }, //0xc1
 	{ NOP , NOP , NOP }, //0xc2
 	{ NOP , NOP , NOP }, //0xc3
-	{ NOP , NOP , NOP }, //0xc4
-	{ NOP , NOP , NOP }, //0xc5
-	{ NOP , NOP , NOP }, //0xc6
+	{ ZP , CPY , NOP }, //0xc4
+	{ ZP , CMP , NOP }, //0xc5
+	{ ZP , DEC , NOP }, //0xc6
 	{ NOP , NOP , NOP }, //0xc7
-	{ NOP , NOP , NOP }, //0xc8
-	{ NOP , NOP , NOP }, //0xc9
-	{ NOP , NOP , NOP }, //0xca
+	{ IMP , INY , NOP }, //0xc8
+	{ IMM , CMP , NOP }, //0xc9
+	{ IMP , DEX , NOP }, //0xca
 	{ NOP , NOP , NOP }, //0xcb
-	{ NOP , NOP , NOP }, //0xcc
-	{ NOP , NOP , NOP }, //0xcd
-	{ NOP , NOP , NOP }, //0xce
+	{ ABS , CPY , NOP }, //0xcc
+	{ ABS , CMP , NOP }, //0xcd
+	{ ABS , DEC , NOP }, //0xce
 	{ NOP , NOP , NOP }, //0xcf
-	{ NOP , NOP , NOP }, //0xd0
-	{ NOP , NOP , NOP }, //0xd1
+	{ REL , BNE , NOP }, //0xd0
+	{ IIY , CMP , NOP }, //0xd1
 	{ NOP , NOP , NOP }, //0xd2
-	{ NOP , NOP , NOP }, //0xd3
+	{ ABX , DEC , NOP }, //0xd3
 	{ NOP , NOP , NOP }, //0xd4
-	{ NOP , NOP , NOP }, //0xd5
-	{ NOP , NOP , NOP }, //0xd6
+	{ ZPX , CMP , NOP }, //0xd5
+	{ ZPX , DEC , NOP }, //0xd6
 	{ NOP , NOP , NOP }, //0xd7
-	{ NOP , NOP , NOP }, //0xd8
-	{ NOP , NOP , NOP }, //0xd9
+	{ IMP , CLD , NOP }, //0xd8
+	{ ABY , CMP , NOP }, //0xd9
 	{ NOP , NOP , NOP }, //0xda
 	{ NOP , NOP , NOP }, //0xdb
 	{ NOP , NOP , NOP }, //0xdc
-	{ NOP , NOP , NOP }, //0xdd
+	{ ABX , CMP , NOP }, //0xdd
 	{ NOP , NOP , NOP }, //0xde
 	{ NOP , NOP , NOP }, //0xdf
-	{ NOP , NOP , NOP }, //0xe0
-	{ NOP , NOP , NOP }, //0xe1
+	{ IMM , CPX , NOP }, //0xe0
+	{ IIX , SBC , NOP }, //0xe1
 	{ NOP , NOP , NOP }, //0xe2
 	{ NOP , NOP , NOP }, //0xe3
-	{ NOP , NOP , NOP }, //0xe4
-	{ NOP , NOP , NOP }, //0xe5
-	{ NOP , NOP , NOP }, //0xe6
+	{ ZP , CPX , NOP }, //0xe4
+	{ ZP , SBC , NOP }, //0xe5
+	{ ZP , INC , NOP }, //0xe6
 	{ NOP , NOP , NOP }, //0xe7
-	{ NOP , NOP , NOP }, //0xe8
-	{ NOP , NOP , NOP }, //0xe9
+	{ IMP , INX , NOP }, //0xe8
+	{ IMM , SBC , NOP }, //0xe9
 	{ NOP , NOP , NOP }, //0xea
 	{ NOP , NOP , NOP }, //0xeb
-	{ NOP , NOP , NOP }, //0xec
-	{ NOP , NOP , NOP }, //0xed
-	{ NOP , NOP , NOP }, //0xee
+	{ ABS , CPX , NOP }, //0xec
+	{ ABS , SBC , NOP }, //0xed
+	{ ABS , INC , NOP }, //0xee
 	{ NOP , NOP , NOP }, //0xef
-	{ NOP , NOP , NOP }, //0xf0
-	{ NOP , NOP , NOP }, //0xf1
+	{ REL , BEQ , NOP }, //0xf0
+	{ IIY , SBC , NOP }, //0xf1
 	{ NOP , NOP , NOP }, //0xf2
 	{ NOP , NOP , NOP }, //0xf3
 	{ NOP , NOP , NOP }, //0xf4
-	{ NOP , NOP , NOP }, //0xf5
-	{ NOP , NOP , NOP }, //0xf6
+	{ ZPX , SBC , NOP }, //0xf5
+	{ ZPX , INC , NOP }, //0xf6
 	{ NOP , NOP , NOP }, //0xf7
-	{ NOP , NOP , NOP }, //0xf8
-	{ NOP , NOP , NOP }, //0xf9
+	{ IMP , SED , NOP }, //0xf8
+	{ ABY , SBC , NOP }, //0xf9
 	{ NOP , NOP , NOP }, //0xfa
 	{ NOP , NOP , NOP }, //0xfb
 	{ NOP , NOP , NOP }, //0xfc
-	{ NOP , NOP , NOP }, //0xfd
-	{ NOP , NOP , NOP }, //0xfe
+	{ ABX , SBC , NOP }, //0xfd
+	{ ABX , INC , NOP }, //0xfe
+	{ IMP , DEY , NOP }, //0xc88
 };
