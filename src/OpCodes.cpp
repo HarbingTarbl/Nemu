@@ -130,7 +130,10 @@ namespace InstructionTable
 
 	void DEC(CPU& cpu)
 	{
-
+		const int8_t r = cpu.State.Arg8[0]--;
+		cpu.State.Arg8[0] = r;
+		cpu.State.SignFlag = r & 0x80;
+		cpu.State.ZeroFlag = r == 0;
 	}
 
 	void DEX(CPU& cpu)
