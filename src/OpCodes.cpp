@@ -130,42 +130,60 @@ namespace InstructionTable
 
 	void DEC(CPU& cpu)
 	{
-		const int8_t r = cpu.State.Arg8[0]--;
-		cpu.State.Arg8[0] = r;
+		const int8_t r = cpu.State.Arg8[0] - 1;
 		cpu.State.SignFlag = r & 0x80;
 		cpu.State.ZeroFlag = r == 0;
+		cpu.Bus.Write(cpu.State.EffectiveAddr, r);
 	}
 
 	void DEX(CPU& cpu)
 	{
-
+		const int8_t r = cpu.State.X - 1;
+		cpu.State.SignFlag = r & 0x80;
+		cpu.State.ZeroFlag = r == 0;
+		cpu.Bus.Write(cpu.State.X, r);
 	}
 
 	void DEY(CPU& cpu)
 	{
-
+		const int8_t r = cpu.State.Y - 1;
+		cpu.State.SignFlag = r & 0x80;
+		cpu.State.ZeroFlag = r == 0;
+		cpu.Bus.Write(cpu.State.Y, r);
 	}
 
 
 	void EOR(CPU& cpu)
 	{
-
+		const int8_t r = cpu.State.A ^ cpu.State.Arg8[0];
+		cpu.State.SignFlag = r & 0x80;
+		cpu.State.ZeroFlag = r == 0;
+		cpu.Bus.Write(cpu.State.A, r);
 	}
 
 
 	void INC(CPU& cpu)
 	{
-
+		const int8_t r = cpu.State.Arg8[0] + 1;
+		cpu.State.SignFlag = r & 0x80;
+		cpu.State.ZeroFlag = r == 0;
+		cpu.Bus.Write(cpu.State.EffectiveAddr, r);
 	}
 
 	void INX(CPU& cpu)
 	{
-
+		const int8_t r = cpu.State.X + 1;
+		cpu.State.SignFlag = r & 0x80;
+		cpu.State.ZeroFlag = r == 0;
+		cpu.Bus.Write(cpu.State.X, r);
 	}
 
 	void INY(CPU& cpu)
 	{
-
+		const int8_t r = cpu.State.Y + 1;
+		cpu.State.SignFlag = r & 0x80;
+		cpu.State.ZeroFlag = r == 0;
+		cpu.Bus.Write(cpu.State.Y, r);
 	}
 
 
@@ -182,17 +200,26 @@ namespace InstructionTable
 
 	void LDA(CPU& cpu)
 	{
-
+		const int8_t r = cpu.State.Arg8[0];
+		cpu.State.SignFlag = r & 0x80;
+		cpu.State.ZeroFlag = r == 0;
+		cpu.Bus.Write(cpu.State.A, r);
 	}
 
 	void LDX(CPU& cpu)
 	{
-
+		const int8_t r = cpu.State.Arg8[0];
+		cpu.State.SignFlag = r & 0x80;
+		cpu.State.ZeroFlag = r == 0;
+		cpu.Bus.Write(cpu.State.X, r);
 	}
 
 	void LDY(CPU& cpu)
 	{
-
+		const int8_t r = cpu.State.Arg8[0];
+		cpu.State.SignFlag = r & 0x80;
+		cpu.State.ZeroFlag = r == 0;
+		cpu.Bus.Write(cpu.State.Y, r);
 	}
 
 	void LSR(CPU& cpu)
