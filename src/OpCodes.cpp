@@ -131,6 +131,10 @@ namespace InstructionTable
 	void DEC(CPU& cpu)
 	{
 		const int8_t r = cpu.State.Arg8[0] - 1;
+<<<<<<< HEAD
+=======
+		cpu.State.Arg8[0] = r;
+>>>>>>> e45a2a6bb5fffec7c4475b05f659393b35d2331c
 		cpu.State.SignFlag = r & 0x80;
 		cpu.State.ZeroFlag = r == 0;
 		cpu.Bus.Write(cpu.State.EffectiveAddr, r);
@@ -284,68 +288,85 @@ namespace InstructionTable
 
 	void SBC(CPU& cpu)
 	{
+		const unsigned r = cpu.State.A - cpu.State.Arg8[0] - (cpu.State.CarryFlag ? 0 : 1);
+		cpu.State.SignFlag = r & 0x80;
+		cpu.State.ZeroFlag = r == 0;
+		cpu.State.OverflowFlag = 
+			(cpu.State.A ^ r) & (cpu.State.A ^ cpu.State.Arg8[0]) & 0x80;
+
+
+
 
 	}
 
 	void SEC(CPU& cpu)
 	{
-
+		cpu.State.CarryFlag = 1;
 	}
 
 	void SED(CPU& cpu)
 	{
-
+		cpu.State.DecimalFlag = 1;
 	}
 
 	void SEI(CPU& cpu)
 	{
-
+		cpu.State.InterruptFlag = 1;
 	}
 
 	void STA(CPU& cpu)
 	{
-
+		cpu.Bus.Write(cpu.State.EffectiveAddr, cpu.State.A);
 	}
 
 	void STX(CPU& cpu)
 	{
-
+		cpu.Bus.Write(cpu.State.EffectiveAddr, cpu.State.X);
 	}
 
 	void STY(CPU& cpu)
 	{
-
+		cpu.Bus.Write(cpu.State.EffectiveAddr, cpu.State.Y);
 	}
-
 
 	void TAX(CPU& cpu)
 	{
-
+		cpu.State.ZeroFlag = cpu.State.A == 0;
+		cpu.State.SignFlag = cpu.State.A & 0x80;
+		cpu.State.X = cpu.State.A;
 	}
-
+	
 	void TAY(CPU& cpu)
 	{
-
+		cpu.State.ZeroFlag = cpu.State.A == 0;
+		cpu.State.SignFlag = cpu.State.A & 0x80;
+		cpu.State.Y = cpu.State.A;
 	}
 
 	void TSX(CPU& cpu)
 	{
-
+		cpu.State.ZeroFlag = cpu.State.SP == 0;
+		cpu.State.SignFlag = cpu.State.SP & 0x80;
+		cpu.State.X = cpu.State.SP;
 	}
 
 	void TXA(CPU& cpu)
 	{
-
+		cpu.State.ZeroFlag = cpu.State.X == 0;
+		cpu.State.SignFlag = cpu.State.X & 0x80;
+		cpu.State.A = cpu.State.X;
 	}
 
 	void TXS(CPU& cpu)
 	{
-
+		cpu.State.SP = cpu.State.X;
 	}
 
 	void TYA(CPU& cpu)
 	{
-
+		cpu.State.ZeroFlag = cpu.State.Y == 0;
+		cpu.State.SignFlag = cpu.State.Y & 0x80;
+		cpu.State.A = cpu.State.Y;
 	}
 
 };
