@@ -9,20 +9,30 @@ namespace InstructionTable
 
 namespace InstructionTable
 {
+	const InstructionPack* GetInstruction(uint8_t opcode)
+	{
+		return Table + opcode;
+	}
+
 	void ADC(CPU& cpu)
 	{
-		int8_t r = cpu.State.A + (int8_t)cpu.State.Arg8[0] + cpu.State.CarryFlag;
-		cpu.State.OverflowFlag = (r  ^ cpu.State.A) & (r ^ cpu.State.Arg8[0]) & 0x80;
-		cpu.State.ZeroFlag = r == 0;
-		cpu.State.SignFlag = r & 0x80;
-		cpu.State.A = r;
+		unsigned r = cpu.A;
+		r += cpu.Memory[cpu.Addr];
+		r += cpu.CarryFlag;
+	
+		cpu.CarryFlag = r & 0x100;
+		cpu.ZeroFlag = r == 0;
+		cpu.SignFlag = r & 0x80;
+		cpu.OverflowFlag = (r ^ cpu.A) & 0x80;
+		
+		cpu.A = r;
 	}
 
 	void AND(CPU& cpu)
 	{
-		cpu.State.A &= cpu.State.Arg8[0];
-		cpu.State.ZeroFlag = cpu.State.A == 0;
-		cpu.State.SignFlag = cpu.State.A & 0x80;
+		cpu.A = cpu.A & cpu.Memory[cpu.Addr];
+		cpu.ZeroFlag = cpu.A == 0;
+		cpu.SignFlag = cpu.A & 0x80;
 	}
 
 	void ASL(CPU& cpu)
@@ -33,82 +43,100 @@ namespace InstructionTable
 
 	void BCC(CPU& cpu)
 	{
-		cpu.State.PC += !cpu.State.CarryFlag * cpu.State.Arg8[0];
+		if (!cpu.CarryFlag)
+			cpu.PC += cpu.Memory[cpu.Addr];
 	}
 
 	void BCS(CPU& cpu)
 	{
-		cpu.State.PC += cpu.State.CarryFlag * cpu.State.Arg8[0];
+		if (cpu.CarryFlag)
+			cpu.PC += cpu.Memory[cpu.Addr];
 	}
 
 	void BEQ(CPU& cpu)
 	{
-		cpu.State.PC += cpu.State.ZeroFlag * cpu.State.Arg8[0];
+		if (cpu.ZeroFlag)
+			cpu.PC += cpu.Memory[cpu.Addr];
 	}
 
 	void BIT(CPU& cpu)
 	{
-		
+		unsigned a = cpu.A;
+		unsigned m = cpu.Memory[cpu.Addr];
+		unsigned r = a & m;
+
+		cpu.ZeroFlag = r == 0;
+		cpu.SignFlag = m & 0x80;
+		cpu.OverflowFlag = m & 0x40;
 	}
 
 	void BMI(CPU& cpu)
 	{
-		cpu.State.PC += cpu.State.SignFlag * cpu.State.Arg8[0];
+		if (cpu.SignFlag)
+			cpu.PC += cpu.Memory[cpu.Addr];
 	}
 
 	void BNE(CPU& cpu)
 	{
-		cpu.State.PC += !cpu.State.ZeroFlag * cpu.State.Arg8[0];
+		if (!cpu.ZeroFlag)
+			cpu.PC += cpu.Memory[cpu.Addr];
 	}
 
 	void BPL(CPU& cpu)
 	{
-		cpu.State.PC += !cpu.State.SignFlag * cpu.State.Arg8[0];
+		if (!cpu.CarryFlag)
+			cpu.PC += cpu.Memory[cpu.Addr];
+		cpu.PC += !cpu.SignFlag * cpu.Memory[cpu.Addr];
 	}
 
 	void BRK(CPU& cpu)
 	{
-		cpu.State.InterruptFlag = true;
+		cpu.InterruptFlag = true;
 		///TODO Interrupt Handling, Push
 	}
 
 	void BVC(CPU& cpu)
 	{
-		cpu.State.PC += !cpu.State.OverflowFlag * cpu.State.Arg8[0];
+		if (!cpu.OverflowFlag)
+			cpu.PC += cpu.Memory[cpu.Addr];
 	}
 
 	void BVS(CPU& cpu)
 	{
-		cpu.State.PC += cpu.State.OverflowFlag * cpu.State.Arg8[0];
+		if (cpu.OverflowFlag)
+			cpu.PC += cpu.Memory[cpu.Addr];
 	}
 
 
 	void CLC(CPU& cpu)
 	{
-		cpu.State.CarryFlag = false;
+		cpu.CarryFlag = false;
 	}
 
 	void CLD(CPU& cpu)
 	{
-		cpu.State.DecimalFlag = false;
+		cpu.DecimalFlag = false;
 	}
 
 	void CLI(CPU& cpu)
 	{
-		cpu.State.InterruptFlag = false;
+		cpu.InterruptFlag = false;
 	}
 
 	void CLV(CPU& cpu)
 	{
-		cpu.State.OverflowFlag = false;
+		cpu.OverflowFlag = false;
 	}
 
 	void CMP(CPU& cpu)
 	{
-		const int8_t r = cpu.State.A - cpu.State.Arg8[0];
-		cpu.State.SignFlag = r & 0x80;
-		cpu.State.ZeroFlag = r == 0;
-		cpu.State.CarryFlag = cpu.State.A >= cpu.State.Arg8[0];
+		unsigned a = cpu.A;
+		unsigned m = cpu.Memory[cpu.Addr];
+		unsigned r = a - m;
+
+		cpu.SignFlag = r & 0x80;
+		cpu.ZeroFlag = r == 0;
+		cpu.CarryFlag = m <= a;
 	}
 
 	void CPX(CPU& cpu)
@@ -152,15 +180,12 @@ namespace InstructionTable
 		cpu.Bus.Write(cpu.State.Y, r);
 	}
 
-
 	void EOR(CPU& cpu)
 	{
-		const int8_t r = cpu.State.A ^ cpu.State.Arg8[0];
-		cpu.State.SignFlag = r & 0x80;
-		cpu.State.ZeroFlag = r == 0;
-		cpu.Bus.Write(cpu.State.A, r);
+		cpu.A = cpu.A ^ cpu.Memory[cpu.Addr];
+		cpu.ZeroFlag = cpu.A == 0;
+		cpu.SignFlag = cpu.A & 0x80;
 	}
-
 
 	void INC(CPU& cpu)
 	{
@@ -189,7 +214,7 @@ namespace InstructionTable
 
 	void JMP(CPU& cpu)
 	{
-
+		cpu.PC = cpu.Memory[cpu.Addr] | cpu.Memory[cpu.Addr + 1] << 8;
 	}
 
 	void JSR(CPU& cpu)
@@ -200,10 +225,9 @@ namespace InstructionTable
 
 	void LDA(CPU& cpu)
 	{
-		const int8_t r = cpu.State.Arg8[0];
-		cpu.State.SignFlag = r & 0x80;
-		cpu.State.ZeroFlag = r == 0;
-		cpu.Bus.Write(cpu.State.A, r);
+		cpu.A = cpu.Memory[cpu.Addr];
+		cpu.SignFlag = cpu.A & 0x80;
+		cpu.ZeroFlag = cpu.A == 0;
 	}
 
 	void LDX(CPU& cpu)
@@ -236,7 +260,9 @@ namespace InstructionTable
 
 	void ORA(CPU& cpu)
 	{
-
+		cpu.A = cpu.A | cpu.Memory[cpu.Addr];
+		cpu.ZeroFlag = cpu.A == 0;
+		cpu.SignFlag = cpu.A & 0x80;
 	}
 
 
@@ -284,15 +310,16 @@ namespace InstructionTable
 
 	void SBC(CPU& cpu)
 	{
-		const unsigned r = cpu.State.A - cpu.State.Arg8[0] - (cpu.State.CarryFlag ? 0 : 1);
-		cpu.State.SignFlag = r & 0x80;
-		cpu.State.ZeroFlag = r == 0;
-		cpu.State.OverflowFlag = 
-			(cpu.State.A ^ r) & (cpu.State.A ^ cpu.State.Arg8[0]) & 0x80;
+		unsigned r = cpu.A;
+		r -= cpu.Memory[cpu.Addr];
+		r -= cpu.CarryFlag;
 
+		cpu.CarryFlag = r >= 0;
+		cpu.ZeroFlag = r == 0;
+		cpu.SignFlag = r & 0x80;
+		cpu.OverflowFlag = r & 0x100;
 
-
-
+		cpu.A = r;
 	}
 
 	void SEC(CPU& cpu)
@@ -312,7 +339,7 @@ namespace InstructionTable
 
 	void STA(CPU& cpu)
 	{
-		cpu.Bus.Write(cpu.State.EffectiveAddr, cpu.State.A);
+		cpu.Memory[cpu.Addr] = cpu.A;
 	}
 
 	void STX(CPU& cpu)
@@ -371,114 +398,79 @@ namespace AddressingModes
 {
 	void ZP(CPU& cpu)
 	{
-		cpu.State.EffectiveAddr = cpu.Bus.Read(cpu.State.PC + 1);
-		cpu.State.Arg8[0] = cpu.Bus.Read(cpu.State.EffectiveAddr);
-		cpu.State.PC+= 2;
+		cpu.Addr = cpu.Memory[cpu.PC++];
 	}
 
 	void ZPX(CPU& cpu)
 	{
-		cpu.State.EffectiveAddr = 
-			(cpu.State.X + cpu.Bus.Read(cpu.State.PC + 1)) & 0x00FF;
-		cpu.State.Arg8[0] = cpu.Bus.Read(cpu.State.EffectiveAddr);
-		cpu.State.PC += 2;
+		cpu.Addr = (cpu.X + cpu.Memory[cpu.PC++]) & 0x00FF;
 	}
 
 	void ZPY(CPU& cpu)
 	{
-		cpu.State.EffectiveAddr = 
-			(cpu.State.Y + cpu.Bus.Read(cpu.State.PC + 1)) & 0x00FF;
-		cpu.State.Arg8[0] = cpu.Bus.Read(cpu.State.EffectiveAddr);
-		cpu.State.PC += 2;
+		cpu.Addr = (cpu.Y + cpu.Memory[cpu.PC++]) & 0xFF;
 	}
 
 	void ABS(CPU& cpu)
 	{
-		cpu.State.EffectiveAddr =
-			(cpu.Bus.Read(cpu.State.PC + 1) | cpu.Bus.Read(cpu.State.PC + 2) << 8);
-		cpu.State.Arg8[0] = cpu.Bus.Read(cpu.State.EffectiveAddr);
-
-		cpu.State.PC += 3;
+		cpu.Addr = (cpu.Memory[cpu.PC] | cpu.Memory[cpu.PC + 1] << 8);
+		cpu.PC += 2;
 	}
 
 	void ABX(CPU& cpu)
 	{
-		cpu.State.EffectiveAddr = 
-			(cpu.State.X + (cpu.Bus.Read(cpu.State.PC + 1) | cpu.Bus.Read(cpu.State.PC + 2) << 8 ));
-		cpu.State.Arg8[0] = cpu.Bus.Read(cpu.State.EffectiveAddr);
-
-		cpu.State.PC += 3;
+		cpu.Addr = (cpu.X + (cpu.Memory[cpu.PC] | cpu.Memory[cpu.PC + 1] << 8));
+		cpu.PC += 2;
 	}
 
 	void ABY(CPU& cpu)
 	{
-		cpu.State.EffectiveAddr = 
-			(cpu.State.Y + (cpu.Bus.Read(cpu.State.PC + 1) | cpu.Bus.Read(cpu.State.PC + 2) << 8 ));
-		cpu.State.Arg8[0] = cpu.Bus.Read(cpu.State.EffectiveAddr);
-
-		cpu.State.PC += 3;
+		cpu.Addr = (cpu.Y + (cpu.Memory[cpu.PC] | cpu.Memory[cpu.PC + 1] << 8));
+		cpu.PC += 2;
 	}
 
 	void IND(CPU& cpu)
 	{
-		cpu.State.EffectiveAddr = 
-			(cpu.Bus.Read(cpu.State.PC + 1) | cpu.Bus.Read(cpu.State.PC + 2) << 8);
-
-		cpu.State.EffectiveAddr = 
-			(cpu.Bus.Read(cpu.State.EffectiveAddr) | cpu.Bus.Read(cpu.State.EffectiveAddr + 1) << 8);
-
-		cpu.State.Arg8[0] = cpu.Bus.Read(cpu.State.EffectiveAddr);
-		cpu.State.PC += 3;
+		cpu.Addr = (cpu.Memory[cpu.PC] | cpu.Memory[cpu.PC + 1] << 8);
+		cpu.Addr = (cpu.Memory[cpu.Addr] | cpu.Memory[cpu.Addr + 1] << 8);
+		cpu.PC += 2;
 	}
 
 	void IMP(CPU& cpu) 
 	{
-		cpu.State.PC++;
+		//NOP?
 	}
 
 	void ACC(CPU& cpu)
 	{
-		cpu.State.Arg8[0] = cpu.State.A;
-		cpu.State.PC++;
+		cpu.Addr = VMemory::Accum;
 	}
 
 	void IMM(CPU& cpu)
 	{
-		cpu.State.EffectiveAddr = cpu.State.PC + 1;
-		cpu.State.Arg8[0] = cpu.Bus.Read(cpu.State.EffectiveAddr);
-
-		cpu.State.PC += 2;
+		cpu.Addr = cpu.PC++;
 	}
 
 	void REL(CPU& cpu)
 	{
-		cpu.State.EffectiveAddr = cpu.State.PC + 1;
-		cpu.State.PC += 2;
-		cpu.State.Arg8[0] = cpu.State.PC + (int8_t)cpu.Bus.Read(cpu.State.EffectiveAddr);
+		cpu.Addr = cpu.PC + cpu.Memory[cpu.PC];
+		cpu.PC += 1;
 	}
 
 	void IIX(CPU& cpu)
 	{
-		cpu.State.EffectiveAddr = cpu.State.PC + 1;
-		cpu.State.EffectiveAddr = cpu.Bus.Read(cpu.State.EffectiveAddr);
-		cpu.State.EffectiveAddr += cpu.State.X;
-		cpu.State.EffectiveAddr = 
-			(cpu.Bus.Read(cpu.State.EffectiveAddr) | cpu.Bus.Read(cpu.State.EffectiveAddr + 1) << 8);
-
-		cpu.State.Arg8[0] = cpu.Bus.Read(cpu.State.EffectiveAddr);
-		cpu.State.PC += 2;
+		cpu.Addr = cpu.Memory[cpu.PC];
+		cpu.Addr += cpu.X;
+		cpu.Addr = cpu.Memory[cpu.Addr] | cpu.Memory[cpu.Addr + 1] << 8;
+		cpu.PC += 1;
 	}
 
 	void IIY(CPU& cpu)
 	{
-		cpu.State.EffectiveAddr = cpu.State.PC + 1;
-		cpu.State.EffectiveAddr = cpu.Bus.Read(cpu.State.EffectiveAddr);
-		cpu.State.EffectiveAddr = 
-			(cpu.Bus.Read(cpu.State.EffectiveAddr) | cpu.Bus.Read(cpu.State.EffectiveAddr + 1) << 8)
-			+ cpu.State.Y;
-
-		cpu.State.Arg8[0] = cpu.Bus.Read(cpu.State.EffectiveAddr);
-		cpu.State.PC += 2;
+		cpu.Addr = cpu.Memory[cpu.PC];
+		cpu.Addr = (cpu.Memory[cpu.Addr] | cpu.Memory[cpu.Addr + 1] << 8);
+		cpu.Addr += cpu.Y;
+		cpu.PC += 1;
 	}
 };
 

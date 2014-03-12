@@ -1,13 +1,15 @@
-#include "VirtualMemory.hpp"
+#include "VMemory.hpp"
+#include "6502.hpp"
 #include <iostream>
 
 int main(int argc, const char* args[])
 {
 	using namespace std;
-
+	
+	
 	///This be the unit test to make sure the entire range is addressable.
-	Bus::VMemory Mem1;
-	Bus::VMemory Mem2;
+	VMemory Mem1;
+	VMemory Mem2;
 
 	for(int i = 0; i <= 0xFFFF; i++)
 	{
@@ -22,7 +24,7 @@ int main(int argc, const char* args[])
 
 
 	///This be the unit test that tests high/low byte, registers and addressing
-	Bus::VMemory Memory;
+	VMemory Memory;
 	try
 	{
 		Memory.PC = (15) | (124 << 8);
