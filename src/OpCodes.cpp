@@ -1,4 +1,6 @@
 #include "OpCodes.hpp"
+#include "6502.hpp"
+
 #ifndef __INTELLISENSE__
 namespace InstructionTable
 {
@@ -141,43 +143,47 @@ namespace InstructionTable
 
 	void CPX(CPU& cpu)
 	{
-		const int8_t r = cpu.State.X - cpu.State.Arg8[0];
-		cpu.State.SignFlag = r & 0x80;
-		cpu.State.ZeroFlag = r == 0;
-		cpu.State.CarryFlag = cpu.State.X >= cpu.State.Arg8[0];
+		unsigned x = cpu.X;
+		unsigned m = cpu.Memory[cpu.Addr];
+		unsigned r = x - m;
+		
+		cpu.SignFlag = r & 0x80;
+		cpu.ZeroFlag = r == 0;
+		cpu.CarryFlag = r < 0x100;
 	}
 
 	void CPY(CPU& cpu)
 	{
-		const int8_t r = cpu.State.Y - cpu.State.Arg8[0];
-		cpu.State.SignFlag = r & 0x80;
-		cpu.State.ZeroFlag = r == 0;
-		cpu.State.CarryFlag = cpu.State.Y >= cpu.State.Arg8[0];
+		unsigned y = cpu.Y;
+		unsigned m = cpu.Memory[cpu.Addr];
+		unsigned r = y - m;
+
+		cpu.SignFlag = r & 0x80;
+		cpu.ZeroFlag = r == 0;
+		cpu.CarryFlag = r < 0x100;
 	}
 
 
 	void DEC(CPU& cpu)
 	{
-		const int8_t r = cpu.State.Arg8[0] - 1;
-		cpu.State.SignFlag = r & 0x80;
-		cpu.State.ZeroFlag = r == 0;
-		cpu.Bus.Write(cpu.State.EffectiveAddr, r);
+		auto& m = cpu.Memory[cpu.Addr];
+		m--;
+		cpu.ZeroFlag = m == 0;
+		cpu.SignFlag = m & 0x80;
 	}
 
 	void DEX(CPU& cpu)
 	{
-		const int8_t r = cpu.State.X - 1;
-		cpu.State.SignFlag = r & 0x80;
-		cpu.State.ZeroFlag = r == 0;
-		cpu.Bus.Write(cpu.State.X, r);
+		cpu.X -= 1;
+		cpu.SignFlag = cpu.X & 0x80;
+		cpu.ZeroFlag = cpu.X == 0;
 	}
 
 	void DEY(CPU& cpu)
 	{
-		const int8_t r = cpu.State.Y - 1;
-		cpu.State.SignFlag = r & 0x80;
-		cpu.State.ZeroFlag = r == 0;
-		cpu.Bus.Write(cpu.State.Y, r);
+		cpu.Y -= 1;
+		cpu.SignFlag = cpu.X & 0x80;
+		cpu.ZeroFlag = cpu.X == 0;
 	}
 
 	void EOR(CPU& cpu)
@@ -189,26 +195,24 @@ namespace InstructionTable
 
 	void INC(CPU& cpu)
 	{
-		const int8_t r = cpu.State.Arg8[0] + 1;
-		cpu.State.SignFlag = r & 0x80;
-		cpu.State.ZeroFlag = r == 0;
-		cpu.Bus.Write(cpu.State.EffectiveAddr, r);
+		auto& m = cpu.Memory[cpu.Addr];
+		m++;
+		cpu.SignFlag = m & 0x80;
+		cpu.ZeroFlag = m == 0;
 	}
 
 	void INX(CPU& cpu)
 	{
-		const int8_t r = cpu.State.X + 1;
-		cpu.State.SignFlag = r & 0x80;
-		cpu.State.ZeroFlag = r == 0;
-		cpu.Bus.Write(cpu.State.X, r);
+		cpu.X += 1;
+		cpu.SignFlag = cpu.X & 0x80;
+		cpu.ZeroFlag = cpu.X == 0;
 	}
 
 	void INY(CPU& cpu)
 	{
-		const int8_t r = cpu.State.Y + 1;
-		cpu.State.SignFlag = r & 0x80;
-		cpu.State.ZeroFlag = r == 0;
-		cpu.Bus.Write(cpu.State.Y, r);
+		cpu.Y += 1;
+		cpu.SignFlag = cpu.Y & 0x80;
+		cpu.ZeroFlag = cpu.Y == 0;
 	}
 
 
@@ -322,17 +326,17 @@ namespace InstructionTable
 
 	void SEC(CPU& cpu)
 	{
-		cpu.State.CarryFlag = 1;
+		cpu.CarryFlag = 1;
 	}
 
 	void SED(CPU& cpu)
 	{
-		cpu.State.DecimalFlag = 1;
+		cpu.DecimalFlag = 1;
 	}
 
 	void SEI(CPU& cpu)
 	{
-		cpu.State.InterruptFlag = 1;
+		cpu.InterruptFlag = 1;
 	}
 
 	void STA(CPU& cpu)
@@ -342,53 +346,56 @@ namespace InstructionTable
 
 	void STX(CPU& cpu)
 	{
-		cpu.Bus.Write(cpu.State.EffectiveAddr, cpu.State.X);
+		cpu.Memory[cpu.Addr] = cpu.X;
 	}
 
 	void STY(CPU& cpu)
 	{
 		cpu.Memory[cpu.Addr] = cpu.Y;
-		cpu.Bus.Write(cpu.State.EffectiveAddr, cpu.State.Y);
 	}
 
 	void TAX(CPU& cpu)
 	{
-		cpu.State.ZeroFlag = cpu.State.A == 0;
-		cpu.State.SignFlag = cpu.State.A & 0x80;
-		cpu.State.X = cpu.State.A;
+		cpu.X = cpu.A;
+		
+		cpu.ZeroFlag = cpu.A == 0;
+		cpu.SignFlag = cpu.A * 0x80;
 	}
 	
 	void TAY(CPU& cpu)
 	{
-		cpu.State.ZeroFlag = cpu.State.A == 0;
-		cpu.State.SignFlag = cpu.State.A & 0x80;
-		cpu.State.Y = cpu.State.A;
+		cpu.Y = cpu.A;
+
+		cpu.ZeroFlag = cpu.A == 0;
+		cpu.SignFlag = cpu.A * 0x80;
 	}
 
 	void TSX(CPU& cpu)
 	{
-		cpu.State.ZeroFlag = cpu.State.SP == 0;
-		cpu.State.SignFlag = cpu.State.SP & 0x80;
-		cpu.State.X = cpu.State.SP;
+		cpu.ZeroFlag = cpu.SP == 0;
+		cpu.SignFlag = cpu.SP & 0x80;
+		cpu.X = cpu.SP;
 	}
 
 	void TXA(CPU& cpu)
 	{
-		cpu.State.ZeroFlag = cpu.State.X == 0;
-		cpu.State.SignFlag = cpu.State.X & 0x80;
-		cpu.State.A = cpu.State.X;
+		cpu.A = cpu.X;
+
+		cpu.ZeroFlag = cpu.X == 0;
+		cpu.SignFlag = cpu.X * 0x80;
 	}
 
 	void TXS(CPU& cpu)
 	{
-		cpu.State.SP = cpu.State.X;
+		cpu.SP = cpu.X;
 	}
 
 	void TYA(CPU& cpu)
 	{
-		cpu.State.ZeroFlag = cpu.State.Y == 0;
-		cpu.State.SignFlag = cpu.State.Y & 0x80;
-		cpu.State.A = cpu.State.Y;
+		cpu.A = cpu.Y;
+
+		cpu.ZeroFlag = cpu.Y == 0;
+		cpu.SignFlag = cpu.Y * 0x80;
 	}
 
 };

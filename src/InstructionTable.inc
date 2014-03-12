@@ -1,4 +1,4 @@
-const InstructionPack const Table[] = {
+const InstructionPack Table[] = {
 	{ IMP , BRK , NOP }, //0x0
 	{ IIX , ORA , NOP }, //0x1
 	{ NOP , NOP , NOP }, //0x2

@@ -1,7 +1,7 @@
 #pragma once
-#ifndef _OPCODES_HPP_
-#define _OPCODES_HPP_
-#include "6502.hpp"
+#include <cstdint>
+
+class CPU;
 
 namespace InstructionTable
 {
@@ -13,7 +13,9 @@ namespace InstructionTable
 		Callback Post;
 	};
 
-	const extern InstructionPack const Table[256];
+	const extern InstructionPack Table[256];
+
+	const InstructionPack* GetInstruction(uint8_t opcode);
 
 	static void ADC(CPU& cpu);
 	static void AND(CPU& cpu);
@@ -131,4 +133,3 @@ namespace Tables
 
 };
 
-#endif
