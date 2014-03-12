@@ -131,10 +131,6 @@ namespace InstructionTable
 	void DEC(CPU& cpu)
 	{
 		const int8_t r = cpu.State.Arg8[0] - 1;
-<<<<<<< HEAD
-=======
-		cpu.State.Arg8[0] = r;
->>>>>>> e45a2a6bb5fffec7c4475b05f659393b35d2331c
 		cpu.State.SignFlag = r & 0x80;
 		cpu.State.ZeroFlag = r == 0;
 		cpu.Bus.Write(cpu.State.EffectiveAddr, r);
