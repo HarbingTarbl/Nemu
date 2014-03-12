@@ -9,22 +9,20 @@ class VMemory
 public:
 	enum AddrSections
 	{
-		Accum = -8,
+		Accum = -6,
 		StackP,
 		PCLow,
 		PCHigh,
-		XLow,
-		XHigh,
-		YLow,
-		YHigh,
-		VMemBaseAddress = 0,
+		XReg,
+		YReg,
+		VMemBaseAddress,
 		VMemEndAddress = VMemBaseAddress + 0xC807,
 		VRegBaseAddress,
-		VRegEndAddress = VRegBaseAddress + 8
+		VRegEndAddress = VRegBaseAddress - Accum
 	};
 
 private:
-	std::array<uint8_t, 0xC808 + 8> mBytes;
+	std::array<uint8_t, VRegEndAddress> mBytes;
 
 public:
 	inline uint8_t& operator[](int addr)
@@ -53,8 +51,8 @@ public:
 	}
 
 	//Registers
-	uint8_t &A, &SP;
-	uint16_t &X, &Y, &PC;
+	uint8_t &A, &SP, &X, &Y;
+	uint16_t &PC;
 
 	//Vectors!
 	uint16_t &NVMIV, &RV, &IRQV;
@@ -63,9 +61,9 @@ public:
 		:
 		A(at(Accum)),
 		SP(at(StackP)),
+		X(at(XReg)),
+		Y(at(YReg)),
 		PC(*reinterpret_cast<uint16_t*>(&at(PCLow))),
-		X(*reinterpret_cast<uint16_t*>(&at(XLow))),
-		Y(*reinterpret_cast<uint16_t*>(&at(YLow))),
 		NVMIV(*reinterpret_cast<uint16_t*>(&at(0xFFFA))),
 		RV(*reinterpret_cast<uint16_t*>(&at(0xFFFC))),
 		IRQV(*reinterpret_cast<uint16_t*>(&at(0xFFFE)))

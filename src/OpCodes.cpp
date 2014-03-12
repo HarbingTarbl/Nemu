@@ -232,18 +232,16 @@ namespace InstructionTable
 
 	void LDX(CPU& cpu)
 	{
-		const int8_t r = cpu.State.Arg8[0];
-		cpu.State.SignFlag = r & 0x80;
-		cpu.State.ZeroFlag = r == 0;
-		cpu.Bus.Write(cpu.State.X, r);
+		cpu.X = cpu.Memory[cpu.Addr];
+		cpu.ZeroFlag = cpu.X == 0;
+		cpu.SignFlag = cpu.X & 0x80;
 	}
 
 	void LDY(CPU& cpu)
 	{
-		const int8_t r = cpu.State.Arg8[0];
-		cpu.State.SignFlag = r & 0x80;
-		cpu.State.ZeroFlag = r == 0;
-		cpu.Bus.Write(cpu.State.Y, r);
+		cpu.Y = cpu.Memory[cpu.Addr];
+		cpu.ZeroFlag = cpu.Y == 0;
+		cpu.SignFlag = cpu.Y & 0x80;
 	}
 
 	void LSR(CPU& cpu)
@@ -349,6 +347,7 @@ namespace InstructionTable
 
 	void STY(CPU& cpu)
 	{
+		cpu.Memory[cpu.Addr] = cpu.Y;
 		cpu.Bus.Write(cpu.State.EffectiveAddr, cpu.State.Y);
 	}
 

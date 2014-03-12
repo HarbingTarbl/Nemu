@@ -38,8 +38,8 @@ public:
 
 	VMemory& Memory;
 
-	uint8_t &A, &SP;
-	uint16_t &X, &Y, &PC;
+	uint8_t &A, &SP, &X, &Y;
+	uint16_t &PC;
 
 	uint8_t IR;
 	int Addr;
