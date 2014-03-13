@@ -90,9 +90,8 @@ namespace InstructionTable
 
 	void BPL(CPU& cpu)
 	{
-		if (!cpu.CarryFlag)
-			cpu.PC += cpu.Memory[cpu.Addr];
-		cpu.PC += !cpu.SignFlag * cpu.Memory[cpu.Addr];
+		if (!cpu.SignFlag)
+			cpu.PC = cpu.Addr;
 	}
 
 	void BRK(CPU& cpu)
@@ -104,13 +103,13 @@ namespace InstructionTable
 	void BVC(CPU& cpu)
 	{
 		if (!cpu.OverflowFlag)
-			cpu.PC += cpu.Memory[cpu.Addr];
+			cpu.PC = cpu.Addr;
 	}
 
 	void BVS(CPU& cpu)
 	{
 		if (cpu.OverflowFlag)
-			cpu.PC += cpu.Memory[cpu.Addr];
+			cpu.PC = cpu.Addr;
 	}
 
 
@@ -489,7 +488,7 @@ namespace AddressingModes
 
 	void REL(CPU& cpu)
 	{
-		cpu.Addr = cpu.PC + cpu.Memory[cpu.PC];
+		cpu.Addr = cpu.PC + (int8_t)cpu.Memory[cpu.PC] + 1;
 		cpu.PC += 1;
 	}
 

@@ -17,6 +17,8 @@ public:
 		XReg,
 		YReg,
 		VMemBaseAddress,
+		VMemRamStart,
+		VMemRomStart = 0x4020,
 		VMemEndAddress = VMemBaseAddress + 0xC807,
 		VRegBaseAddress,
 		VRegEndAddress = VRegBaseAddress - Accum

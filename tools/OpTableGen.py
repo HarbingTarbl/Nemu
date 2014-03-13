@@ -6,8 +6,8 @@ opcodes = [
         (0x69, "IMM", 2, 2),
         (0x65, "ZP", 2, 3),
         (0x75, "ZPX", 2, 4),
-        (0x60, "ABS", 3, 4),
-        (0x70, "ABX", 3, 4),
+        (0x6D, "ABS", 3, 4),
+        (0x7D, "ABX", 3, 4),
         (0x79, "ABY", 3, 4),
         (0x61, "IIX", 2, 6),
         (0x71, "IIY", 2, 5)
@@ -275,14 +275,13 @@ opcodes = [
     ("SEI", [
         (0x78, "IMP", 1, 2)
         ]
-     )
-    
+     ),    
 # start of will's work
 	("STA", [
 		(0x85, "ZP", 2, 3),
 		(0x95, "ZPX", 2, 4),
-		(0x80, "ABS", 3, 4),
-		(0x90, "ABX", 3, 5),
+		(0x8D, "ABS", 3, 4),
+		(0x9D, "ABX", 3, 5),
 		(0x99, "ABY", 3, 5),
 		(0x81, "IIX", 2, 6),
 		(0x91, "IIY", 2, 6)
@@ -336,7 +335,7 @@ for op in opcodes:
     for version in op[1]:
         table[version[0]] = (op[0], version[1])
 
-fi.write("const InstructionPack const Table[] = {\n")
+fi.write("const InstructionPack Table[] = {\n")
 for k,v in table.iteritems():
     fi.write("\t{ " + v[1] +  " , " + v[0] + " , NOP }, //" + hex(k) + "\n")
 fi.write("};\n")

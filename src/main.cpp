@@ -6,6 +6,42 @@ int main(int argc, const char* args[])
 {
 	using namespace std;
 	
+
+	VMemory TestMemory;
+	TestMemory[0] = 30;
+	TestMemory[1] = 25;
+	TestMemory[2] = -5;
+
+	int addr = VMemory::VMemRomStart;
+	TestMemory.RV = addr;
+
+	TestMemory[addr++] = 0xAD; 
+	TestMemory[addr++] = 0x00;
+	TestMemory[addr++] = 0x00; //LDA Absolute@0x0000
+
+	TestMemory[addr++] = 0x6D;
+	TestMemory[addr++] = 0x01;
+	TestMemory[addr++] = 0x00; //ADC Absolute@0x0001
+
+	TestMemory[addr++] = 0x6D;
+	TestMemory[addr++] = 0x02;
+	TestMemory[addr++] = 0x00; //ADC Absolute@0x0002
+
+	TestMemory[addr++] = 0x8D;
+	TestMemory[addr++] = 0x00;
+	TestMemory[addr++] = 0x00; //STA Absolute@0x0000
+
+	TestMemory[addr++] = 0x90;
+	TestMemory[addr++] = -14; //BCC Relative@VMemRomStart
+
+	TestMemory[addr++] = 0xA2;
+	TestMemory[addr++] = 0x01; //LDX Immidiate@0x01
+
+	CPU TestCPU(TestMemory);
+
+	while(TestCPU.X == 0)
+		TestCPU.Cycle();
+
 	
 	///This be the unit test to make sure the entire range is addressable.
 	VMemory Mem1;
@@ -28,9 +64,9 @@ int main(int argc, const char* args[])
 	try
 	{
 		Memory.PC = (15) | (124 << 8);
-		cout << (int)Memory[Memory.PCLow] << endl; //15
-		cout << (int)Memory[Memory.PCHigh] << endl; //124
-
+		if(Memory[Memory.PCLow] != 15 || Memory[Memory.PCHigh] != 124)
+			throw std::logic_error("High/Low PC Addressing");
+		
 		for(int i = 0; i < 0x800; i++)
 		{
 			Memory[i] = rand();

@@ -1,6 +1,10 @@
 #pragma once
 
 #include <cstdint>
+#include <iostream>
+#include <iomanip>
+using std::cout;
+using std::endl;
 #include "VMemory.hpp"
 #include "OpCodes.hpp"
 
@@ -43,9 +47,27 @@ public:
 		uint8_t Status;
 	};
 
+	void DumpRegisters()
+	{
+		using std::left;
+		using std::setw;
+		cout 
+			<< "OP = " << std::hex << (unsigned)IR << " : " << Tables::namesTable[IR] << endl
+			<< "A = " << setw(10) << left << (int)A 
+			<< "X = " << setw(10) << left << (unsigned)X
+			<< "Y = " << setw(10) << left << (unsigned)Y
+			<< endl
+			<< "SP = " <<setw(10) << left << (unsigned)SP
+			<< "PC = " << setw(10) << left << (unsigned)PC
+			<< "Effective = " << setw(10) << left << Addr
+			<< endl << endl;
+	}
+
 	void Fetch()
 	{
 		IR = Memory[PC];
+		cout << "PreFetch : " << endl;
+		DumpRegisters();
 		PC++;
 		Instruction = InstructionTable::GetInstruction(IR);
 	}
@@ -53,13 +75,16 @@ public:
 	void Execute()
 	{
 		Instruction->Pre(*this);
+		cout << "Post Addressing : " << endl;
+		DumpRegisters();
 		//Something something cycle timings
 		Instruction->Exec(*this);
+		cout << "Post Execution : " << endl;
+		DumpRegisters();
 	}
 
 	void Interrupt()
 	{
-
 	}
 
 	void Cycle()
@@ -91,8 +116,6 @@ public:
 		Status = 0x34;
 		A = X = Y = 0;
 		SP = 0xFD;
-		
-		memset(&Memory[0], 0, 0x800);
 
 		Memory[0x8] = 0xF7;
 		Memory[0x9] = 0xEF;
@@ -104,7 +127,8 @@ public:
 		
 		for(int i = 0x4000; i <= 0x400F; i++)
 			Memory[i] = 0x00;
-		
+
+		PC = Memory.RV;
 	}
 };
 
