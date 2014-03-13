@@ -65,8 +65,8 @@ public:
 
 	void Fetch()
 	{
+		DumpRegisters();
 		IR = Memory[PC];
-		cout << "PreFetch : " << endl;
 		DumpRegisters();
 		PC++;
 		Instruction = InstructionTable::GetInstruction(IR);
@@ -74,17 +74,17 @@ public:
 
 	void Execute()
 	{
+		DumpRegisters();
 		Instruction->Pre(*this);
-		cout << "Post Addressing : " << endl;
 		DumpRegisters();
 		//Something something cycle timings
 		Instruction->Exec(*this);
-		cout << "Post Execution : " << endl;
 		DumpRegisters();
 	}
 
 	void Interrupt()
 	{
+
 	}
 
 	void Cycle()

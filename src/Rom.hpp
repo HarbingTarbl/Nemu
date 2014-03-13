@@ -7,7 +7,7 @@ using std::string;
 class NESRom
 {
 private:
-
+	string Name;
 
 public:
 

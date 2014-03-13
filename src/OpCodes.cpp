@@ -42,7 +42,7 @@ namespace InstructionTable
 		unsigned m = cpu.Memory[cpu.Addr];
 		cpu.CarryFlag = m & 0x80;
 		m = cpu.Memory[cpu.Addr] = (m << 1) & 0xFF;
-
+		
 		cpu.SignFlag = m & 0x80;
 		cpu.ZeroFlag = m == 0;
 	}
