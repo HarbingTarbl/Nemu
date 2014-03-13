@@ -39,26 +39,30 @@ namespace InstructionTable
 
 	void ASL(CPU& cpu)
 	{
-		///TODO The rotate instructions will be difficult. Maybe. Idk
+		unsigned m = cpu.Memory[cpu.Addr];
+		cpu.CarryFlag = m & 0x80;
+		m = cpu.Memory[cpu.Addr] = (m << 1) & 0xFF;
 
+		cpu.SignFlag = m & 0x80;
+		cpu.ZeroFlag = m == 0;
 	}
 
 	void BCC(CPU& cpu)
 	{
 		if (!cpu.CarryFlag)
-			cpu.PC += cpu.Memory[cpu.Addr];
+			cpu.PC = cpu.Addr;
 	}
 
 	void BCS(CPU& cpu)
 	{
 		if (cpu.CarryFlag)
-			cpu.PC += cpu.Memory[cpu.Addr];
+			cpu.PC = cpu.Addr;
 	}
 
 	void BEQ(CPU& cpu)
 	{
 		if (cpu.ZeroFlag)
-			cpu.PC += cpu.Memory[cpu.Addr];
+			cpu.PC = cpu.Addr;
 	}
 
 	void BIT(CPU& cpu)
@@ -75,13 +79,13 @@ namespace InstructionTable
 	void BMI(CPU& cpu)
 	{
 		if (cpu.SignFlag)
-			cpu.PC += cpu.Memory[cpu.Addr];
+			cpu.PC = cpu.Addr;
 	}
 
 	void BNE(CPU& cpu)
 	{
 		if (!cpu.ZeroFlag)
-			cpu.PC += cpu.Memory[cpu.Addr];
+			cpu.PC = cpu.Addr;
 	}
 
 	void BPL(CPU& cpu)
@@ -218,12 +222,17 @@ namespace InstructionTable
 
 	void JMP(CPU& cpu)
 	{
-		cpu.PC = cpu.Memory[cpu.Addr] | cpu.Memory[cpu.Addr + 1] << 8;
+		cpu.PC = cpu.Addr;
 	}
 
 	void JSR(CPU& cpu)
 	{
+		cpu.PC--; //RTS must add 1 to PC, gotta roll back to emulate that
 
+		cpu.Push(cpu.Memory[VMemory::PCHigh]);
+		cpu.Push(cpu.Memory[VMemory::PCLow]);
+		
+		cpu.PC = cpu.Addr;
 	}
 
 
@@ -250,7 +259,12 @@ namespace InstructionTable
 
 	void LSR(CPU& cpu)
 	{
-
+		unsigned m = cpu.Memory[cpu.Addr];
+		cpu.CarryFlag = m & 0x01;
+		m = cpu.Memory[cpu.Addr] = m >> 1;
+		
+		cpu.ZeroFlag = m == 0;
+		cpu.SignFlag = m & 0x80;
 	}
 
 
@@ -270,43 +284,59 @@ namespace InstructionTable
 
 	void PHA(CPU& cpu)
 	{
-
+		cpu.Push(cpu.A);
 	}
 
 	void PHP(CPU& cpu)
 	{
-
+		cpu.Push(cpu.Status);
 	}
 
 	void PLA(CPU& cpu)
 	{
-
+		auto a = cpu.Pop();
+		cpu.ZeroFlag = a == 0;
+		cpu.SignFlag = a & 0x80;
+		cpu.A = a;
 	}
 
 	void PLP(CPU& cpu)
 	{
-
+		cpu.Status = cpu.Pop();
 	}
 
 
 	void ROL(CPU& cpu)
 	{
+		unsigned m = cpu.Memory[cpu.Addr];
+		cpu.Memory[cpu.Addr] = ((m << 1) | cpu.CarryFlag) & 0xFF;
+		cpu.CarryFlag = m & 0x80;
 
+		m = cpu.Memory[cpu.Addr];
+		cpu.ZeroFlag = m == 0;
+		cpu.SignFlag = m & 0x80;
 	}
 
 	void ROR(CPU& cpu)
 	{
+		unsigned m = cpu.Memory[cpu.Addr];
+		cpu.Memory[cpu.Addr] = ((m >> 1) | cpu.CarryFlag << 7) & 0xFF;
+		cpu.CarryFlag = m & 0x01;
 
+		m = cpu.Memory[cpu.Addr];
+		cpu.ZeroFlag = m == 0;
+		cpu.SignFlag = m & 0x80;
 	}
 
 	void RTI(CPU& cpu)
 	{
-
+		cpu.Status = cpu.Pop();
+		cpu.PC = cpu.Pop() | cpu.Pop() << 8;
 	}
 
 	void RTS(CPU& cpu)
 	{
-
+		cpu.PC = (cpu.Pop() | cpu.Pop() << 8) + 1;
 	}
 
 
