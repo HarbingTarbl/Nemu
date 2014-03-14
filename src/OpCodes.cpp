@@ -18,17 +18,18 @@ namespace InstructionTable
 
 	void ADC(CPU& cpu)
 	{
-		uint8_t a = cpu.A;
-		uint8_t m = cpu.Memory[cpu.Addr];
+		int8_t a = cpu.A;
+		int8_t m = cpu.Memory[cpu.Addr];
 
-		unsigned int r = a;
+		int r = a;
 		r += m;
+		int l = r;
 		r += cpu.CarryFlag;
 	
-		cpu.CarryFlag = r > 0xFF;
+		cpu.CarryFlag = r > 0xFF || (l == -1 && cpu.CarryFlag);
 		cpu.ZeroFlag = r == 0;
 		cpu.SignFlag = (r & 0x80) >> 7;
-		cpu.OverflowFlag = ((r ^ a) & 0x80) && ((a ^ m) & 0x80);
+		cpu.OverflowFlag = r > 127 || r < -128;
 		
 		cpu.A = r;
 	}
