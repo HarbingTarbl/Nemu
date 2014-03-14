@@ -19,13 +19,13 @@ namespace InstructionTable
 	void ADC(CPU& cpu)
 	{
 		unsigned r = cpu.A;
-		r += cpu.Memory[cpu.Addr];
+		r += (int8_t)cpu.Memory[cpu.Addr];
 		r += cpu.CarryFlag;
 	
-		cpu.CarryFlag = r & 0x100;
+		cpu.CarryFlag = (r & 0x100) >> 8;
 		cpu.ZeroFlag = r == 0;
-		cpu.SignFlag = r & 0x80;
-		cpu.OverflowFlag = (r ^ cpu.A) & 0x80;
+		cpu.SignFlag = (r & 0x80) >> 7;
+		cpu.OverflowFlag = ((r ^ cpu.A) & 0x80) >> 7;
 		
 		cpu.A = r;
 	}
@@ -34,16 +34,16 @@ namespace InstructionTable
 	{
 		cpu.A = cpu.A & cpu.Memory[cpu.Addr];
 		cpu.ZeroFlag = cpu.A == 0;
-		cpu.SignFlag = cpu.A & 0x80;
+		cpu.SignFlag = (cpu.A & 0x80) >> 7;
 	}
 
 	void ASL(CPU& cpu)
 	{
 		unsigned m = cpu.Memory[cpu.Addr];
-		cpu.CarryFlag = m & 0x80;
+		cpu.CarryFlag = (m & 0x80) >> 7;
 		m = cpu.Memory[cpu.Addr] = (m << 1) & 0xFF;
 		
-		cpu.SignFlag = m & 0x80;
+		cpu.SignFlag = (m & 0x80) >> 7;
 		cpu.ZeroFlag = m == 0;
 	}
 
@@ -72,8 +72,8 @@ namespace InstructionTable
 		unsigned r = a & m;
 
 		cpu.ZeroFlag = r == 0;
-		cpu.SignFlag = m & 0x80;
-		cpu.OverflowFlag = m & 0x40;
+		cpu.SignFlag = (m & 0x80) >> 7;
+		cpu.OverflowFlag = (m & 0x40) >> 6;
 	}
 
 	void BMI(CPU& cpu)
@@ -96,7 +96,7 @@ namespace InstructionTable
 
 	void BRK(CPU& cpu)
 	{
-		cpu.InterruptFlag = true;
+		cpu.Asserted = true;
 		///TODO Interrupt Handling, Push
 	}
 
@@ -139,7 +139,7 @@ namespace InstructionTable
 		unsigned m = cpu.Memory[cpu.Addr];
 		unsigned r = a - m;
 
-		cpu.SignFlag = r & 0x80;
+		cpu.SignFlag = (r & 0x80) >> 7;
 		cpu.ZeroFlag = r == 0;
 		cpu.CarryFlag = m <= a;
 	}
@@ -150,7 +150,7 @@ namespace InstructionTable
 		unsigned m = cpu.Memory[cpu.Addr];
 		unsigned r = x - m;
 		
-		cpu.SignFlag = r & 0x80;
+		cpu.SignFlag = (r & 0x80) >> 7;
 		cpu.ZeroFlag = r == 0;
 		cpu.CarryFlag = r < 0x100;
 	}
@@ -161,7 +161,7 @@ namespace InstructionTable
 		unsigned m = cpu.Memory[cpu.Addr];
 		unsigned r = y - m;
 
-		cpu.SignFlag = r & 0x80;
+		cpu.SignFlag = (r & 0x80) >> 7;
 		cpu.ZeroFlag = r == 0;
 		cpu.CarryFlag = r < 0x100;
 	}
@@ -172,20 +172,20 @@ namespace InstructionTable
 		auto& m = cpu.Memory[cpu.Addr];
 		m--;
 		cpu.ZeroFlag = m == 0;
-		cpu.SignFlag = m & 0x80;
+		cpu.SignFlag = (m & 0x80) >> 7;
 	}
 
 	void DEX(CPU& cpu)
 	{
 		cpu.X -= 1;
-		cpu.SignFlag = cpu.X & 0x80;
+		cpu.SignFlag = (cpu.X & 0x80) >> 7;
 		cpu.ZeroFlag = cpu.X == 0;
 	}
 
 	void DEY(CPU& cpu)
 	{
 		cpu.Y -= 1;
-		cpu.SignFlag = cpu.X & 0x80;
+		cpu.SignFlag = (cpu.X & 0x80) >> 7;
 		cpu.ZeroFlag = cpu.X == 0;
 	}
 
@@ -193,28 +193,28 @@ namespace InstructionTable
 	{
 		cpu.A = cpu.A ^ cpu.Memory[cpu.Addr];
 		cpu.ZeroFlag = cpu.A == 0;
-		cpu.SignFlag = cpu.A & 0x80;
+		cpu.SignFlag = (cpu.A & 0x80) >> 7;
 	}
 
 	void INC(CPU& cpu)
 	{
 		auto& m = cpu.Memory[cpu.Addr];
 		m++;
-		cpu.SignFlag = m & 0x80;
+		cpu.SignFlag = (m & 0x80) >> 7;
 		cpu.ZeroFlag = m == 0;
 	}
 
 	void INX(CPU& cpu)
 	{
 		cpu.X += 1;
-		cpu.SignFlag = cpu.X & 0x80;
+		cpu.SignFlag = (cpu.X & 0x80) >> 7;
 		cpu.ZeroFlag = cpu.X == 0;
 	}
 
 	void INY(CPU& cpu)
 	{
 		cpu.Y += 1;
-		cpu.SignFlag = cpu.Y & 0x80;
+		cpu.SignFlag = (cpu.Y & 0x80) >> 7;
 		cpu.ZeroFlag = cpu.Y == 0;
 	}
 
@@ -238,7 +238,7 @@ namespace InstructionTable
 	void LDA(CPU& cpu)
 	{
 		cpu.A = cpu.Memory[cpu.Addr];
-		cpu.SignFlag = cpu.A & 0x80;
+		cpu.SignFlag = (cpu.A & 0x80) >> 7;
 		cpu.ZeroFlag = cpu.A == 0;
 	}
 
@@ -246,14 +246,14 @@ namespace InstructionTable
 	{
 		cpu.X = cpu.Memory[cpu.Addr];
 		cpu.ZeroFlag = cpu.X == 0;
-		cpu.SignFlag = cpu.X & 0x80;
+		cpu.SignFlag = (cpu.X & 0x80) >> 7;
 	}
 
 	void LDY(CPU& cpu)
 	{
 		cpu.Y = cpu.Memory[cpu.Addr];
 		cpu.ZeroFlag = cpu.Y == 0;
-		cpu.SignFlag = cpu.Y & 0x80;
+		cpu.SignFlag = (cpu.Y & 0x80) >> 7;
 	}
 
 	void LSR(CPU& cpu)
@@ -263,7 +263,7 @@ namespace InstructionTable
 		m = cpu.Memory[cpu.Addr] = m >> 1;
 		
 		cpu.ZeroFlag = m == 0;
-		cpu.SignFlag = m & 0x80;
+		cpu.SignFlag = (m & 0x80) >> 7;
 	}
 
 
@@ -277,7 +277,7 @@ namespace InstructionTable
 	{
 		cpu.A = cpu.A | cpu.Memory[cpu.Addr];
 		cpu.ZeroFlag = cpu.A == 0;
-		cpu.SignFlag = cpu.A & 0x80;
+		cpu.SignFlag = (cpu.A & 0x80) >> 7;
 	}
 
 
@@ -295,7 +295,7 @@ namespace InstructionTable
 	{
 		auto a = cpu.Pop();
 		cpu.ZeroFlag = a == 0;
-		cpu.SignFlag = a & 0x80;
+		cpu.SignFlag = (a & 0x80) >> 7;
 		cpu.A = a;
 	}
 
@@ -309,11 +309,11 @@ namespace InstructionTable
 	{
 		unsigned m = cpu.Memory[cpu.Addr];
 		cpu.Memory[cpu.Addr] = ((m << 1) | cpu.CarryFlag) & 0xFF;
-		cpu.CarryFlag = m & 0x80;
+		cpu.CarryFlag = (m & 0x80) >> 7;
 
 		m = cpu.Memory[cpu.Addr];
 		cpu.ZeroFlag = m == 0;
-		cpu.SignFlag = m & 0x80;
+		cpu.SignFlag = (m & 0x80) >> 7;
 	}
 
 	void ROR(CPU& cpu)
@@ -324,7 +324,7 @@ namespace InstructionTable
 
 		m = cpu.Memory[cpu.Addr];
 		cpu.ZeroFlag = m == 0;
-		cpu.SignFlag = m & 0x80;
+		cpu.SignFlag = (m & 0x80) >> 7;
 	}
 
 	void RTI(CPU& cpu)
@@ -347,8 +347,8 @@ namespace InstructionTable
 
 		cpu.CarryFlag = r >= 0;
 		cpu.ZeroFlag = r == 0;
-		cpu.SignFlag = r & 0x80;
-		cpu.OverflowFlag = r & 0x100;
+		cpu.SignFlag = (r & 0x80) >> 7;
+		cpu.OverflowFlag = (r & 0x100) >> 8;
 
 		cpu.A = r;
 	}
@@ -388,7 +388,7 @@ namespace InstructionTable
 		cpu.X = cpu.A;
 		
 		cpu.ZeroFlag = cpu.A == 0;
-		cpu.SignFlag = cpu.A * 0x80;
+		cpu.SignFlag = (cpu.A & 0x80) >> 7;
 	}
 	
 	void TAY(CPU& cpu)
@@ -396,13 +396,13 @@ namespace InstructionTable
 		cpu.Y = cpu.A;
 
 		cpu.ZeroFlag = cpu.A == 0;
-		cpu.SignFlag = cpu.A * 0x80;
+		cpu.SignFlag = (cpu.A & 0x80) >> 7;
 	}
 
 	void TSX(CPU& cpu)
 	{
 		cpu.ZeroFlag = cpu.SP == 0;
-		cpu.SignFlag = cpu.SP & 0x80;
+		cpu.SignFlag = (cpu.SP & 0x80) >> 7;
 		cpu.X = cpu.SP;
 	}
 
@@ -411,7 +411,7 @@ namespace InstructionTable
 		cpu.A = cpu.X;
 
 		cpu.ZeroFlag = cpu.X == 0;
-		cpu.SignFlag = cpu.X * 0x80;
+		cpu.SignFlag = (cpu.X & 0x80) >> 7;
 	}
 
 	void TXS(CPU& cpu)
@@ -424,7 +424,7 @@ namespace InstructionTable
 		cpu.A = cpu.Y;
 
 		cpu.ZeroFlag = cpu.Y == 0;
-		cpu.SignFlag = cpu.Y * 0x80;
+		cpu.SignFlag = (cpu.Y & 0x80) >> 7;
 	}
 
 };

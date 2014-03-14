@@ -63,7 +63,7 @@ const InstructionPack Table[] = {
 	{ ABX , AND , NOP }, //0x3d
 	{ ABX , ROL , NOP }, //0x3e
 	{ NOP , NOP , NOP }, //0x3f
-	{ ABS , EOR , NOP }, //0x40
+	{ IMP , RTI , NOP }, //0x40
 	{ IIX , EOR , NOP }, //0x41
 	{ NOP , NOP , NOP }, //0x42
 	{ NOP , NOP , NOP }, //0x43
@@ -76,10 +76,10 @@ const InstructionPack Table[] = {
 	{ ACC , LSR , NOP }, //0x4a
 	{ NOP , NOP , NOP }, //0x4b
 	{ ABS , JMP , NOP }, //0x4c
-	{ IMP , RTI , NOP }, //0x4d
+	{ ABS , EOR , NOP }, //0x4d
 	{ ABS , LSR , NOP }, //0x4e
 	{ NOP , NOP , NOP }, //0x4f
-	{ ABX , EOR , NOP }, //0x50
+	{ REL , BVC , NOP }, //0x50
 	{ IIY , EOR , NOP }, //0x51
 	{ NOP , NOP , NOP }, //0x52
 	{ NOP , NOP , NOP }, //0x53
@@ -92,7 +92,7 @@ const InstructionPack Table[] = {
 	{ NOP , NOP , NOP }, //0x5a
 	{ NOP , NOP , NOP }, //0x5b
 	{ NOP , NOP , NOP }, //0x5c
-	{ NOP , NOP , NOP }, //0x5d
+	{ ABX , EOR , NOP }, //0x5d
 	{ ABX , LSR , NOP }, //0x5e
 	{ NOP , NOP , NOP }, //0x5f
 	{ IMP , RTS , NOP }, //0x60
@@ -135,7 +135,7 @@ const InstructionPack Table[] = {
 	{ ZP , STA , NOP }, //0x85
 	{ ZP , STX , NOP }, //0x86
 	{ NOP , NOP , NOP }, //0x87
-	{ NOP , NOP , NOP }, //0x88
+	{ IMP , DEY , NOP }, //0x88
 	{ NOP , NOP , NOP }, //0x89
 	{ IMP , TXA , NOP }, //0x8a
 	{ NOP , NOP , NOP }, //0x8b
@@ -254,5 +254,4 @@ const InstructionPack Table[] = {
 	{ NOP , NOP , NOP }, //0xfc
 	{ ABX , SBC , NOP }, //0xfd
 	{ ABX , INC , NOP }, //0xfe
-	{ IMP , DEY , NOP }, //0xc88
 };

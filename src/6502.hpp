@@ -31,19 +31,24 @@ public:
 	uint8_t IR;
 	int Addr;
 
+	bool Asserted;
+
 	unsigned CurrentCyle;
 	const InstructionTable::InstructionPack* Instruction;
 
 	union
 	{
-		bool CarryFlag : 1;
-		bool ZeroFlag : 1;
-		bool InterruptFlag : 1;
-		bool DecimalFlag : 1;
-		bool BreakFlag : 1;
-		bool __UnusedFlag : 1;
-		bool OverflowFlag : 1;
-		bool SignFlag : 1;
+		struct
+		{
+			uint8_t CarryFlag : 1;
+			uint8_t ZeroFlag : 1;
+			uint8_t InterruptFlag : 1;
+			uint8_t DecimalFlag : 1;
+			uint8_t BreakFlag : 1;
+			uint8_t __UnusedFlag : 1;
+			uint8_t OverflowFlag : 1;
+			uint8_t SignFlag : 1;
+		};
 		uint8_t Status;
 	};
 
@@ -51,35 +56,29 @@ public:
 	{
 		using std::left;
 		using std::setw;
+		using std::hex;
+
 		cout 
-			<< "OP = " << std::hex << (unsigned)IR << " : " << Tables::namesTable[IR] << endl
-			<< "A = " << setw(10) << left << (int)A 
-			<< "X = " << setw(10) << left << (unsigned)X
-			<< "Y = " << setw(10) << left << (unsigned)Y
-			<< endl
-			<< "SP = " <<setw(10) << left << (unsigned)SP
-			<< "PC = " << setw(10) << left << (unsigned)PC
-			<< "Effective = " << setw(10) << left << Addr
-			<< endl << endl;
+			<< hex << PC  - Tables::sizeTable[IR] << " " 
+			<< Tables::namesTable[IR] << " A:" << (int)A 
+			<< " X:" << (unsigned)X << " Y:" << (unsigned)Y << " P: " << (unsigned)Status
+			<< " SP:" << (unsigned)SP << endl;
+
 	}
 
 	void Fetch()
 	{
-		DumpRegisters();
 		IR = Memory[PC];
-		DumpRegisters();
 		PC++;
 		Instruction = InstructionTable::GetInstruction(IR);
 	}
 
 	void Execute()
 	{
-		DumpRegisters();
 		Instruction->Pre(*this);
 		DumpRegisters();
 		//Something something cycle timings
 		Instruction->Exec(*this);
-		DumpRegisters();
 	}
 
 	void Interrupt()
@@ -113,9 +112,10 @@ public:
 
 	void HardReset()
 	{
-		Status = 0x34;
+		Status = 0x24;
 		A = X = Y = 0;
 		SP = 0xFD;
+		Asserted = false;
 
 		Memory[0x8] = 0xF7;
 		Memory[0x9] = 0xEF;

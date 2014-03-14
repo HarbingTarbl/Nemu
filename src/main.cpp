@@ -8,38 +8,15 @@ int main(int argc, const char* args[])
 	
 
 	VMemory TestMemory;
-	TestMemory[0] = 30;
-	TestMemory[1] = 25;
-	TestMemory[2] = -5;
-
-	int addr = VMemory::VMemRomStart;
-	TestMemory.RV = addr;
-
-	TestMemory[addr++] = 0xAD; 
-	TestMemory[addr++] = 0x00;
-	TestMemory[addr++] = 0x00; //LDA Absolute@0x0000
-
-	TestMemory[addr++] = 0x6D;
-	TestMemory[addr++] = 0x01;
-	TestMemory[addr++] = 0x00; //ADC Absolute@0x0001
-
-	TestMemory[addr++] = 0x6D;
-	TestMemory[addr++] = 0x02;
-	TestMemory[addr++] = 0x00; //ADC Absolute@0x0002
-
-	TestMemory[addr++] = 0x8D;
-	TestMemory[addr++] = 0x00;
-	TestMemory[addr++] = 0x00; //STA Absolute@0x0000
-
-	TestMemory[addr++] = 0x90;
-	TestMemory[addr++] = -14; //BCC Relative@VMemRomStart
-
-	TestMemory[addr++] = 0xA2;
-	TestMemory[addr++] = 0x01; //LDX Immidiate@0x01
-
+	FILE* f = fopen("nestest.nes", "r");
+	fseek(f, 16, SEEK_SET);
+	fread(&TestMemory[0xC000], 0x4000, 1, f);
+	fclose(f);	
+	TestMemory.RV = 0xC000;
+	
 	CPU TestCPU(TestMemory);
 
-	while(TestCPU.X == 0)
+	while(!TestCPU.Asserted)
 		TestCPU.Cycle();
 
 	
