@@ -18,14 +18,17 @@ namespace InstructionTable
 
 	void ADC(CPU& cpu)
 	{
-		unsigned r = cpu.A;
-		r += (int8_t)cpu.Memory[cpu.Addr];
+		uint8_t a = cpu.A;
+		uint8_t m = cpu.Memory[cpu.Addr];
+
+		unsigned int r = a;
+		r += m;
 		r += cpu.CarryFlag;
 	
-		cpu.CarryFlag = (r & 0x100) >> 8;
+		cpu.CarryFlag = r > 0xFF;
 		cpu.ZeroFlag = r == 0;
 		cpu.SignFlag = (r & 0x80) >> 7;
-		cpu.OverflowFlag = ((r ^ cpu.A) & 0x80) >> 7;
+		cpu.OverflowFlag = ((r ^ a) & 0x80) && ((a ^ m) & 0x80);
 		
 		cpu.A = r;
 	}
@@ -96,6 +99,8 @@ namespace InstructionTable
 
 	void BRK(CPU& cpu)
 	{
+		PHP(cpu);
+		SEI(cpu);
 		cpu.Asserted = true;
 		///TODO Interrupt Handling, Push
 	}
@@ -288,7 +293,7 @@ namespace InstructionTable
 
 	void PHP(CPU& cpu)
 	{
-		cpu.Push(cpu.Status);
+		cpu.Push(cpu.Status | 0x30);
 	}
 
 	void PLA(CPU& cpu)
@@ -301,7 +306,7 @@ namespace InstructionTable
 
 	void PLP(CPU& cpu)
 	{
-		cpu.Status = cpu.Pop();
+		cpu.Status = cpu.Pop() & 0xCF | cpu.Status & 0x30;
 	}
 
 
@@ -329,7 +334,8 @@ namespace InstructionTable
 
 	void RTI(CPU& cpu)
 	{
-		cpu.Status = cpu.Pop();
+		//cpu.Status = cpu.Pop() & 0xCF;
+		PLP(cpu);
 		cpu.PC = cpu.Pop() | cpu.Pop() << 8;
 	}
 
@@ -341,14 +347,17 @@ namespace InstructionTable
 
 	void SBC(CPU& cpu)
 	{
-		unsigned r = cpu.A;
-		r -= cpu.Memory[cpu.Addr];
+		int8_t a = cpu.A;
+		int8_t m = cpu.Memory[cpu.Addr];
+
+		int r = a;
+		r -= m;
 		r -= cpu.CarryFlag;
 
-		cpu.CarryFlag = r >= 0;
+		cpu.CarryFlag = r < 0x100;
 		cpu.ZeroFlag = r == 0;
 		cpu.SignFlag = (r & 0x80) >> 7;
-		cpu.OverflowFlag = (r & 0x100) >> 8;
+		cpu.OverflowFlag = ((r ^ a) & 0x80) && ((a ^ m) & 0x80);
 
 		cpu.A = r;
 	}

@@ -44,6 +44,7 @@ public:
 			uint8_t ZeroFlag : 1;
 			uint8_t InterruptFlag : 1;
 			uint8_t DecimalFlag : 1;
+
 			uint8_t BreakFlag : 1;
 			uint8_t __UnusedFlag : 1;
 			uint8_t OverflowFlag : 1;
@@ -57,12 +58,13 @@ public:
 		using std::left;
 		using std::setw;
 		using std::hex;
+		using std::setfill;
 
 		cout 
-			<< hex << PC  - Tables::sizeTable[IR] << " " 
-			<< Tables::namesTable[IR] << " A:" << (int)A 
-			<< " X:" << (unsigned)X << " Y:" << (unsigned)Y << " P: " << (unsigned)Status
-			<< " SP:" << (unsigned)SP << endl;
+			<< hex <<  PC  - Tables::sizeTable[IR] << " " 
+			<< Tables::namesTable[IR] << " A:" << setfill('0') << setw(2) << (int)A 
+			<< " X:" << setfill('0') << setw(2) << (unsigned)X << " Y:" << setfill('0') << setw(2) << (unsigned)Y << " P:" << setfill('0') << setw(2) << (unsigned)Status
+			<< " SP:" << setfill('0') << setw(2) << (unsigned)SP << endl;
 
 	}
 
