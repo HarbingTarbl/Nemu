@@ -24,12 +24,12 @@ namespace InstructionTable
 		unsigned r = a;
 		r += m;
 		r += cpu.CarryFlag;
-	
+
 		cpu.CarryFlag = r > 0xFF;
 		cpu.ZeroFlag = (r & 0xFF) == 0;
 		cpu.SignFlag = (r & 0x80) >> 7;
 		cpu.OverflowFlag = (!((a ^ m) & 0x80) && ((r ^ a) & 0x80));
-		
+
 		cpu.A = r;
 	}
 
@@ -45,7 +45,7 @@ namespace InstructionTable
 		unsigned m = cpu.Memory[cpu.Addr];
 		cpu.CarryFlag = (m & 0x80) >> 7;
 		m = cpu.Memory[cpu.Addr] = (m << 1) & 0xFF;
-		
+
 		cpu.SignFlag = (m & 0x80) >> 7;
 		cpu.ZeroFlag = m == 0;
 	}
@@ -154,7 +154,7 @@ namespace InstructionTable
 		unsigned x = cpu.X;
 		unsigned m = cpu.Memory[cpu.Addr];
 		unsigned r = x - m;
-		
+
 		cpu.SignFlag = (r & 0x80) >> 7;
 		cpu.ZeroFlag = r == 0;
 		cpu.CarryFlag = r < 0x100;
@@ -235,7 +235,7 @@ namespace InstructionTable
 
 		cpu.Push(cpu.Memory[VMemory::PCHigh]);
 		cpu.Push(cpu.Memory[VMemory::PCLow]);
-		
+
 		cpu.PC = cpu.Addr;
 	}
 
@@ -266,7 +266,7 @@ namespace InstructionTable
 		unsigned m = cpu.Memory[cpu.Addr];
 		cpu.CarryFlag = m & 0x01;
 		m = cpu.Memory[cpu.Addr] = m >> 1;
-		
+
 		cpu.ZeroFlag = m == 0;
 		cpu.SignFlag = (m & 0x80) >> 7;
 	}
@@ -395,11 +395,11 @@ namespace InstructionTable
 	void TAX(CPU& cpu)
 	{
 		cpu.X = cpu.A;
-		
+
 		cpu.ZeroFlag = cpu.A == 0;
 		cpu.SignFlag = (cpu.A & 0x80) >> 7;
 	}
-	
+
 	void TAY(CPU& cpu)
 	{
 		cpu.Y = cpu.A;
@@ -476,7 +476,15 @@ namespace AddressingModes
 	void IND(CPU& cpu)
 	{
 		cpu.Addr = (cpu.Memory[cpu.PC] | cpu.Memory[cpu.PC + 1] << 8);
-		cpu.Addr = (cpu.Memory[cpu.Addr] | cpu.Memory[cpu.Addr + 1] << 8);
+		//IND Jump Bug
+		if((cpu.Addr & 0x00FF) == 0xFF) 
+		{
+			cpu.Addr = (cpu.Memory[cpu.Addr] | cpu.Memory[cpu.Addr & 0xFF00] << 8);
+		}
+		else
+		{
+			cpu.Addr = (cpu.Memory[cpu.Addr] | cpu.Memory[cpu.Addr + 1] << 8);
+		}
 		cpu.PC += 2;
 	}
 
