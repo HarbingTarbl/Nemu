@@ -505,14 +505,14 @@ namespace AddressingModes
 	{
 		cpu.Addr = cpu.Memory[cpu.PC];
 		cpu.Addr += cpu.X;
-		cpu.Addr = cpu.Memory[cpu.Addr] | cpu.Memory[cpu.Addr + 1] << 8;
+		cpu.Addr = cpu.Memory[cpu.Addr & 0xFF] | cpu.Memory[(cpu.Addr + 1) & 0xFF] << 8;
 		cpu.PC += 1;
 	}
 
 	void IIY(CPU& cpu)
 	{
 		cpu.Addr = cpu.Memory[cpu.PC];
-		cpu.Addr = (cpu.Memory[cpu.Addr] | cpu.Memory[cpu.Addr + 1] << 8);
+		cpu.Addr = (cpu.Memory[cpu.Addr & 0xFF] | cpu.Memory[(cpu.Addr + 1) & 0xFF] << 8);
 		cpu.Addr += cpu.Y;
 		cpu.PC += 1;
 	}

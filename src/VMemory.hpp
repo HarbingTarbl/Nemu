@@ -4,6 +4,9 @@
 #include <array>
 #include <limits>
 #include <cstdint>
+#include <iostream>
+#include <fstream>
+#include <iomanip>
 
 class VMemory
 {
@@ -26,10 +29,15 @@ public:
 
 private:
 	std::array<uint8_t, VRegEndAddress> mBytes;
+	std::fstream debugFile;
+
 
 public:
-	inline uint8_t& operator[](int addr)
+	uint8_t& operator[](int addr)
 	{
+		if(debugFile.is_open())
+			debugFile << "PC:" << std::hex << PC << " Mem:" << std::hex << std::setw(4) << std::setfill('0') << addr << std::endl;
+
 		if (addr < 0)
 			return mBytes[addr + VRegEndAddress];
 
@@ -73,6 +81,7 @@ public:
 
 	{
 		std::fill(mBytes.begin(), mBytes.end(), 0);
+		debugFile.open("memory.log", std::fstream::trunc | std::fstream::out);
 	}
 };
 
