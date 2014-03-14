@@ -190,8 +190,8 @@ namespace InstructionTable
 	void DEY(CPU& cpu)
 	{
 		cpu.Y -= 1;
-		cpu.SignFlag = (cpu.X & 0x80) >> 7;
-		cpu.ZeroFlag = cpu.X == 0;
+		cpu.SignFlag = (cpu.Y & 0x80) >> 7;
+		cpu.ZeroFlag = cpu.Y == 0;
 	}
 
 	void EOR(CPU& cpu)
