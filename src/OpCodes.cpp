@@ -18,18 +18,17 @@ namespace InstructionTable
 
 	void ADC(CPU& cpu)
 	{
-		int8_t a = cpu.A;
-		int8_t m = cpu.Memory[cpu.Addr];
+		unsigned a = cpu.A;
+		unsigned m = cpu.Memory[cpu.Addr];
 
-		int r = a;
+		unsigned r = a;
 		r += m;
-		int l = r;
 		r += cpu.CarryFlag;
 	
-		cpu.CarryFlag = r > 0xFF || (l == -1 && cpu.CarryFlag);
-		cpu.ZeroFlag = r == 0;
+		cpu.CarryFlag = r > 0xFF;
+		cpu.ZeroFlag = (r & 0xFF) == 0;
 		cpu.SignFlag = (r & 0x80) >> 7;
-		cpu.OverflowFlag = r > 127 || r < -128;
+		cpu.OverflowFlag = (!((a ^ m) & 0x80) && ((r ^ a) & 0x80));
 		
 		cpu.A = r;
 	}
@@ -348,12 +347,12 @@ namespace InstructionTable
 
 	void SBC(CPU& cpu)
 	{
-		int8_t a = cpu.A;
-		int8_t m = cpu.Memory[cpu.Addr];
+		unsigned a = cpu.A;
+		unsigned m = cpu.Memory[cpu.Addr];
 
-		int r = a;
+		unsigned r = a;
 		r -= m;
-		r -= cpu.CarryFlag;
+		r -= !cpu.CarryFlag;
 
 		cpu.CarryFlag = r < 0x100;
 		cpu.ZeroFlag = r == 0;
