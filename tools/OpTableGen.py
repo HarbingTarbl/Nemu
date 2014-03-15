@@ -117,7 +117,7 @@ opcodes = [
         (0xC6, "ZP", 2, 5),
         (0xD6, "ZPX", 2, 6),
         (0xCE, "ABS", 3, 6),
-        (0xD3, "ABX", 3, 7)
+        (0xDE, "ABX", 3, 7)
         ]
      ),
     ("DEX", [
@@ -200,6 +200,29 @@ opcodes = [
      ),
     ("NOP", [
         (0xEA, "NOP", 1, 2),
+		(0x80, "NOP2", 2, 3, "*NOP"),
+		(0x1A, "NOP", 1, 2, "*NOP"),
+		(0x3A, "NOP", 1, 2, "*NOP"),
+		(0x5A, "NOP", 1, 2, "*NOP"),
+		(0x7A, "NOP", 1, 2, "*NOP"),
+		(0xDA, "NOP", 1, 2, "*NOP"),
+		(0xFA, "NOP", 1, 2, "*NOP"),
+		(0x04, "NOP2", 2, 3, "*NOP"), #Unofficial (but often used) 2-byte NOP
+		(0x44, "NOP2", 2, 3, "*NOP"), #Another 2-byte NOP
+		(0x64, "NOP2", 2, 3, "*NOP"),
+		(0x0c, "NOP3", 3, 4, "*NOP"),
+		(0x1C, "NOP3", 3, 4, "*NOP"),
+		(0x3C, "NOP3", 3, 4, "*NOP"),
+		(0x5C, "NOP3", 3, 4, "*NOP"),
+		(0x7C, "NOP3", 3, 4, "*NOP"),
+		(0xDC, "NOP3", 3, 4, "*NOP"),
+		(0xFC, "NOP3", 3, 4, "*NOP"),
+		(0x14, "NOP2", 2, 3, "*NOP"),
+		(0x34, "NOP2", 2, 3, "*NOP"),
+		(0x54, "NOP2", 2, 3, "*NOP"),
+		(0x74, "NOP2", 2, 3, "*NOP"),
+		(0xD4, "NOP2", 2, 3, "*NOP"),
+		(0xF4, "NOP2", 2, 3, "*NOP"),
         ]
      ),
     ("ORA", [
@@ -329,15 +352,18 @@ table = dict()
 fi = open("../src/InstructionTable.inc", "w")
 
 for x in range(0, 255):
-    table[x] = ("NOP", "NOP", "NOP")
+    table[x] = ("NOP", "NOP", 0, 0, "BOP")
 
 for op in opcodes:
     for version in op[1]:
-        table[version[0]] = (op[0], version[1])
+		if len(version) == 4:
+			table[version[0]] = (op[0], version[1], version[2], version[3], op[0])
+		else:
+			table[version[0]] = (op[0], version[1], version[2], version[3], version[4])
 
 fi.write("const InstructionPack Table[] = {\n")
 for k,v in table.iteritems():
-    fi.write("\t{ " + v[1] +  " , " + v[0] + " , NOP }, //" + hex(k) + "\n")
+    fi.write("\t{ " + v[1] +  " , " + v[0] + " , " + str(v[2]) + " , " + str(v[3]) + " , \"" + v[4] + "\" }, //" + hex(k) + "\n")
 fi.write("};\n")
 fi.close()
 

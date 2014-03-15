@@ -18,7 +18,7 @@ def ninParser(line):
 	)
 	return d
 
-nemuReg = re.compile(r"^(\w{4})\s(\w{3})\sA\:(\w+)\sX\:(\w+)\sY\:(\w+)\sP\:(\w+)\sSP\:(\w+)$")
+nemuReg = re.compile(r"^(\w{4})\s([\w*]+)\sA\:(\w+)\sX\:(\w+)\sY\:(\w+)\sP\:(\w+)\sSP\:(\w+)$")
 def nemuParser(line):
 	r = re.match(nemuReg, line)
 	d = dict(

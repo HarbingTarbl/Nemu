@@ -10,7 +10,9 @@ namespace InstructionTable
 	{
 		Callback Pre;
 		Callback Exec;
-		Callback Post;
+		uint8_t Size;
+		uint8_t Cycles;
+		const char* Name;
 	};
 
 	const extern InstructionPack Table[256];
@@ -114,6 +116,9 @@ namespace AddressingModes
 	
 	static void IIX(CPU& cpu);
 	static void IIY(CPU& cpu);
+
+	static void NOP2(CPU& cpu);
+	static void NOP3(CPU& cpu);
 };
 
 

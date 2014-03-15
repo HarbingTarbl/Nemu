@@ -524,6 +524,16 @@ namespace AddressingModes
 		cpu.Addr += cpu.Y;
 		cpu.PC += 1;
 	}
+
+	void NOP2(CPU& cpu)
+	{
+		cpu.PC++;
+	}
+
+	void NOP3(CPU& cpu)
+	{
+		cpu.PC += 2;
+	}
 };
 
 namespace Tables
