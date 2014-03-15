@@ -181,7 +181,7 @@ const InstructionPack Table[] = {
 	{ NOP , NOP , NOP }, //0xb3
 	{ ZPX , LDY , NOP }, //0xb4
 	{ ZPX , LDA , NOP }, //0xb5
-	{ ZPX , LDX , NOP }, //0xb6
+	{ ZPY , LDX , NOP }, //0xb6
 	{ NOP , NOP , NOP }, //0xb7
 	{ IMP , CLV , NOP }, //0xb8
 	{ ABY , LDA , NOP }, //0xb9
