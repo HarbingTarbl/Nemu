@@ -2,11 +2,11 @@ const InstructionPack Table[] = {
 	{ IMP , BRK , 2 , 2 , "BRK" }, //0x0
 	{ IIX , ORA , 2 , 6 , "ORA" }, //0x1
 	{ NOP , NOP , 0 , 0 , "BOP" }, //0x2
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0x3
+	{ IIX , SLO , 2 , 8 , "*SLO" }, //0x3
 	{ NOP2 , NOP , 2 , 3 , "*NOP" }, //0x4
 	{ ZP , ORA , 2 , 3 , "ORA" }, //0x5
 	{ ZP , ASL , 2 , 5 , "ASL" }, //0x6
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0x7
+	{ ZP , SLO , 2 , 5 , "*SLO" }, //0x7
 	{ IMP , PHP , 1 , 3 , "PHP" }, //0x8
 	{ IMM , ORA , 2 , 2 , "ORA" }, //0x9
 	{ ACC , ASL , 1 , 2 , "ASL" }, //0xa
@@ -14,31 +14,31 @@ const InstructionPack Table[] = {
 	{ NOP3 , NOP , 3 , 4 , "*NOP" }, //0xc
 	{ ABS , ORA , 3 , 4 , "ORA" }, //0xd
 	{ ABS , ASL , 3 , 6 , "ASL" }, //0xe
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0xf
+	{ ABS , SLO , 3 , 6 , "*SLO" }, //0xf
 	{ REL , BPL , 2 , 2 , "BPL" }, //0x10
 	{ IIY , ORA , 2 , 5 , "ORA" }, //0x11
 	{ NOP , NOP , 0 , 0 , "BOP" }, //0x12
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0x13
+	{ IIY , SLO , 2 , 8 , "*SLO" }, //0x13
 	{ NOP2 , NOP , 2 , 3 , "*NOP" }, //0x14
 	{ ZPX , ORA , 2 , 4 , "ORA" }, //0x15
 	{ ZPX , ASL , 2 , 6 , "ASL" }, //0x16
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0x17
+	{ ZPX , SLO , 2 , 6 , "*SLO" }, //0x17
 	{ IMP , CLC , 1 , 2 , "CLC" }, //0x18
 	{ ABY , ORA , 3 , 4 , "ORA" }, //0x19
 	{ NOP , NOP , 1 , 2 , "*NOP" }, //0x1a
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0x1b
+	{ ABY , SLO , 3 , 7 , "*SLO" }, //0x1b
 	{ NOP3 , NOP , 3 , 4 , "*NOP" }, //0x1c
 	{ ABX , ORA , 3 , 4 , "ORA" }, //0x1d
 	{ ABX , ASL , 3 , 7 , "ASL" }, //0x1e
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0x1f
+	{ ABX , SLO , 3 , 7 , "*SLO" }, //0x1f
 	{ ABS , JSR , 3 , 6 , "JSR" }, //0x20
 	{ IIX , AND , 2 , 6 , "AND" }, //0x21
 	{ NOP , NOP , 0 , 0 , "BOP" }, //0x22
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0x23
+	{ IIX , RLA , 2 , 8 , "*RLA" }, //0x23
 	{ ZP , BIT , 2 , 3 , "BIT" }, //0x24
 	{ ZP , AND , 2 , 3 , "AND" }, //0x25
 	{ ZP , ROL , 2 , 5 , "ROL" }, //0x26
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0x27
+	{ ZP , RLA , 2 , 5 , "*RLA" }, //0x27
 	{ IMP , PLP , 1 , 4 , "PLP" }, //0x28
 	{ IMM , AND , 2 , 2 , "AND" }, //0x29
 	{ ACC , ROL , 1 , 2 , "ROL" }, //0x2a
@@ -46,31 +46,31 @@ const InstructionPack Table[] = {
 	{ ABS , BIT , 3 , 4 , "BIT" }, //0x2c
 	{ ABS , AND , 3 , 4 , "AND" }, //0x2d
 	{ ABS , ROL , 3 , 6 , "ROL" }, //0x2e
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0x2f
+	{ ABS , RLA , 3 , 6 , "*RLA" }, //0x2f
 	{ REL , BMI , 2 , 2 , "BMI" }, //0x30
 	{ IIY , AND , 2 , 5 , "AND" }, //0x31
 	{ NOP , NOP , 0 , 0 , "BOP" }, //0x32
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0x33
+	{ IIY , RLA , 2 , 8 , "*RLA" }, //0x33
 	{ NOP2 , NOP , 2 , 3 , "*NOP" }, //0x34
 	{ ZPX , AND , 2 , 4 , "AND" }, //0x35
 	{ ZPX , ROL , 2 , 6 , "ROL" }, //0x36
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0x37
+	{ ZPX , RLA , 2 , 6 , "*RLA" }, //0x37
 	{ IMP , SEC , 1 , 2 , "SEC" }, //0x38
 	{ ABY , AND , 3 , 4 , "AND" }, //0x39
 	{ NOP , NOP , 1 , 2 , "*NOP" }, //0x3a
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0x3b
+	{ ABY , RLA , 3 , 7 , "*RLA" }, //0x3b
 	{ NOP3 , NOP , 3 , 4 , "*NOP" }, //0x3c
 	{ ABX , AND , 3 , 4 , "AND" }, //0x3d
 	{ ABX , ROL , 3 , 7 , "ROL" }, //0x3e
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0x3f
+	{ ABX , RLA , 3 , 7 , "*RLA" }, //0x3f
 	{ IMP , RTI , 1 , 6 , "RTI" }, //0x40
 	{ IIX , EOR , 2 , 6 , "EOR" }, //0x41
 	{ NOP , NOP , 0 , 0 , "BOP" }, //0x42
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0x43
+	{ IIX , SRE , 2 , 8 , "*SRE" }, //0x43
 	{ NOP2 , NOP , 2 , 3 , "*NOP" }, //0x44
 	{ ZP , EOR , 2 , 3 , "EOR" }, //0x45
 	{ ZP , LSR , 2 , 5 , "LSR" }, //0x46
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0x47
+	{ ZP , SRE , 2 , 5 , "*SRE" }, //0x47
 	{ IMP , PHA , 1 , 3 , "PHA" }, //0x48
 	{ IMM , EOR , 2 , 2 , "EOR" }, //0x49
 	{ ACC , LSR , 1 , 2 , "LSR" }, //0x4a
@@ -78,31 +78,31 @@ const InstructionPack Table[] = {
 	{ ABS , JMP , 3 , 3 , "JMP" }, //0x4c
 	{ ABS , EOR , 3 , 4 , "EOR" }, //0x4d
 	{ ABS , LSR , 3 , 6 , "LSR" }, //0x4e
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0x4f
+	{ ABS , SRE , 3 , 6 , "*SRE" }, //0x4f
 	{ REL , BVC , 2 , 2 , "BVC" }, //0x50
 	{ IIY , EOR , 2 , 5 , "EOR" }, //0x51
 	{ NOP , NOP , 0 , 0 , "BOP" }, //0x52
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0x53
+	{ IIY , SRE , 2 , 8 , "*SRE" }, //0x53
 	{ NOP2 , NOP , 2 , 3 , "*NOP" }, //0x54
 	{ ZPX , EOR , 2 , 4 , "EOR" }, //0x55
 	{ ZPX , LSR , 2 , 6 , "LSR" }, //0x56
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0x57
+	{ ZPX , SRE , 2 , 6 , "*SRE" }, //0x57
 	{ IMP , CLI , 1 , 2 , "CLI" }, //0x58
 	{ ABY , EOR , 3 , 4 , "EOR" }, //0x59
 	{ NOP , NOP , 1 , 2 , "*NOP" }, //0x5a
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0x5b
+	{ ABY , SRE , 3 , 7 , "*SRE" }, //0x5b
 	{ NOP3 , NOP , 3 , 4 , "*NOP" }, //0x5c
 	{ ABX , EOR , 3 , 4 , "EOR" }, //0x5d
 	{ ABX , LSR , 3 , 7 , "LSR" }, //0x5e
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0x5f
+	{ ABX , SRE , 3 , 7 , "*SRE" }, //0x5f
 	{ IMP , RTS , 1 , 6 , "RTS" }, //0x60
 	{ IIX , ADC , 2 , 6 , "ADC" }, //0x61
 	{ NOP , NOP , 0 , 0 , "BOP" }, //0x62
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0x63
+	{ IIX , RRA , 2 , 8 , "*RRA" }, //0x63
 	{ NOP2 , NOP , 2 , 3 , "*NOP" }, //0x64
 	{ ZP , ADC , 2 , 3 , "ADC" }, //0x65
 	{ ZP , ROR , 2 , 5 , "ROR" }, //0x66
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0x67
+	{ ZP , RRA , 2 , 5 , "*RRA" }, //0x67
 	{ IMP , PLA , 1 , 4 , "PLA" }, //0x68
 	{ IMM , ADC , 2 , 2 , "ADC" }, //0x69
 	{ ACC , ROR , 1 , 2 , "ROR" }, //0x6a
@@ -110,31 +110,31 @@ const InstructionPack Table[] = {
 	{ IND , JMP , 3 , 5 , "JMP" }, //0x6c
 	{ ABS , ADC , 3 , 4 , "ADC" }, //0x6d
 	{ ABS , ROR , 3 , 6 , "ROR" }, //0x6e
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0x6f
+	{ ABS , RRA , 3 , 6 , "*RRA" }, //0x6f
 	{ REL , BVS , 2 , 2 , "BVS" }, //0x70
 	{ IIY , ADC , 2 , 5 , "ADC" }, //0x71
 	{ NOP , NOP , 0 , 0 , "BOP" }, //0x72
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0x73
+	{ IIY , RRA , 2 , 8 , "*RRA" }, //0x73
 	{ NOP2 , NOP , 2 , 3 , "*NOP" }, //0x74
 	{ ZPX , ADC , 2 , 4 , "ADC" }, //0x75
 	{ ZPX , ROR , 2 , 6 , "ROR" }, //0x76
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0x77
+	{ ZPX , RRA , 2 , 6 , "*RRA" }, //0x77
 	{ IMP , SEI , 1 , 2 , "SEI" }, //0x78
 	{ ABY , ADC , 3 , 4 , "ADC" }, //0x79
 	{ NOP , NOP , 1 , 2 , "*NOP" }, //0x7a
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0x7b
+	{ ABY , RRA , 3 , 7 , "*RRA" }, //0x7b
 	{ NOP3 , NOP , 3 , 4 , "*NOP" }, //0x7c
 	{ ABX , ADC , 3 , 4 , "ADC" }, //0x7d
 	{ ABX , ROR , 3 , 7 , "ROR" }, //0x7e
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0x7f
+	{ ABX , RRA , 3 , 7 , "*RRA" }, //0x7f
 	{ NOP2 , NOP , 2 , 3 , "*NOP" }, //0x80
 	{ IIX , STA , 2 , 6 , "STA" }, //0x81
 	{ NOP , NOP , 0 , 0 , "BOP" }, //0x82
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0x83
+	{ IIX , SAX , 2 , 8 , "*SAX" }, //0x83
 	{ ZP , STY , 2 , 3 , "STY" }, //0x84
 	{ ZP , STA , 2 , 3 , "STA" }, //0x85
 	{ ZP , STX , 2 , 3 , "STX" }, //0x86
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0x87
+	{ ZP , SAX , 2 , 5 , "*SAX" }, //0x87
 	{ IMP , DEY , 1 , 2 , "DEY" }, //0x88
 	{ NOP , NOP , 0 , 0 , "BOP" }, //0x89
 	{ IMP , TXA , 1 , 2 , "TXA" }, //0x8a
@@ -142,7 +142,7 @@ const InstructionPack Table[] = {
 	{ ABS , STY , 3 , 4 , "STY" }, //0x8c
 	{ ABS , STA , 3 , 4 , "STA" }, //0x8d
 	{ ABS , STX , 3 , 4 , "STX" }, //0x8e
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0x8f
+	{ ABS , SAX , 3 , 6 , "*SAX" }, //0x8f
 	{ REL , BCC , 2 , 2 , "BCC" }, //0x90
 	{ IIY , STA , 2 , 6 , "STA" }, //0x91
 	{ NOP , NOP , 0 , 0 , "BOP" }, //0x92
@@ -150,7 +150,7 @@ const InstructionPack Table[] = {
 	{ ZPX , STY , 2 , 4 , "STY" }, //0x94
 	{ ZPX , STA , 2 , 4 , "STA" }, //0x95
 	{ ZPY , STX , 2 , 4 , "STX" }, //0x96
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0x97
+	{ ZPY , SAX , 2 , 6 , "*SAX" }, //0x97
 	{ IMP , TYA , 1 , 2 , "TYA" }, //0x98
 	{ ABY , STA , 3 , 5 , "STA" }, //0x99
 	{ IMP , TXS , 1 , 2 , "TXS" }, //0x9a
@@ -162,11 +162,11 @@ const InstructionPack Table[] = {
 	{ IMM , LDY , 2 , 2 , "LDY" }, //0xa0
 	{ IIX , LDA , 2 , 6 , "LDA" }, //0xa1
 	{ IMM , LDX , 2 , 2 , "LDX" }, //0xa2
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0xa3
+	{ IIX , LAX , 2 , 6 , "*LAX" }, //0xa3
 	{ ZP , LDY , 2 , 3 , "LDY" }, //0xa4
 	{ ZP , LDA , 2 , 3 , "LDA" }, //0xa5
 	{ ZP , LDX , 2 , 3 , "LDX" }, //0xa6
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0xa7
+	{ ZP , LAX , 2 , 3 , "*LAX" }, //0xa7
 	{ IMP , TAY , 1 , 2 , "TAY" }, //0xa8
 	{ IMM , LDA , 2 , 2 , "LDA" }, //0xa9
 	{ IMP , TAX , 1 , 2 , "TAX" }, //0xaa
@@ -174,15 +174,15 @@ const InstructionPack Table[] = {
 	{ ABS , LDY , 3 , 4 , "LDY" }, //0xac
 	{ ABS , LDA , 3 , 4 , "LDA" }, //0xad
 	{ ABS , LDX , 3 , 4 , "LDX" }, //0xae
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0xaf
+	{ ABS , LAX , 3 , 5 , "*LAX" }, //0xaf
 	{ REL , BCS , 2 , 2 , "BCS" }, //0xb0
 	{ IIY , LDA , 2 , 5 , "LDA" }, //0xb1
 	{ NOP , NOP , 0 , 0 , "BOP" }, //0xb2
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0xb3
+	{ IIY , LAX , 2 , 6 , "*LAX" }, //0xb3
 	{ ZPX , LDY , 2 , 4 , "LDY" }, //0xb4
 	{ ZPX , LDA , 2 , 4 , "LDA" }, //0xb5
 	{ ZPY , LDX , 2 , 4 , "LDX" }, //0xb6
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0xb7
+	{ ZPY , LAX , 2 , 4 , "*LAX" }, //0xb7
 	{ IMP , CLV , 1 , 2 , "CLV" }, //0xb8
 	{ ABY , LDA , 3 , 4 , "LDA" }, //0xb9
 	{ IMP , TSX , 1 , 2 , "TSX" }, //0xba
@@ -190,15 +190,15 @@ const InstructionPack Table[] = {
 	{ ABX , LDY , 3 , 4 , "LDY" }, //0xbc
 	{ ABX , LDA , 3 , 4 , "LDA" }, //0xbd
 	{ ABY , LDX , 3 , 4 , "LDX" }, //0xbe
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0xbf
+	{ ABY , LAX , 3 , 5 , "*LAX" }, //0xbf
 	{ IMM , CPY , 2 , 2 , "CPY" }, //0xc0
 	{ IIX , CMP , 2 , 6 , "CMP" }, //0xc1
 	{ NOP , NOP , 0 , 0 , "BOP" }, //0xc2
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0xc3
+	{ IIX , DCP , 2 , 8 , "*DCP" }, //0xc3
 	{ ZP , CPY , 2 , 3 , "CPY" }, //0xc4
 	{ ZP , CMP , 2 , 3 , "CMP" }, //0xc5
 	{ ZP , DEC , 2 , 5 , "DEC" }, //0xc6
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0xc7
+	{ ZP , DCP , 2 , 5 , "*DCP" }, //0xc7
 	{ IMP , INY , 1 , 2 , "INY" }, //0xc8
 	{ IMM , CMP , 2 , 2 , "CMP" }, //0xc9
 	{ IMP , DEX , 1 , 2 , "DEX" }, //0xca
@@ -206,52 +206,53 @@ const InstructionPack Table[] = {
 	{ ABS , CPY , 3 , 4 , "CPY" }, //0xcc
 	{ ABS , CMP , 3 , 4 , "CMP" }, //0xcd
 	{ ABS , DEC , 3 , 6 , "DEC" }, //0xce
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0xcf
+	{ ABS , DCP , 3 , 6 , "*DCP" }, //0xcf
 	{ REL , BNE , 2 , 2 , "BNE" }, //0xd0
 	{ IIY , CMP , 2 , 5 , "CMP" }, //0xd1
 	{ NOP , NOP , 0 , 0 , "BOP" }, //0xd2
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0xd3
+	{ IIY , DCP , 2 , 8 , "*DCP" }, //0xd3
 	{ NOP2 , NOP , 2 , 3 , "*NOP" }, //0xd4
 	{ ZPX , CMP , 2 , 4 , "CMP" }, //0xd5
 	{ ZPX , DEC , 2 , 6 , "DEC" }, //0xd6
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0xd7
+	{ ZPX , DCP , 2 , 6 , "*DCP" }, //0xd7
 	{ IMP , CLD , 1 , 2 , "CLD" }, //0xd8
 	{ ABY , CMP , 3 , 4 , "CMP" }, //0xd9
 	{ NOP , NOP , 1 , 2 , "*NOP" }, //0xda
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0xdb
+	{ ABY , DCP , 3 , 7 , "*DCP" }, //0xdb
 	{ NOP3 , NOP , 3 , 4 , "*NOP" }, //0xdc
 	{ ABX , CMP , 3 , 4 , "CMP" }, //0xdd
 	{ ABX , DEC , 3 , 7 , "DEC" }, //0xde
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0xdf
+	{ ABX , DCP , 3 , 7 , "*DCP" }, //0xdf
 	{ IMM , CPX , 2 , 2 , "CPX" }, //0xe0
 	{ IIX , SBC , 2 , 6 , "SBC" }, //0xe1
 	{ NOP , NOP , 0 , 0 , "BOP" }, //0xe2
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0xe3
+	{ IIX , ISB , 2 , 8 , "*ISB" }, //0xe3
 	{ ZP , CPX , 2 , 3 , "CPX" }, //0xe4
 	{ ZP , SBC , 2 , 3 , "SBC" }, //0xe5
 	{ ZP , INC , 2 , 5 , "INC" }, //0xe6
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0xe7
+	{ ZP , ISB , 2 , 5 , "*ISB" }, //0xe7
 	{ IMP , INX , 1 , 2 , "INX" }, //0xe8
 	{ IMM , SBC , 2 , 2 , "SBC" }, //0xe9
 	{ NOP , NOP , 1 , 2 , "NOP" }, //0xea
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0xeb
+	{ IMM , SBC , 2 , 2 , "*SBC" }, //0xeb
 	{ ABS , CPX , 3 , 4 , "CPX" }, //0xec
 	{ ABS , SBC , 3 , 4 , "SBC" }, //0xed
 	{ ABS , INC , 3 , 6 , "INC" }, //0xee
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0xef
+	{ ABS , ISB , 3 , 6 , "*ISB" }, //0xef
 	{ REL , BEQ , 2 , 2 , "BEQ" }, //0xf0
 	{ IIY , SBC , 2 , 5 , "SBC" }, //0xf1
 	{ NOP , NOP , 0 , 0 , "BOP" }, //0xf2
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0xf3
+	{ IIY , ISB , 2 , 8 , "*ISB" }, //0xf3
 	{ NOP2 , NOP , 2 , 3 , "*NOP" }, //0xf4
 	{ ZPX , SBC , 2 , 4 , "SBC" }, //0xf5
 	{ ZPX , INC , 2 , 6 , "INC" }, //0xf6
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0xf7
+	{ ZPX , ISB , 2 , 6 , "*ISB" }, //0xf7
 	{ IMP , SED , 1 , 2 , "SED" }, //0xf8
 	{ ABY , SBC , 3 , 4 , "SBC" }, //0xf9
 	{ NOP , NOP , 1 , 2 , "*NOP" }, //0xfa
-	{ NOP , NOP , 0 , 0 , "BOP" }, //0xfb
+	{ ABY , ISB , 3 , 7 , "*ISB" }, //0xfb
 	{ NOP3 , NOP , 3 , 4 , "*NOP" }, //0xfc
 	{ ABX , SBC , 3 , 4 , "SBC" }, //0xfd
 	{ ABX , INC , 3 , 7 , "INC" }, //0xfe
+	{ ABX , ISB , 3 , 7 , "*ISB" }, //0xff
 };

@@ -45,12 +45,14 @@ namespace InstructionTable
 	static void DEC(CPU& cpu);
 	static void DEX(CPU& cpu);
 	static void DEY(CPU& cpu);
+	static void DCP(CPU& cpu);
 	
 	static void EOR(CPU& cpu);
 	
 	static void INC(CPU& cpu);
 	static void INX(CPU& cpu);
 	static void INY(CPU& cpu);
+	static void ISB(CPU& cpu);
 
 	static void JMP(CPU& cpu);
 	static void JSR(CPU& cpu);
@@ -59,6 +61,7 @@ namespace InstructionTable
 	static void LDX(CPU& cpu);
 	static void LDY(CPU& cpu);
 	static void LSR(CPU& cpu);
+	static void LAX(CPU& cpu);
 	
 	static void NOP(CPU& cpu);
 	
@@ -73,6 +76,8 @@ namespace InstructionTable
 	static void ROR(CPU& cpu);
 	static void RTI(CPU& cpu);
 	static void RTS(CPU& cpu);
+	static void RLA(CPU& cpu);
+	static void RRA(CPU& cpu);
 
 	static void SBC(CPU& cpu);
 	static void SEC(CPU& cpu);
@@ -81,6 +86,9 @@ namespace InstructionTable
 	static void STA(CPU& cpu);
 	static void STX(CPU& cpu);
 	static void STY(CPU& cpu);
+	static void SAX(CPU& cpu);
+	static void SLO(CPU& cpu);
+	static void SRE(CPU& cpu);
 
 	static void TAX(CPU& cpu);
 	static void TAY(CPU& cpu);

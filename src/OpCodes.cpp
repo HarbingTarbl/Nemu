@@ -194,6 +194,21 @@ namespace InstructionTable
 		cpu.ZeroFlag = cpu.Y == 0;
 	}
 
+	void DCP(CPU& cpu)
+	{
+		auto m = cpu.Memory[cpu.Addr];
+		auto a = cpu.A;
+
+		m  -= 1;
+		auto r = a - m;
+
+		cpu.SignFlag = (r & 0x80) >> 7;
+		cpu.ZeroFlag = r == 0;
+		cpu.CarryFlag = m <= a;
+
+		cpu.Memory[cpu.Addr] = m;
+	}
+
 	void EOR(CPU& cpu)
 	{
 		cpu.A = cpu.A ^ cpu.Memory[cpu.Addr];
@@ -223,6 +238,11 @@ namespace InstructionTable
 		cpu.ZeroFlag = cpu.Y == 0;
 	}
 
+	void ISB(CPU& cpu)
+	{
+		INC(cpu);
+		SBC(cpu);
+	}
 
 	void JMP(CPU& cpu)
 	{
@@ -271,6 +291,14 @@ namespace InstructionTable
 		cpu.SignFlag = (m & 0x80) >> 7;
 	}
 
+	void LAX(CPU& cpu)
+	{
+		uint8_t m = cpu.Memory[cpu.Addr];
+		cpu.A = m;
+		cpu.X = m;
+		cpu.ZeroFlag = m == 0;
+		cpu.SignFlag = (m & 0x80) >> 7;
+	}
 
 	void NOP(CPU& cpu)
 	{
@@ -344,6 +372,17 @@ namespace InstructionTable
 		cpu.PC = (cpu.Pop() | cpu.Pop() << 8) + 1;
 	}
 
+	void RLA(CPU& cpu)
+	{
+		ROL(cpu);
+		AND(cpu);
+	}
+
+	void RRA(CPU& cpu)
+	{
+		ROR(cpu);
+		ADC(cpu);
+	}
 
 	void SBC(CPU& cpu)
 	{
@@ -390,6 +429,23 @@ namespace InstructionTable
 	void STY(CPU& cpu)
 	{
 		cpu.Memory[cpu.Addr] = cpu.Y;
+	}
+
+	void SAX(CPU& cpu)
+	{
+		cpu.Memory[cpu.Addr] = cpu.A & cpu.X;
+	}
+
+	void SLO(CPU& cpu)
+	{
+		ASL(cpu);
+		ORA(cpu);
+	}
+
+	void SRE(CPU& cpu)
+	{
+		LSR(cpu);
+		EOR(cpu);
 	}
 
 	void TAX(CPU& cpu)
