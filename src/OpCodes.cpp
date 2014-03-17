@@ -30,7 +30,7 @@ namespace InstructionTable
 		cpu.SignFlag = (r & 0x80) >> 7;
 		cpu.OverflowFlag = (!((a ^ m) & 0x80) && ((r ^ a) & 0x80));
 
-		cpu.A = r;
+		cpu.A = r & 0xFF;
 	}
 
 	void AND(CPU& cpu)
@@ -53,19 +53,19 @@ namespace InstructionTable
 	void BCC(CPU& cpu)
 	{
 		if (!cpu.CarryFlag)
-			cpu.PC = cpu.Addr;
+			cpu.PC = cpu.Addr & 0xFFFF;
 	}
 
 	void BCS(CPU& cpu)
 	{
 		if (cpu.CarryFlag)
-			cpu.PC = cpu.Addr;
+			cpu.PC = cpu.Addr & 0xFFFF;
 	}
 
 	void BEQ(CPU& cpu)
 	{
 		if (cpu.ZeroFlag)
-			cpu.PC = cpu.Addr;
+			cpu.PC = cpu.Addr & 0xFFFF;
 	}
 
 	void BIT(CPU& cpu)
@@ -82,19 +82,19 @@ namespace InstructionTable
 	void BMI(CPU& cpu)
 	{
 		if (cpu.SignFlag)
-			cpu.PC = cpu.Addr;
+			cpu.PC = cpu.Addr & 0xFFFF;
 	}
 
 	void BNE(CPU& cpu)
 	{
 		if (!cpu.ZeroFlag)
-			cpu.PC = cpu.Addr;
+			cpu.PC = cpu.Addr & 0xFFFF;
 	}
 
 	void BPL(CPU& cpu)
 	{
 		if (!cpu.SignFlag)
-			cpu.PC = cpu.Addr;
+			cpu.PC = cpu.Addr & 0xFFFF;
 	}
 
 	void BRK(CPU& cpu)
@@ -108,13 +108,13 @@ namespace InstructionTable
 	void BVC(CPU& cpu)
 	{
 		if (!cpu.OverflowFlag)
-			cpu.PC = cpu.Addr;
+			cpu.PC = cpu.Addr & 0xFFFF;
 	}
 
 	void BVS(CPU& cpu)
 	{
 		if (cpu.OverflowFlag)
-			cpu.PC = cpu.Addr;
+			cpu.PC = cpu.Addr & 0xFFFF;
 	}
 
 
@@ -246,17 +246,19 @@ namespace InstructionTable
 
 	void JMP(CPU& cpu)
 	{
-		cpu.PC = cpu.Addr;
+		cpu.PC = cpu.Addr & 0xFFFF;
 	}
 
 	void JSR(CPU& cpu)
 	{
-		cpu.PC--; //RTS must add 1 to PC, gotta roll back to emulate that
+		cpu.PC--;
 
-		cpu.Push(cpu.Memory[VMemory::PCHigh]);
-		cpu.Push(cpu.Memory[VMemory::PCLow]);
+		cpu.Push((cpu.PC & 0xFF00) >> 8);
 
-		cpu.PC = cpu.Addr;
+		cpu.Push((cpu.PC & 0x00FF) >> 0);
+
+
+		cpu.PC = cpu.Addr & 0xFFFF;
 	}
 
 
@@ -285,7 +287,7 @@ namespace InstructionTable
 	{
 		unsigned m = cpu.Memory[cpu.Addr];
 		cpu.CarryFlag = m & 0x01;
-		m = cpu.Memory[cpu.Addr] = m >> 1;
+		m = cpu.Memory[cpu.Addr] = (m >> 1) & 0xFF;
 
 		cpu.ZeroFlag = m == 0;
 		cpu.SignFlag = (m & 0x80) >> 7;
@@ -334,7 +336,8 @@ namespace InstructionTable
 
 	void PLP(CPU& cpu)
 	{
-		cpu.Status = cpu.Pop() & 0xCF | cpu.Status & 0x30;
+		cpu.Status &= 0x30;
+		cpu.Status |= (cpu.Pop() & 0xCF);
 	}
 
 
@@ -364,12 +367,15 @@ namespace InstructionTable
 	{
 		//cpu.Status = cpu.Pop() & 0xCF;
 		PLP(cpu);
-		cpu.PC = cpu.Pop() | cpu.Pop() << 8;
+		cpu.PC = cpu.Pop();
+		cpu.PC |= cpu.Pop() << 8;
 	}
 
 	void RTS(CPU& cpu)
 	{
-		cpu.PC = (cpu.Pop() | cpu.Pop() << 8) + 1;
+		cpu.PC = cpu.Pop();
+		cpu.PC |= cpu.Pop() << 8;
+		cpu.PC += 1;
 	}
 
 	void RLA(CPU& cpu)
@@ -398,7 +404,7 @@ namespace InstructionTable
 		cpu.SignFlag = (r & 0x80) >> 7;
 		cpu.OverflowFlag = ((r ^ a) & 0x80) && ((a ^ m) & 0x80);
 
-		cpu.A = r;
+		cpu.A = r & 0xFF;
 	}
 
 	void SEC(CPU& cpu)
