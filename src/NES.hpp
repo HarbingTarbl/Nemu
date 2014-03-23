@@ -8,10 +8,21 @@
 
 class NES
 {
-private:
+public:
+	CPU mCPU;
+	APU mAPU;
+	PPU mPPU;
+	Cartridge mCart;
+	VMemory mMemory;
 
-
-
+	NES()
+	{
+		mCPU.Memory = &mMemory;
+		mMemory.mCPU = &mCPU;
+		mMemory.mPPU = &mPPU;
+		mMemory.mAPU = &mAPU;
+		mMemory.mCart = &mCart;
+	}
 
 
 };
