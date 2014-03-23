@@ -344,27 +344,27 @@ namespace InstructionTable
 	}
 
 
-void ROL(CPU& cpu)
-{
-	unsigned m = cpu.Memory->Read(cpu.Addr);
-	cpu.Memory->Write(cpu.Addr, ((m << 1) | cpu.CarryFlag) & 0xFF);
-	cpu.CarryFlag = (m & 0x80) >> 7;
+	void ROL(CPU& cpu)
+	{
+		unsigned m = cpu.Memory->Read(cpu.Addr);
+		cpu.Memory->Write(cpu.Addr, ((m << 1) | cpu.CarryFlag) & 0xFF);
+		cpu.CarryFlag = (m & 0x80) >> 7;
 
-	m = cpu.Memory->Read(cpu.Addr);
-	cpu.ZeroFlag = m == 0;
-	cpu.SignFlag = (m & 0x80) >> 7;
-}
+		m = cpu.Memory->Read(cpu.Addr);
+		cpu.ZeroFlag = m == 0;
+		cpu.SignFlag = (m & 0x80) >> 7;
+	}
 
-void ROR(CPU& cpu)
-{
-	unsigned m = cpu.Memory->Read(cpu.Addr);
-	cpu.Memory->Write(cpu.Addr, ((m >> 1) | cpu.CarryFlag << 7) & 0xFF);
-	cpu.CarryFlag = m & 0x01;
+	void ROR(CPU& cpu)
+	{
+		unsigned m = cpu.Memory->Read(cpu.Addr);
+		cpu.Memory->Write(cpu.Addr, ((m >> 1) | cpu.CarryFlag << 7) & 0xFF);
+		cpu.CarryFlag = m & 0x01;
 
-	m = cpu.Memory->Read(cpu.Addr);
-	cpu.ZeroFlag = m == 0;
-	cpu.SignFlag = (m & 0x80) >> 7;
-}
+		m = cpu.Memory->Read(cpu.Addr);
+		cpu.ZeroFlag = m == 0;
+		cpu.SignFlag = (m & 0x80) >> 7;
+	}
 
 	void RTI(CPU& cpu)
 	{

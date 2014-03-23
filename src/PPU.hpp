@@ -41,7 +41,6 @@ public:
 	bool LoopyAtX;
 
 
-	bool IsRendering, IsVBlanking;
 
 	uint8_t Read(int addr)
 	{
@@ -57,7 +56,7 @@ public:
 		case OAM_ADDR_REG:
 			break;
 		case OAM_DATA_REG:
-			if(!IsRendering && !IsVBlanking)
+			if(!IsVBlanking())
 				mRegisters[OAM_ADDR_REG]++;
 		case SCROLL_REG:
 		case ADDR_REG:

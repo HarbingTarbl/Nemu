@@ -115,6 +115,8 @@ void CPU::HardReset()
 	for(int i = 0x4000; i <= 0x400F; i++)
 		Memory->Write(i, 0x00);
 
+	std::fill_n(RAM.data(), 0x800, 0);
+
 	PC = Memory->GetRV();
 	CurrentCyle = 0;
 }
