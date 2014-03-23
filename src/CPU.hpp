@@ -1,33 +1,27 @@
 #pragma once
 
 #include <cstdint>
-#include <iostream>
-#include <iomanip>
-using std::cout;
-using std::endl;
-#include "VMemory.hpp"
-#include "OpCodes.hpp"
+#include <array>
+
+class VMemory;
+
+namespace InstructionTable
+{
+	class InstructionPack;
+};
 
 class CPU
 {
 public:
-	CPU(VMemory& memory)
-		:
-		Memory(memory),
-		A(0),
-		SP(0),
-		X(0),
-		Y(0),
-		PC(0)
-	{
-		HardReset();
-	}
+	CPU();
 
-	VMemory& Memory;
+	std::array<uint8_t, 0x800> RAM;
+	VMemory* Memory;
 
 	uint8_t A, SP, X, Y;
 	uint16_t PC;
 	uint8_t IR;
+
 
 	int Addr;
 
@@ -53,96 +47,25 @@ public:
 		uint8_t Status;
 	};
 
-	void DumpRegisters()
-	{
-		using std::left;
-		using std::setw;
-		using std::hex;
-		using std::setfill;
+	void DumpRegisters();
+	void Fetch();
 
-		cout 
-			<< hex << setw(4) << setfill('0') << PC  - Instruction->Size << " " 
-			<< Instruction->Name << " A:" << setfill('0') << setw(2) << (int)A 
-			<< " X:" << setfill('0') << setw(2) << (unsigned)X << " Y:" << setfill('0') << setw(2) << (unsigned)Y << " P:" << setfill('0') << setw(2) << (unsigned)Status
-			<< " SP:" << setfill('0') << setw(2) << (unsigned)SP 
-			<< endl; 
+	void Execute();
 
-	}
+	uint8_t Read(int addr);
 
-	void Fetch()
-	{
-		IR = Memory[PC];
-		PC++;
-		Instruction = InstructionTable::GetInstruction(IR);
-	}
+	uint8_t Write(int addr, uint8_t value);
 
-	void Execute()
-	{
-		Instruction->Pre(*this);
-		DumpRegisters();
-		//Something something cycle timings
-		Instruction->Exec(*this);
-		CurrentCyle += Instruction->Cycles;
-	}
+	void Interrupt();
 
-	void Interrupt()
-	{
+	void Cycle();
 
-	}
+	uint8_t Pop();
+	void Push(uint8_t value);
 
-	void Cycle()
-	{
-		Fetch();
-		Execute();
-		Interrupt();
-	}
+	void SoftReset();
 
-	uint8_t Pop()
-	{
-		return Memory[++SP + 0x100];
-	}
-
-	uint8_t& operator[](int addr)
-	{
-		if(addr == -1) //Accumulator
-			return A;
-
-		return Memory[addr];
-	}
-
-	void Push(uint8_t value)
-	{
-		Memory[SP-- + 0x100] = value;
-	}
-
-	void SoftReset()
-	{
-		SP -= 3;
-		InterruptFlag = 1;
-		Memory[0x4015] = 0x00;
-	}
-
-	void HardReset()
-	{
-		Status = 0x24;
-		A = X = Y = 0;
-		SP = 0xFD;
-		Asserted = false;
-
-		Memory[0x8] = 0xF7;
-		Memory[0x9] = 0xEF;
-		Memory[0xa] = 0xDF;
-		Memory[0xf] = 0xBF;
-
-		Memory[0x4017] = 0x00;
-		Memory[0x4015] = 0x00;
-		
-		for(int i = 0x4000; i <= 0x400F; i++)
-			Memory[i] = 0x00;
-
-		PC = Memory.RV;
-		CurrentCyle = 0;
-	}
+	void HardReset();
 };
 
 

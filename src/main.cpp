@@ -7,27 +7,36 @@ int main(int argc, const char* args[])
 	using namespace std;
 	
 
-	VMemory TestMemory;
-	FILE* f = fopen("nestest.nes", "r");
-	fseek(f, 16, SEEK_SET);
-	fread(&TestMemory[0xC000], 0x4000, 1, f);
-	fclose(f);
+	VMemory Mem;
+	Cartridge Cart;
+	CPU Cpu;
+	APU Apu;
+	PPU Ppu;
 
-	TestMemory[0xBF80] = 0x20;
-	TestMemory[0xBF81] = 0x00;
-	TestMemory[0xBF82] = 0xC0;
+	Mem.mAPU = &Apu;
+	Mem.mCPU = &Cpu;
+	Mem.mCart = &Cart;
+	Mem.mPPU = &Ppu;
 
-	TestMemory[0xBF83] = 0x4C;
-	TestMemory[0xBF84] = 0x80;
-	TestMemory[0xBF85] = 0xBF;
+	Cpu.Memory = &Mem;
 
-	TestMemory.RV = 0xC000;
+	Cart.LoadROM("nestest.nes");
+
+	Mem.Write(0xBF80, 0x20);
+	Mem.Write(0xBF81, 0x00);
+	Mem.Write(0xBF82, 0xC0);
+
+	Mem.Write(0xBF83, 0x4C);
+	Mem.Write(0xBF84, 0x80);
+	Mem.Write(0xBF85, 0xBF);
+
+	Mem.SetRV(0xC000);
+	Cpu.HardReset();
 	
-	CPU TestCPU(TestMemory);
 
-	while(!TestCPU.Asserted)
+	while(!Cpu.Asserted)
 	{
-		TestCPU.Cycle();
+		Cpu.Cycle();
 	}
 
 

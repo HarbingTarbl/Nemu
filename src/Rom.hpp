@@ -28,10 +28,26 @@ private:
 		};
 		char ___[16];
 	};
-public:
-	string filename;
+	
+private:
+	RomInfo() {}
 
-	bool IsRom()
+public:
+	RomInfo(RomInfo&& other)
+		: 
+		filename(std::move(other.filename)),
+		file(std::move(other.file))
+	{
+		std::copy_n(other.___, 16, ___);
+	}
+
+
+	string filename;
+	std::fstream file;
+
+
+
+	bool IsRom() const
 	{
 		return 
 			NES[0] == 'N' &&
@@ -40,49 +56,34 @@ public:
 			NES[3] == 0x1A;
 	}
 
-	uint8_t NumPRG()
+	uint8_t NumPRG() const
 	{
 		return PRGPages;
 	}
 
-	uint8_t NumCHR()
+	uint8_t NumCHR() const
 	{
 		return CHRPages;
 	}
 
-	uint8_t MapperID() 
+	uint8_t MapperID() const
 	{
-		return ((Flags6 & 0xF0) >> 4) | (Flags7 & 0xF0);
+		return ((Flags6 & 0xF0) >> 4) | (Flags7 & 0xF0); 
 	}
 
 	static RomInfo FromFile(const string& name)
 	{
 		using std::fstream;
-		fstream file(name, fstream::in);
+		fstream file(name, fstream::in | fstream::binary);
 		RomInfo info;
-		file.read(info.___, 16);
+		file.read(info.___, 4);
+		if(!info.IsRom())
+			throw std::logic_error("Must load a ROM");
+		else
+			file.read(info.___ + 4, 12);
+
 		info.filename = name;
-		return info;
+		info.file = std::move(file);
+		return std::move(info);
 	}
-};
-
-
-class NESRom
-{
-private:
-
-public:
-
-	bool LoadFile(const string& name)
-	{
-
-
-	}
-
-	NESRom()
-	{
-
-	}
-
-
 };
