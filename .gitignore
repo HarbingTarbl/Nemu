@@ -55,6 +55,8 @@ packages/
 #ncrunch
 *ncrunch*
 *crunch*.local.xml
+*.idea
+*__pycache__*/
 
 # visual studio database projects
 *.dbmdl

@@ -1,5 +1,5 @@
 #include "VMemory.hpp"
-#include "6502.hpp"
+#include "CPU.hpp"
 #include <iostream>
 
 int main(int argc, const char* args[])
@@ -22,7 +22,6 @@ int main(int argc, const char* args[])
 	TestMemory[0xBF85] = 0xBF;
 
 	TestMemory.RV = 0xC000;
-	
 	
 	CPU TestCPU(TestMemory);
 
