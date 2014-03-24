@@ -145,3 +145,18 @@ public:
 		}
 	}
 };
+
+class MMC4
+	: public MMC
+{
+	virtual uint8_t Read(int addr)
+	{
+		return addr;
+	}
+
+	virtual uint8_t Write(int addr, uint8_t value)
+	{
+		
+		return value;
+	}
+};
