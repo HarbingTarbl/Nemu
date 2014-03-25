@@ -9,8 +9,6 @@ class VMemory;
 
 class NameTable
 {
-private:
-
 public:
 
 
@@ -23,7 +21,7 @@ public:
 	std::array<uint8_t, 16> Tile;
 
 public:
-	inline uint8_t PaletteIndex(uint8_t x, uint8_t y)
+	inline uint8_t PaletteIndex(uint8_t x, uint8_t y) const
 	{
 		uint8_t byte = y + x / 8;
 		x %= 8;
@@ -41,11 +39,11 @@ class PaletteTable
 private:
 
 public:
-	std::array<uint8_t, 0x2000> Pattern;
+	std::array<uint8_t, 0x2000> Patterns;
 
-	inline uint8_t Get(int x, int y)
+	inline const PatternTile& Get(uint16_t addr)
 	{
-
+		return *(reinterpret_cast<PatternTile*>(Patterns.data() + addr));
 	}
 
 };

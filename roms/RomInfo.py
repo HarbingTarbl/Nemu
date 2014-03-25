@@ -1,5 +1,6 @@
 __author__ = 'HarbingTarbl'
 
+from pprint import pprint
 
 class RomInfo:
     def __init__(self, file):
@@ -26,5 +27,5 @@ class RomInfo:
 
 if __name__ == "__main__":
     import sys
-    print(vars(RomInfo(sys.argv[1])))
+    pprint(vars(RomInfo(sys.argv[1])))
 
