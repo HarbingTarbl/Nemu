@@ -20,7 +20,7 @@ namespace InstructionTable
 	void ADC(CPU& cpu)
 	{
 		unsigned a = cpu.A;
-		unsigned m = cpu.Memory->Read(cpu.Addr);
+		unsigned m = cpu.Memory->ReadPRG(cpu.Addr);
 
 		unsigned r = a;
 		r += m;
@@ -36,16 +36,16 @@ namespace InstructionTable
 
 	void AND(CPU& cpu)
 	{
-		cpu.A = cpu.A & cpu.Memory->Read(cpu.Addr);
+		cpu.A = cpu.A & cpu.Memory->ReadPRG(cpu.Addr);
 		cpu.ZeroFlag = cpu.A == 0;
 		cpu.SignFlag = (cpu.A & 0x80) >> 7;
 	}
 
 	void ASL(CPU& cpu)
 	{
-		unsigned m = cpu.Memory->Read(cpu.Addr);
+		unsigned m = cpu.Memory->ReadPRG(cpu.Addr);
 		cpu.CarryFlag = (m & 0x80) >> 7;
-		m = cpu.Memory->Write(cpu.Addr, (m << 1) & 0xFF);
+		m = cpu.Memory->WritePRG(cpu.Addr, (m << 1) & 0xFF);
 
 		cpu.SignFlag = (m & 0x80) >> 7;
 		cpu.ZeroFlag = m == 0;
@@ -72,7 +72,7 @@ namespace InstructionTable
 	void BIT(CPU& cpu)
 	{
 		unsigned a = cpu.A;
-		unsigned m = cpu.Memory->Read(cpu.Addr);
+		unsigned m = cpu.Memory->ReadPRG(cpu.Addr);
 		unsigned r = a & m;
 
 		cpu.ZeroFlag = r == 0;
@@ -142,7 +142,7 @@ namespace InstructionTable
 	void CMP(CPU& cpu)
 	{
 		unsigned a = cpu.A;
-		unsigned m = cpu.Memory->Read(cpu.Addr);
+		unsigned m = cpu.Memory->ReadPRG(cpu.Addr);
 		unsigned r = a - m;
 
 		cpu.SignFlag = (r & 0x80) >> 7;
@@ -153,7 +153,7 @@ namespace InstructionTable
 	void CPX(CPU& cpu)
 	{
 		unsigned x = cpu.X;
-		unsigned m = cpu.Memory->Read(cpu.Addr);
+		unsigned m = cpu.Memory->ReadPRG(cpu.Addr);
 		unsigned r = x - m;
 
 		cpu.SignFlag = (r & 0x80) >> 7;
@@ -164,7 +164,7 @@ namespace InstructionTable
 	void CPY(CPU& cpu)
 	{
 		unsigned y = cpu.Y;
-		unsigned m = cpu.Memory->Read(cpu.Addr);
+		unsigned m = cpu.Memory->ReadPRG(cpu.Addr);
 		unsigned r = y - m;
 
 		cpu.SignFlag = (r & 0x80) >> 7;
@@ -175,9 +175,9 @@ namespace InstructionTable
 
 	void DEC(CPU& cpu)
 	{
-		auto m = cpu.Memory->Read(cpu.Addr);
+		auto m = cpu.Memory->ReadPRG(cpu.Addr);
 		m--;
-		cpu.Memory->Write(cpu.Addr, m);
+		cpu.Memory->WritePRG(cpu.Addr, m);
 		cpu.ZeroFlag = m == 0;
 		cpu.SignFlag = (m & 0x80) >> 7;
 	}
@@ -198,7 +198,7 @@ namespace InstructionTable
 
 	void DCP(CPU& cpu)
 	{
-		auto m = cpu.Memory->Read(cpu.Addr);
+		auto m = cpu.Memory->ReadPRG(cpu.Addr);
 		auto a = cpu.A;
 
 		m  -= 1;
@@ -208,21 +208,21 @@ namespace InstructionTable
 		cpu.ZeroFlag = r == 0;
 		cpu.CarryFlag = m <= a;
 
-		cpu.Memory->Write(cpu.Addr, m);
+		cpu.Memory->WritePRG(cpu.Addr, m);
 	}
 
 	void EOR(CPU& cpu)
 	{
-		cpu.A = cpu.A ^ cpu.Memory->Read(cpu.Addr);
+		cpu.A = cpu.A ^ cpu.Memory->ReadPRG(cpu.Addr);
 		cpu.ZeroFlag = cpu.A == 0;
 		cpu.SignFlag = (cpu.A & 0x80) >> 7;
 	}
 
 	void INC(CPU& cpu)
 	{
-		auto m = cpu.Memory->Read(cpu.Addr);
+		auto m = cpu.Memory->ReadPRG(cpu.Addr);
 		m++;
-		cpu.Memory->Write(cpu.Addr, m);
+		cpu.Memory->WritePRG(cpu.Addr, m);
 		cpu.SignFlag = (m & 0x80) >> 7;
 		cpu.ZeroFlag = m == 0;
 	}
@@ -267,30 +267,30 @@ namespace InstructionTable
 
 	void LDA(CPU& cpu)
 	{
-		cpu.A = cpu.Memory->Read(cpu.Addr);
+		cpu.A = cpu.Memory->ReadPRG(cpu.Addr);
 		cpu.SignFlag = (cpu.A & 0x80) >> 7;
 		cpu.ZeroFlag = cpu.A == 0;
 	}
 
 	void LDX(CPU& cpu)
 	{
-		cpu.X = cpu.Memory->Read(cpu.Addr);
+		cpu.X = cpu.Memory->ReadPRG(cpu.Addr);
 		cpu.ZeroFlag = cpu.X == 0;
 		cpu.SignFlag = (cpu.X & 0x80) >> 7;
 	}
 
 	void LDY(CPU& cpu)
 	{
-		cpu.Y = cpu.Memory->Read(cpu.Addr);
+		cpu.Y = cpu.Memory->ReadPRG(cpu.Addr);
 		cpu.ZeroFlag = cpu.Y == 0;
 		cpu.SignFlag = (cpu.Y & 0x80) >> 7;
 	}
 
 	void LSR(CPU& cpu)
 	{
-		unsigned m = cpu.Memory->Read(cpu.Addr);
+		unsigned m = cpu.Memory->ReadPRG(cpu.Addr);
 		cpu.CarryFlag = m & 0x01;
-		m = cpu.Memory->Write(cpu.Addr, (m >> 1) & 0xFF);
+		m = cpu.Memory->WritePRG(cpu.Addr, (m >> 1) & 0xFF);
 
 		cpu.ZeroFlag = m == 0;
 		cpu.SignFlag = (m & 0x80) >> 7;
@@ -298,7 +298,7 @@ namespace InstructionTable
 
 	void LAX(CPU& cpu)
 	{
-		uint8_t m = cpu.Memory->Read(cpu.Addr);
+		uint8_t m = cpu.Memory->ReadPRG(cpu.Addr);
 		cpu.A = m;
 		cpu.X = m;
 		cpu.ZeroFlag = m == 0;
@@ -313,7 +313,7 @@ namespace InstructionTable
 
 	void ORA(CPU& cpu)
 	{
-		cpu.A = cpu.A | cpu.Memory->Read(cpu.Addr);
+		cpu.A = cpu.A | cpu.Memory->ReadPRG(cpu.Addr);
 		cpu.ZeroFlag = cpu.A == 0;
 		cpu.SignFlag = (cpu.A & 0x80) >> 7;
 	}
@@ -346,22 +346,22 @@ namespace InstructionTable
 
 	void ROL(CPU& cpu)
 	{
-		unsigned m = cpu.Memory->Read(cpu.Addr);
-		cpu.Memory->Write(cpu.Addr, ((m << 1) | cpu.CarryFlag) & 0xFF);
+		unsigned m = cpu.Memory->ReadPRG(cpu.Addr);
+		cpu.Memory->WritePRG(cpu.Addr, ((m << 1) | cpu.CarryFlag) & 0xFF);
 		cpu.CarryFlag = (m & 0x80) >> 7;
 
-		m = cpu.Memory->Read(cpu.Addr);
+		m = cpu.Memory->ReadPRG(cpu.Addr);
 		cpu.ZeroFlag = m == 0;
 		cpu.SignFlag = (m & 0x80) >> 7;
 	}
 
 	void ROR(CPU& cpu)
 	{
-		unsigned m = cpu.Memory->Read(cpu.Addr);
-		cpu.Memory->Write(cpu.Addr, ((m >> 1) | cpu.CarryFlag << 7) & 0xFF);
+		unsigned m = cpu.Memory->ReadPRG(cpu.Addr);
+		cpu.Memory->WritePRG(cpu.Addr, ((m >> 1) | cpu.CarryFlag << 7) & 0xFF);
 		cpu.CarryFlag = m & 0x01;
 
-		m = cpu.Memory->Read(cpu.Addr);
+		m = cpu.Memory->ReadPRG(cpu.Addr);
 		cpu.ZeroFlag = m == 0;
 		cpu.SignFlag = (m & 0x80) >> 7;
 	}
@@ -396,7 +396,7 @@ namespace InstructionTable
 	void SBC(CPU& cpu)
 	{
 		unsigned a = cpu.A;
-		unsigned m = cpu.Memory->Read(cpu.Addr);
+		unsigned m = cpu.Memory->ReadPRG(cpu.Addr);
 
 		unsigned r = a;
 		r -= m;
@@ -427,22 +427,22 @@ namespace InstructionTable
 
 	void STA(CPU& cpu)
 	{
-		cpu.Memory->Write(cpu.Addr, cpu.A);
+		cpu.Memory->WritePRG(cpu.Addr, cpu.A);
 	}
 
 	void STX(CPU& cpu)
 	{
-		cpu.Memory->Write(cpu.Addr, cpu.X);
+		cpu.Memory->WritePRG(cpu.Addr, cpu.X);
 	}
 
 	void STY(CPU& cpu)
 	{
-		cpu.Memory->Write(cpu.Addr, cpu.Y);
+		cpu.Memory->WritePRG(cpu.Addr, cpu.Y);
 	}
 
 	void SAX(CPU& cpu)
 	{
-		cpu.Memory->Write(cpu.Addr, cpu.A & cpu.X);
+		cpu.Memory->WritePRG(cpu.Addr, cpu.A & cpu.X);
 	}
 
 	void SLO(CPU& cpu)
@@ -507,48 +507,48 @@ namespace AddressingModes
 {
 	void ZP(CPU& cpu)
 	{
-		cpu.Addr = cpu.Memory->Read(cpu.PC++);
+		cpu.Addr = cpu.Memory->ReadPRG(cpu.PC++);
 	}
 
 	void ZPX(CPU& cpu)
 	{
-		cpu.Addr = (cpu.X + cpu.Memory->Read(cpu.PC++)) & 0x00FF;
+		cpu.Addr = (cpu.X + cpu.Memory->ReadPRG(cpu.PC++)) & 0x00FF;
 	}
 
 	void ZPY(CPU& cpu)
 	{
-		cpu.Addr = (cpu.Y + cpu.Memory->Read(cpu.PC++)) & 0xFF;
+		cpu.Addr = (cpu.Y + cpu.Memory->ReadPRG(cpu.PC++)) & 0xFF;
 	}
 
 	void ABS(CPU& cpu)
 	{
-		cpu.Addr = (cpu.Memory->Read(cpu.PC) | cpu.Memory->Read(cpu.PC + 1) << 8);
+		cpu.Addr = (cpu.Memory->ReadPRG(cpu.PC) | cpu.Memory->ReadPRG(cpu.PC + 1) << 8);
 		cpu.PC += 2;
 	}
 
 	void ABX(CPU& cpu)
 	{
-		cpu.Addr = (cpu.X + (cpu.Memory->Read(cpu.PC) | cpu.Memory->Read(cpu.PC + 1) << 8));
+		cpu.Addr = (cpu.X + (cpu.Memory->ReadPRG(cpu.PC) | cpu.Memory->ReadPRG(cpu.PC + 1) << 8));
 		cpu.PC += 2;
 	}
 
 	void ABY(CPU& cpu)
 	{
-		cpu.Addr = (cpu.Y + (cpu.Memory->Read(cpu.PC) | cpu.Memory->Read(cpu.PC + 1) << 8));
+		cpu.Addr = (cpu.Y + (cpu.Memory->ReadPRG(cpu.PC) | cpu.Memory->ReadPRG(cpu.PC + 1) << 8));
 		cpu.PC += 2;
 	}
 
 	void IND(CPU& cpu)
 	{
-		cpu.Addr = (cpu.Memory->Read(cpu.PC) | cpu.Memory->Read(cpu.PC + 1) << 8);
+		cpu.Addr = (cpu.Memory->ReadPRG(cpu.PC) | cpu.Memory->ReadPRG(cpu.PC + 1) << 8);
 		//IND Jump Bug
 		if((cpu.Addr & 0x00FF) == 0xFF) 
 		{
-			cpu.Addr = (cpu.Memory->Read(cpu.Addr) | cpu.Memory->Read(cpu.Addr & 0xFF00) << 8);
+			cpu.Addr = (cpu.Memory->ReadPRG(cpu.Addr) | cpu.Memory->ReadPRG(cpu.Addr & 0xFF00) << 8);
 		}
 		else
 		{
-			cpu.Addr = (cpu.Memory->Read(cpu.Addr) | cpu.Memory->Read(cpu.Addr + 1) << 8);
+			cpu.Addr = (cpu.Memory->ReadPRG(cpu.Addr) | cpu.Memory->ReadPRG(cpu.Addr + 1) << 8);
 		}
 		cpu.PC += 2;
 	}
@@ -570,22 +570,22 @@ namespace AddressingModes
 
 	void REL(CPU& cpu)
 	{
-		cpu.Addr = cpu.PC + (int8_t)cpu.Memory->Read(cpu.PC) + 1;
+		cpu.Addr = cpu.PC + (int8_t)cpu.Memory->ReadPRG(cpu.PC) + 1;
 		cpu.PC += 1;
 	}
 
 	void IIX(CPU& cpu)
 	{
-		cpu.Addr = cpu.Memory->Read(cpu.PC);
+		cpu.Addr = cpu.Memory->ReadPRG(cpu.PC);
 		cpu.Addr += cpu.X;
-		cpu.Addr = cpu.Memory->Read(cpu.Addr & 0xFF) | cpu.Memory->Read((cpu.Addr + 1) & 0xFF) << 8;
+		cpu.Addr = cpu.Memory->ReadPRG(cpu.Addr & 0xFF) | cpu.Memory->ReadPRG((cpu.Addr + 1) & 0xFF) << 8;
 		cpu.PC += 1;
 	}
 
 	void IIY(CPU& cpu)
 	{
-		cpu.Addr = cpu.Memory->Read(cpu.PC);
-		cpu.Addr = (cpu.Memory->Read(cpu.Addr & 0xFF) | cpu.Memory->Read((cpu.Addr + 1) & 0xFF) << 8);
+		cpu.Addr = cpu.Memory->ReadPRG(cpu.PC);
+		cpu.Addr = (cpu.Memory->ReadPRG(cpu.Addr & 0xFF) | cpu.Memory->ReadPRG((cpu.Addr + 1) & 0xFF) << 8);
 		cpu.Addr += cpu.Y;
 		cpu.PC += 1;
 	}

@@ -48,7 +48,12 @@ public:
 		return addr & 0x7;
 	}
 
-	uint8_t Read(int addr)
+	inline int CHRAddr(int addr)
+	{
+		return addr & 0x3FFF;
+	}
+
+	uint8_t ReadPRG(int addr)
 	{
 		if(addr == -1)
 			return mCPU->Read(addr);
@@ -63,12 +68,12 @@ public:
 			return mAPU->Read(APUAddr(addr)); //(808, 828]
 
 		if (addr >= 0x2000) //Signal PPU?
-			return mPPU->Read(PPUAddr(addr)); //(800, 808]
+			return mPPU->ReadPRG(PPUAddr(addr)); //(800, 808]
 
 		return mCPU->Read(CPUAddr(addr)); //(0, 800]
 	}
 
-	uint8_t Write(int addr, uint8_t value)
+	uint8_t WritePRG(int addr, uint8_t value)
 	{
 		if(addr == -1)
 			return mCPU->Write(addr, value);
@@ -83,32 +88,50 @@ public:
 			return mAPU->Write(APUAddr(addr), value); //(808, 828]
 
 		if (addr >= 0x2000) //Signal PPU?
-			return mPPU->Write(PPUAddr(addr), value); //(800, 808]
+			return mPPU->WritePRG(PPUAddr(addr), value); //(800, 808]
 
 		return mCPU->Write(CPUAddr(addr), value); //(0, 800]
 
 	}
 
+	uint8_t WriteCHR(int addr, uint8_t value)
+	{
+		addr = CHRAddr(addr);
+		if ((addr & 0x2000) >> 15)
+			return mPPU->WriteCHR(addr, value);
+		else
+			return mCart->WriteCHR(addr, value);
+	}
+
+	uint8_t ReadCHR(int addr)
+	{
+		addr = CHRAddr(addr);
+		if ((addr & 0x2000) >> 15)
+			return mPPU->ReadCHR(addr);
+		else
+			return mCart->ReadCHR(addr);
+	}
+
 
 	uint16_t GetNMIV()
 	{
-		return (Read(0xFFFA) << 8) | Read(0xFFFB);
+		return (ReadPRG(0xFFFA) << 8) | ReadPRG(0xFFFB);
 	}
 
 	uint16_t GetRV()
 	{
-		return (Read(0xFFFC) << 8) | Read(0xFFFD);
+		return (ReadPRG(0xFFFC) << 8) | ReadPRG(0xFFFD);
 	}
 
 	uint16_t GetIRQ()
 	{
-		return (Read(0xFFFE) << 8) | Read(0xFFFF);
+		return (ReadPRG(0xFFFE) << 8) | ReadPRG(0xFFFF);
 	}
 
 	void SetRV(uint16_t value)
 	{
-		Write(0xFFFC, (value & 0xFF00) >> 8);
-		Write(0xFFFD, (value & 0x00FF));
+		WritePRG(0xFFFC, (value & 0xFF00) >> 8);
+		WritePRG(0xFFFD, (value & 0x00FF));
 	}
 
 

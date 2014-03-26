@@ -1,6 +1,7 @@
 #pragma once
 #include <array>
 #include <cstdint>
+#include <bitset>
 
 #include "CPU.hpp"	
 #include "VMemory.hpp"
@@ -27,7 +28,7 @@ public:
 		x %= 8;
 		x = (7 - x);
 		uint8_t shift = 1 << x;
-		uint8_t r =  (Tile[byte] & shift) >> x;
+		uint8_t r = (Tile[byte] & shift) >> x;
 		r |= ((Tile[byte + 8] & shift) >> x) << 1;
 		return r;
 	}
@@ -128,11 +129,13 @@ private:
 	//Pattern Tables are on Cartridge
 	//OAM Data is in RAM
 	std::array<uint8_t, 0x08> mRegisters;
+	std::array<uint8_t, 0xFF> mOAM;
+	std::array<uint8_t, 0x4000> mVRAM;
 
 public:
 	VMemory* Memory;
 
-	enum 
+	enum
 	{
 		CONTROL_REG,
 		MASK_REG,
@@ -144,34 +147,53 @@ public:
 		DATA_REG
 	};
 
-	unsigned CurrentCyle;
+	unsigned CurrentCycle;
 	int CurrentLine;
 	unsigned CurrentFrame;
 
-	uint16_t Addr, TempAddr, FineX;
-	uint16_t Bitmap1, Bitmap2;
-	uint8_t Palette1, Palette2;
 
-	uint8_t LoopyX, LoopyT, LoopV;
-	bool LoopyAtX;
+	uint8_t NametableByte, AttributeTableByte, TilemapLow, TilemapHigh;
+	uint8_t LastRegisterWrite;
+
+	int TempAddr;
+	int AddrIncAmount;
+
+	int BackgroundAddr;
+	int NametableAddr;
+	int SpritePatternAddr;
+	int SpriteSize; //8x8 = 64, 8x16 = 128
+
+	bool GenerateNMI;
+
+	std::bitset<8> MaskBits;
+	enum
+	{
+		MASK_COLOR,
+		MASK_LEFT_BACKGROUND,
+		MASK_LEFT_SPRITES,
+		MASK_BACKGROUND,
+		MASK_SPRITES,
+		MASK_RED,
+		MASK_GREEN,
+		MASK_BLUE
+	};
 
 
-
-	uint8_t Read(int addr)
+	uint8_t ReadPRG(int addr)
 	{
 		auto r = mRegisters[addr];
-		switch(addr)
+		switch (addr)
 		{
 		case CONTROL_REG:
 		case MASK_REG:
-			break;
+			return LastRegisterWrite;
 		case STATUS_REG:
 			mRegisters[STATUS_REG] &= 0x7F;
 			break;
 		case OAM_ADDR_REG:
 			break;
 		case OAM_DATA_REG:
-			if(!IsVBlanking())
+			if (!IsVBlanking())
 				mRegisters[OAM_ADDR_REG]++;
 		case SCROLL_REG:
 		case ADDR_REG:
@@ -182,29 +204,31 @@ public:
 		return r;
 	}
 
-	uint8_t Write(int addr, uint8_t value)
+	uint8_t WritePRG(int addr, uint8_t value)
 	{
-		switch(addr)
+		LastRegisterWrite = value;
+		switch (addr)
 		{
 		case CONTROL_REG:
+			NametableAddr = ((value & 0x03) << 10) | 0x2000;
+			AddrIncAmount = 1 << ((value & 0x04) << 3);
+			SpritePatternAddr = ((value & 0x08) << 9);
+			BackgroundAddr = ((value & 0x10) << 8);
+			SpriteSize = 64 + ((value & 0x20) << 1);
+			GenerateNMI = (value & 0x80) >> 7;
+			return;
 		case MASK_REG:
+			MaskBits = value;
+			return;
 		case STATUS_REG:
 			return value;
 		case OAM_ADDR_REG:
 			break;
 		case OAM_DATA_REG:
+			mOAM[mRegisters[OAM_ADDR_REG]] = value;
 			mRegisters[OAM_ADDR_REG]++;
+			return;
 		case SCROLL_REG:
-			if(LoopyAtX)
-			{
-				LoopyX = 0x07 & value | LoopyX & 0xF8;
-				LoopyT = 0xF8 & value | LoopyT & 0x07;
-			}
-			else
-			{
-
-			}
-			LoopyAtX = !LoopyAtX;
 			break;
 		case ADDR_REG:
 		case DATA_REG:
@@ -212,6 +236,17 @@ public:
 		}
 
 		mRegisters[addr] = value;
+		return value;
+	}
+
+	uint8_t ReadCHR(int addr)
+	{
+		return mVRAM[addr & 0x1FFF];
+	}
+
+	uint8_t WriteCHR(int addr, uint8_t value)
+	{
+		mVRAM[addr & 0x1FFF] = value;
 		return value;
 	}
 
@@ -230,26 +265,65 @@ public:
 		mRegisters[STATUS_REG] |= 0x80;
 	}
 
+	void Cycle()
+	{
+		if (CurrentCycle == 0)
+		{
+			//Spin Cycle
+		}
+		else if (CurrentCycle < 256)
+		{
+			//Render Cycles
+		}
+		else if (CurrentCycle < 320)
+		{
+			//Garbage cycles
+		}
+		else if (CurrentCycle < 336)
+		{
+			//Nametable
+		}
+		else if (CurrentCycle < 340)
+		{
+			//Next scanline fetch?
+		}
+		CurrentCycle++;
+	}
+
 	void Frame()
 	{
-
+		CurrentLine = 0;
 	}
 
 	void Scanline()
 	{
-
+		CurrentCycle = 0;
+		if (CurrentLine == -1 || CurrentLine == 261)
+		{
+			//Fetch Next, VBLANK Scanline
+		}
+		else if (CurrentLine < 239)
+		{
+			//Visible Scanlines
+		}
+		else if (CurrentLine == 240)
+		{
+			//Post render scanline
+		}
+		else if (CurrentLine < 260)
+		{
+			//Spinlines
+		}
+		else
+		{
+			CurrentLine = -2;
+		}
+		CurrentLine++;
 	}
 
 	void VBlank()
 	{
 		SetVBlanking();
-	}
-
-	void Cycle()
-	{
-		if(CurrentCyle >= 257 && CurrentCyle <= 320)
-			mRegisters[OAM_ADDR_REG] = 0;
-
 	}
 
 };

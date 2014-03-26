@@ -36,7 +36,7 @@ void CPU::DumpRegisters()
 
 void CPU::Fetch()
 {
-	IR = Memory->Read(PC);
+	IR = Memory->ReadPRG(PC);
 	PC++;
 	Instruction = InstructionTable::GetInstruction(IR);
 }
@@ -82,19 +82,19 @@ void CPU::Cycle()
 
 uint8_t CPU::Pop()
 {
-	return Memory->Read(++SP + 0x100);
+	return Memory->ReadPRG(++SP + 0x100);
 }
 
 void CPU::Push(uint8_t value)
 {
-	Memory->Write(SP-- + 0x100, value);
+	Memory->WritePRG(SP-- + 0x100, value);
 }
 
 void CPU::SoftReset()
 {
 	SP -= 3;
 	InterruptFlag = 1;
-	Memory->Write(0x4015, 0x00);
+	Memory->WritePRG(0x4015, 0x00);
 }
 
 void CPU::HardReset()
@@ -104,16 +104,16 @@ void CPU::HardReset()
 	SP = 0xFD;
 	Asserted = false;
 
-	Memory->Write(0x8, 0xF7);
-	Memory->Write(0x9, 0xEF);
-	Memory->Write(0xa, 0xDF);
-	Memory->Write(0xf, 0xBF);
+	Memory->WritePRG(0x8, 0xF7);
+	Memory->WritePRG(0x9, 0xEF);
+	Memory->WritePRG(0xa, 0xDF);
+	Memory->WritePRG(0xf, 0xBF);
 
-	Memory->Write(0x4017, 0x00);
-	Memory->Write(0x4015, 0x00);
+	Memory->WritePRG(0x4017, 0x00);
+	Memory->WritePRG(0x4015, 0x00);
 
 	for(int i = 0x4000; i <= 0x400F; i++)
-		Memory->Write(i, 0x00);
+		Memory->WritePRG(i, 0x00);
 
 	std::fill_n(RAM.data(), 0x800, 0);
 
