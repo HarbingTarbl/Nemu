@@ -129,7 +129,8 @@ private:
 	//Pattern Tables are on Cartridge
 	//OAM Data is in RAM
 	std::array<uint8_t, 0x08> mRegisters;
-	std::array<uint8_t, 0xFF> mOAM;
+	std::array<uint8_t, 0xFF> mPrimaryOAM;
+	std::array<uint8_t, 0x20> mSecondaryOAM;
 	std::array<uint8_t, 0x4000> mVRAM;
 
 public:
@@ -200,7 +201,7 @@ public:
 		case OAM_ADDR_REG:
 			break;
 		case OAM_DATA_REG:
-			r = mOAM[mRegisters[OAM_ADDR_REG]]; ///TODO, This is wrong, need to simulate the proper latching behavior.
+			r = mPrimaryOAM[mRegisters[OAM_ADDR_REG]]; ///TODO, This is wrong, need to simulate the proper latching behavior.
 			mRegisters[OAM_ADDR_REG] += IsVBlanking();
 			return r;
 		case DATA_REG:
@@ -230,7 +231,7 @@ public:
 		case OAM_ADDR_REG:
 			break;
 		case OAM_DATA_REG:
-			mOAM[mRegisters[OAM_ADDR_REG]] = value;
+			mPrimaryOAM[mRegisters[OAM_ADDR_REG]] = value;
 			mRegisters[OAM_ADDR_REG]++;
 			return;
 		case SCROLL_REG:
@@ -239,6 +240,7 @@ public:
 			return;
 		case ADDR_REG:
 			Addr = (value << AddrShift) | (Addr & (0x00FF << AddrShift));
+			AddrShift = (AddrShift + 8) % 16;
 			return;
 		case DATA_REG:
 			break;
