@@ -151,7 +151,6 @@ public:
 	int CurrentLine;
 	unsigned CurrentFrame;
 
-
 	uint8_t NametableByte, AttributeTableByte, TilemapLow, TilemapHigh;
 	uint8_t LastRegisterWrite;
 
@@ -162,6 +161,12 @@ public:
 	int NametableAddr;
 	int SpritePatternAddr;
 	int SpriteSize; //8x8 = 64, 8x16 = 128
+
+	uint8_t Scroll[2]; //0 -> X, 1 -> Y
+	uint8_t ScrollIndex;
+
+	uint16_t Addr;
+	uint8_t AddrShift;
 
 	bool GenerateNMI;
 
@@ -186,6 +191,8 @@ public:
 		{
 		case CONTROL_REG:
 		case MASK_REG:
+		case SCROLL_REG:
+		case ADDR_REG:
 			return LastRegisterWrite;
 		case STATUS_REG:
 			mRegisters[STATUS_REG] &= 0x7F;
@@ -193,14 +200,12 @@ public:
 		case OAM_ADDR_REG:
 			break;
 		case OAM_DATA_REG:
-			if (!IsVBlanking())
-				mRegisters[OAM_ADDR_REG]++;
-		case SCROLL_REG:
-		case ADDR_REG:
+			r = mOAM[mRegisters[OAM_ADDR_REG]]; ///TODO, This is wrong, need to simulate the proper latching behavior.
+			mRegisters[OAM_ADDR_REG] += IsVBlanking();
+			return r;
 		case DATA_REG:
 			break;
 		}
-
 		return r;
 	}
 
@@ -229,8 +234,12 @@ public:
 			mRegisters[OAM_ADDR_REG]++;
 			return;
 		case SCROLL_REG:
-			break;
+			Scroll[ScrollIndex] = value;
+			ScrollIndex = !ScrollIndex;
+			return;
 		case ADDR_REG:
+			Addr = (value << AddrShift) | (Addr & (0x00FF << AddrShift));
+			return;
 		case DATA_REG:
 			break;
 		}
@@ -293,6 +302,7 @@ public:
 	void Frame()
 	{
 		CurrentLine = 0;
+		TempAddr = Addr;
 	}
 
 	void Scanline()
