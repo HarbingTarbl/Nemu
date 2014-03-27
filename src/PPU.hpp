@@ -91,35 +91,54 @@ public:
 class OAMBlock
 {
 public:
-	uint8_t TopScanline;
-	uint8_t TileIndex;
-	uint8_t AttributeFlags;
-	uint8_t LeftScanline;
-
+	uint8_t mTopScanline;
+	uint8_t mTileIndex;
+	uint8_t mAttributeFlags;
+	uint8_t mLeftScanline;
 
 	inline bool PaletteHigh()
 	{
-		return (AttributeFlags & 0x02) >> 1;
+		return (mAttributeFlags & 0x02) >> 1;
 	}
 
 	inline bool PaletteLow()
 	{
-		return (AttributeFlags & 0x01) >> 0;
+		return (mAttributeFlags & 0x01) >> 0;
 	}
 
 	inline bool ObjectPriority()
 	{
-		return (AttributeFlags & 0x20) >> 5;
+		return (mAttributeFlags & 0x20) >> 5;
 	}
 
 	inline bool BitReversal()
 	{
-		return (AttributeFlags & 0x40) >> 6;
+		return (mAttributeFlags & 0x40) >> 6;
 	}
 
 	inline bool Revert()
 	{
-		return (AttributeFlags & 0x80) >> 7;
+		return (mAttributeFlags & 0x80) >> 7;
+	}
+
+	static inline uint8_t TopScanline(unsigned block)
+	{
+		return reinterpret_cast<OAMBlock*>(&block)->TopScanline;
+	}
+
+	static inline uint8_t TileIndex(unsigned block)
+	{
+		return reinterpret_cast<OAMBlock*>(&block)->TileIndex;
+	}
+
+	static inline uint8_t Flag(unsigned block, bool(OAMBlock::*func)())
+	{
+		return (reinterpret_cast<OAMBlock*>(&block)->*func)();
+	}
+	
+	static inline uint8_t LeftScanline(unsigned block)
+	{
+		return reinterpret_cast<OAMBlock*>(&block)->LeftScanline;
 	}
 };
 
@@ -201,6 +220,9 @@ public:
 		case OAM_ADDR_REG:
 			break;
 		case OAM_DATA_REG:
+			if (CurrentFrame >= 20 && CurrentFrame < 26 && CurrentCycle < 64)
+				return 0xFF;
+
 			r = mPrimaryOAM[mRegisters[OAM_ADDR_REG]]; ///TODO, This is wrong, need to simulate the proper latching behavior.
 			mRegisters[OAM_ADDR_REG] += IsVBlanking();
 			return r;
@@ -222,10 +244,10 @@ public:
 			BackgroundAddr = ((value & 0x10) << 8);
 			SpriteSize = 64 + ((value & 0x20) << 1);
 			GenerateNMI = (value & 0x80) >> 7;
-			return;
+			return value;
 		case MASK_REG:
 			MaskBits = value;
-			return;
+			return value;
 		case STATUS_REG:
 			return value;
 		case OAM_ADDR_REG:
@@ -233,15 +255,15 @@ public:
 		case OAM_DATA_REG:
 			mPrimaryOAM[mRegisters[OAM_ADDR_REG]] = value;
 			mRegisters[OAM_ADDR_REG]++;
-			return;
+			return value;
 		case SCROLL_REG:
 			Scroll[ScrollIndex] = value;
 			ScrollIndex = !ScrollIndex;
-			return;
+			return value;
 		case ADDR_REG:
-			Addr = (value << AddrShift) | (Addr & (0x00FF << AddrShift));
+			Addr = (value << AddrShift) | (Addr & (0xFF00 >> AddrShift));
 			AddrShift = (AddrShift + 8) % 16;
-			return;
+			return value;
 		case DATA_REG:
 			break;
 		}
@@ -274,6 +296,35 @@ public:
 	inline void SetVBlanking()
 	{
 		mRegisters[STATUS_REG] |= 0x80;
+	}
+
+	inline uint8_t ReadSecondOAM(uint8_t addr)
+	{
+		if (CurrentCycle < 64)
+			return 0xFF;
+		else
+			return mSecondaryOAM[addr];
+	}
+
+	inline uint8_t WriteSecondOAM(uint8_t addr, uint8_t value)
+	{
+		mSecondaryOAM[addr] = value;
+		return value;
+	}
+
+
+	void SpriteEvaluation()
+	{
+		if (CurrentCycle < 64)
+		{
+			//zzzz
+		}
+		else if (CurrentCycle < 256)
+		{
+			int n = 0;
+
+
+		}
 	}
 
 	void Cycle()
