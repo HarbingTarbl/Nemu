@@ -113,13 +113,13 @@ public:
 
 			gl::GenBuffers(1, &colorburstBuffer);
 			gl::BindBuffer(gl::ARRAY_BUFFER, colorburstBuffer);
-			gl::BufferData(gl::ARRAY_BUFFER, 2 * 256 * 2, nullptr, gl::STREAM_DRAW);
+			gl::BufferData(gl::ARRAY_BUFFER, 2 * 256, nullptr, gl::STREAM_DRAW);
 
 			gl::GenVertexArrays(1, &defaultVAO);
 			gl::BindVertexArray(defaultVAO);
 
 			gl::EnableVertexAttribArray(0);
-			gl::VertexAttribPointer(0, 2, gl::SHORT, false, 0, 0);
+			gl::VertexAttribPointer(0, 1, gl::SHORT, false, 0, 0);
 			gl::VertexAttribDivisor(0, 1);
 
 			gl::GenBuffers(1, &shapeBuffer);
@@ -178,7 +178,7 @@ public:
 
 	static void BeginScanline(int PPUCycle)
 	{
-		gl::Uniform1f(ppuPhaseLocation, std::fmodf(PPUCycle * 8 * 3.9f, 12));
+		gl::Uniform1i(ppuPhaseLocation, (PPUCycle * 8) % 12);
 		gl::BindBuffer(gl::ARRAY_BUFFER, colorburstBuffer);
 		PixelOut = (Pixel*)gl::MapBuffer(gl::ARRAY_BUFFER, gl::WRITE_ONLY);
 		ScanlineComplete = false;
@@ -203,7 +203,6 @@ public:
 	struct Pixel
 	{
 		uint16_t Color;
-		uint16_t Phase;
 	};
 	
 	static Pixel* PixelOut;

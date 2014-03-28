@@ -1,5 +1,5 @@
 #version 330
-layout(location = 0) in ivec2 NESColor;
+layout(location = 0) in int NESColor;
 layout(location = 1) in vec4 PixelShape;
 
 uniform mat4 PMatrix;
@@ -13,7 +13,7 @@ const mat3 NonFCCYIQMatrix = mat3(
 
 
 uniform int Scanline;
-uniform float PPUPhase;
+uniform int PPUPhase;
 
 uniform float Gamma = 2;
 uniform float Saturation = 1.7;
@@ -35,7 +35,7 @@ const float levels[8] = float[](
 );
 
 
-vec3 NEStoRGB(in int pixel, in int phase)
+vec3 NEStoRGB(in int pixel)
 {
 	int color = pixel & 0x0F;
 	int level = (pixel >> 4) & 0x03;
@@ -45,7 +45,7 @@ vec3 NEStoRGB(in int pixel, in int phase)
 		level = 1;
 	
 	float low = levels[0 + level];
-	float high = levels[0 + level];
+	float high = levels[4 + level];
 	
 	if(color == 0)
 		low = high;
@@ -53,16 +53,20 @@ vec3 NEStoRGB(in int pixel, in int phase)
 		high = low;
 		
 	vec3 yiq = vec3(0);
+
+	int genPhase = PPUPhase + gl_InstanceID * 8;
+	float decodingPhase = genPhase + 3.9f;
+
 	for(int i = 0; i < 12; i++)
 	{
-		float signal = (((color + phase + i) % 12) < 6) ? high : low;
+		float signal = (((color + genPhase + i) % 12) < 6) ? high : low;
 		signal = (signal - levels[1]) / (levels[7] - levels[1]);
 				
 		float value = signal * Brightness / 12f;
 		yiq.r += value;
 		value *= Saturation;
-		yiq.g += value * cos((3.141592653/6) * (phase  + 3.9f + i));
-		yiq.b += value * sin((3.141592653/6) * (phase  + 3.9f + i));
+		yiq.g += value * cos((3.141592653/6) * (decodingPhase + i));
+		yiq.b += value * sin((3.141592653/6) * (decodingPhase + i));
 	}
 	
 	
@@ -70,50 +74,9 @@ vec3 NEStoRGB(in int pixel, in int phase)
 	return min(vec3(255f), vec3(255.95f) * pow(max(vec3(0), rgb), vec3(2.2 / Gamma))) / vec3(255f);
 }
 
-vec3 NEStoYIQ(in ivec2 color)
-{
-	float signals[12];
-	int c = color.x & 0x0F;
-	int l = (color.x >> 4) & 3;
-	int e = (color.x >> 6);
-	if(c > 13)
-	{
-		l = 1;
-	}
-	
-	float low = levels[0 + l];
-	float high = levels[4 + l];
-	if(c == 0)
-	{
-		low = high;
-	}
-	else if(c > 12)
-	{
-		high = low;
-	}
-	
-	int p = color.y * 8;
-	
-	for(int i = 0; i < 12; i++)
-	{
-		signals[i] = (((c + p + i) % 12) < 6) ? high : low;
-		signals[i] = (signals[i] - black) / (white - black);
-		signals[i] /= 12f;
-	}
-	
-	vec3 yiq = vec3(0);
-	for(int i = 0; i < 12; i++)
-	{
-		float phasedPi = (PPUPhase + i)/6f * 3.14159265;
-		yiq += vec3(signals[i]) * vec3(1, cos(phasedPi), sin(phasedPi));
-	}
-	
-	return vec3(0,color.y/255f,color.x/255f);
-}
-
 void main()
 {
 	vec4 pos = PixelShape + vec4(gl_InstanceID, Scanline, 0, 0);
 	gl_Position = PMatrix * pos;
-	PixelColor = NEStoRGB(NESColor.x, NESColor.y);
+	PixelColor = NEStoRGB(NESColor);
 }

@@ -52,11 +52,10 @@ int main(int argc, const char* args[])
 
 		for (int i = 0; i < 240; i++) //Render 240 scanlines
 		{
-			Render::BeginScanline((i + 20) * 341);
+			Render::BeginScanline(0);
 			for (int k = 0; k < 256; k++) // 256 Pixels
 			{
 				Render::PixelOut[k].Color = 0x0F + (1 << 4);
-				Render::PixelOut[k].Phase = ((i + 20) * 341 + k) % 12;
 			}
 			Render::EndScanline();
 		}
