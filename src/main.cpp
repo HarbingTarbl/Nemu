@@ -37,8 +37,32 @@ int main(int argc, const char* args[])
 		cout << endl;
 	}
 
-	Render::Initalize();
-	std::this_thread::sleep_for(std::chrono::seconds(10));
+	try
+	{
+		Render::Initalize(800, 600);
+	}
+	catch (exception& e)
+	{
+		cout << "Could not initalize window : " << e.what() << endl;
+	}
+
+	while (Render::WindowOpen())
+	{
+		Render::BeginFrame();
+
+		for (int i = 0; i < 240; i++) //Render 240 scanlines
+		{
+			Render::BeginScanline();
+			for (int k = 0; k < 256; k++)
+			{
+				Render::PixelOut[k].Color = k;
+			}
+			Render::EndScanline();
+		}
+
+		Render::EndFrame();
+	}
+
 	Render::Terminate();
 
 

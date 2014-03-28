@@ -1,0 +1,15 @@
+#version 330
+layout(location = 0) in ivec2 NESColor;
+layout(location = 1) in vec4 PixelShape;
+
+uniform mat4 PMatrix;
+uniform int Scanline;
+
+flat out vec3 PixelColor;
+
+void main()
+{
+	vec4 pos = PixelShape + vec4(gl_InstanceID, Scanline, 0, 0);
+	gl_Position = PMatrix * pos;
+	PixelColor = vec3(gl_InstanceID / 100f, (240 - Scanline) / 1000f, min((gl_InstanceID * Scanline ) / float(240 * 128), 1));
+}

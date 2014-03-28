@@ -18,6 +18,7 @@ private:
 	
 	static unsigned programId;
 	
+	static unsigned shapeBuffer;
 	static unsigned colorburstBuffer;
 	static unsigned bufferIndex;
 
@@ -28,15 +29,17 @@ private:
 
 	static unsigned defaultVAO;
 
+	static float orthoMatrix[4][4];
+
 
 public:
-	static void Initalize()
+	static void Initalize(int windowWidth, int windowHeight)
 	{
 		using namespace std;
 		if (!window)
 		{
 			glfwInit();
-			window = glfwCreateWindow(800, 600, "NES Emulator", nullptr, nullptr);
+			window = glfwCreateWindow(windowWidth, windowHeight, "NES Emulator", nullptr, nullptr);
 			glfwMakeContextCurrent(window);
 			gl::sys::LoadFunctions();
 			cout << "Initalized " << gl::sys::GetMajorVersion() << "." << gl::sys::GetMinorVersion() << endl;
@@ -73,8 +76,30 @@ public:
 				gl::ShaderSource(fragment, 1, &b, nullptr);
 			}
 
+			int compileStatus;
 			gl::CompileShader(fragment);
+			gl::GetShaderiv(fragment, gl::COMPILE_STATUS, &compileStatus);
+			if (!compileStatus)
+			{
+				int logSize;
+				gl::GetShaderiv(fragment, gl::INFO_LOG_LENGTH, &logSize);
+				string shaderError;
+				shaderError.resize(logSize);
+				gl::GetShaderInfoLog(fragment, logSize, nullptr, &shaderError[0]);
+				throw runtime_error(shaderError);
+			}
+
 			gl::CompileShader(vertex);
+			gl::GetShaderiv(vertex, gl::COMPILE_STATUS, &compileStatus);
+			if (!compileStatus)
+			{
+				int logSize;
+				gl::GetShaderiv(vertex, gl::INFO_LOG_LENGTH, &logSize);
+				string shaderError;
+				shaderError.resize(logSize);
+				gl::GetShaderInfoLog(vertex, logSize, nullptr, &shaderError[0]);
+				throw runtime_error(shaderError);
+			}
 
 			gl::AttachShader(programId, fragment);
 			gl::AttachShader(programId, vertex);
@@ -85,13 +110,39 @@ public:
 
 			gl::GenBuffers(1, &colorburstBuffer);
 			gl::BindBuffer(gl::ARRAY_BUFFER, colorburstBuffer);
+			gl::BufferData(gl::ARRAY_BUFFER, 2 * 256 * 2, nullptr, gl::STREAM_DRAW);
 
 			gl::GenVertexArrays(1, &defaultVAO);
 			gl::BindVertexArray(defaultVAO);
 
 			gl::EnableVertexAttribArray(0);
 			gl::VertexAttribPointer(0, 2, gl::SHORT, false, 0, 0);
+			gl::VertexAttribDivisor(0, 1);
 
+			gl::GenBuffers(1, &shapeBuffer);
+			gl::BindBuffer(gl::ARRAY_BUFFER, shapeBuffer);
+			const float shape[] = {
+				0, 0, 0, 1,
+				1, 0, 0, 1,
+				0, 1, 0, 1,
+				1, 1, 0, 1
+			};
+			gl::BufferData(gl::ARRAY_BUFFER, sizeof(shape), shape, gl::STATIC_DRAW);
+			gl::EnableVertexAttribArray(1);
+			gl::VertexAttribPointer(1, 4, gl::FLOAT, false, 0, 0);
+
+			gl::Enable(gl::VERTEX_PROGRAM_POINT_SIZE);
+
+			float matrix[] = {
+				 2.0 / 20, 0, 0, -1 ,
+				 0, -2.0 / 240, 0, 1 ,
+				 0, 0, -2.0 / 20, 1 ,
+				 0, 0, 0, 1 ,
+			};
+
+
+			gl::UniformMatrix4fv(gl::GetUniformLocation(programId, "PMatrix"), 1, true, matrix);
+			scanlineIndexLocation = gl::GetUniformLocation(programId, "Scanline");
 		}
 	}
 
@@ -101,30 +152,50 @@ public:
 		glfwTerminate();
 	}
 
-	static void StartFrame()
+	static void BeginFrame()
 	{
 		glfwPollEvents();
+		CurrentScanline = 0;
+		FrameComplete = false;
 	}
 
 	static void EndFrame()
 	{
 		glfwSwapBuffers(window);
+		CurrentFrame++;
+		FrameComplete = true;
 	}
 
 	static void BeginScanline()
 	{
 		gl::BindBuffer(gl::ARRAY_BUFFER, colorburstBuffer);
-		PixelOut = (uint8_t*)gl::MapBuffer(gl::ARRAY_BUFFER, colorburstBuffer);
+		PixelOut = (Pixel*)gl::MapBuffer(gl::ARRAY_BUFFER, gl::WRITE_ONLY);
+		ScanlineComplete = false;
 	}
 
 	static void EndScanline()
 	{
 		gl::BindBuffer(gl::ARRAY_BUFFER, colorburstBuffer);
 		gl::UnmapBuffer(gl::ARRAY_BUFFER);
-		gl::Uniform1ui(scanlineIndexLocation, scanlineIndex);
+		gl::Uniform1i(scanlineIndexLocation, CurrentScanline);
+		gl::DrawArraysInstanced(gl::TRIANGLE_STRIP, 0, 4, 256);
+		ScanlineComplete = true;
+		CurrentScanline++;
 	}
 
-	static uint8_t* PixelOut;
+	static bool WindowOpen()
+	{
+		return !glfwWindowShouldClose(window);
+	}
+
+
+	struct Pixel
+	{
+		uint16_t Color;
+		uint16_t Phase;
+	};
+	
+	static Pixel* PixelOut;
 	
 	static unsigned CurrentScanline;
 	static unsigned CurrentFrame;

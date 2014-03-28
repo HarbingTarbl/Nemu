@@ -1,0 +1,10 @@
+#version 330
+
+flat in vec3 PixelColor;
+
+out vec4 color;
+
+void main()
+{
+	color = vec4(PixelColor, 1);
+}
