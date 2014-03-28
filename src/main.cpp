@@ -53,7 +53,7 @@ int main(int argc, const char* args[])
 		for (int i = 0; i < 240; i++) //Render 240 scanlines
 		{
 			Render::BeginScanline();
-			for (int k = 0; k < 256; k++)
+			for (int k = 0; k < 256; k++) // 256 Pixels
 			{
 				Render::PixelOut[k].Color = k;
 			}

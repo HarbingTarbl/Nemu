@@ -30,6 +30,9 @@ private:
 	static unsigned defaultVAO;
 
 	static float orthoMatrix[4][4];
+	static float yiqMatrix[3][3];
+
+	static unsigned yiqMatrixLocation;
 
 
 public:
@@ -56,7 +59,6 @@ public:
 			fileHandle.seekg(0, fileHandle.beg);
 			fileHandle.read(sourceBuffer.data(), sourceBuffer.size() - 1);
 			fileHandle.close();
-
 
 			{
 				const char* b = sourceBuffer.data();
@@ -134,7 +136,7 @@ public:
 			gl::Enable(gl::VERTEX_PROGRAM_POINT_SIZE);
 
 			float matrix[] = {
-				 2.0 / 20, 0, 0, -1 ,
+				 2.0 / 256, 0, 0, -1 ,
 				 0, -2.0 / 240, 0, 1 ,
 				 0, 0, -2.0 / 20, 1 ,
 				 0, 0, 0, 1 ,
@@ -143,7 +145,13 @@ public:
 
 			gl::UniformMatrix4fv(gl::GetUniformLocation(programId, "PMatrix"), 1, true, matrix);
 			scanlineIndexLocation = gl::GetUniformLocation(programId, "Scanline");
+			yiqMatrixLocation = gl::GetUniformLocation(programId, "YIQMatrix");
 		}
+	}
+
+	static void UploadYIQMatrix()
+	{
+
 	}
 
 	static void Terminate()
