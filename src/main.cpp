@@ -1,8 +1,11 @@
 #include "VMemory.hpp"
 #include "CPU.hpp"
 #include "NES.hpp"
+#include "Renderer.hpp"
 #include <iostream>
 #include <iomanip>
+#include <thread>
+#include <chrono>
 
 int main(int argc, const char* args[])
 {
@@ -33,6 +36,10 @@ int main(int argc, const char* args[])
 		}
 		cout << endl;
 	}
+
+	Render::Initalize();
+	std::this_thread::sleep_for(std::chrono::seconds(10));
+	Render::Terminate();
 
 
 	return 0;

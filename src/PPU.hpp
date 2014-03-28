@@ -123,12 +123,12 @@ public:
 
 	static inline uint8_t TopScanline(unsigned block)
 	{
-		return reinterpret_cast<OAMBlock*>(&block)->TopScanline;
+		return reinterpret_cast<OAMBlock*>(&block)->mTopScanline;
 	}
 
 	static inline uint8_t TileIndex(unsigned block)
 	{
-		return reinterpret_cast<OAMBlock*>(&block)->TileIndex;
+		return reinterpret_cast<OAMBlock*>(&block)->mTileIndex;
 	}
 
 	static inline uint8_t Flag(unsigned block, bool(OAMBlock::*func)())
@@ -138,7 +138,7 @@ public:
 	
 	static inline uint8_t LeftScanline(unsigned block)
 	{
-		return reinterpret_cast<OAMBlock*>(&block)->LeftScanline;
+		return reinterpret_cast<OAMBlock*>(&block)->mLeftScanline;
 	}
 };
 
