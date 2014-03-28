@@ -55,7 +55,7 @@ int main(int argc, const char* args[])
 			Render::BeginScanline((i + 20) * 341);
 			for (int k = 0; k < 256; k++) // 256 Pixels
 			{
-				Render::PixelOut[k].Color = (0xF & 0x0F) | 3 << 4;
+				Render::PixelOut[k].Color = k & 0xFF;
 				Render::PixelOut[k].Phase = k;
 			}
 			Render::EndScanline();

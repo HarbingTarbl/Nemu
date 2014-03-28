@@ -15,7 +15,9 @@ const mat3 NonFCCYIQMatrix = mat3(
 uniform int Scanline;
 uniform float PPUPhase;
 
-uniform float Gamma;
+uniform float Gamma = 2;
+uniform float Saturation = 1.7;
+uniform float Brightness = 1.0;
 
 flat out vec3 PixelColor;
 
@@ -31,6 +33,36 @@ const float levels[8] = float[](
 	0.350f, 0.518f, 0.962f, 1.550f,
 	1.094f, 1.506f, 1.962f,  1.962f
 );
+
+
+vec3 NEStoRGB(in int pixel, in int phase)
+{
+	int color = pixel & 0x0F;
+	int level = (pixel >> 4) & 0x03;
+	int emp = (pixel >> 6);
+	
+	if(color > 13)
+		level = 1;
+		
+	vec3 yiq = vec3(0);
+	for(int i = 0; i < 12; i++)
+	{
+		float signal = levels[level + 4 * (int(color <= 12) * int(((color + phase + i) % 12) < 6))];
+		if ((emp & (0264513 >> (3  * (((phase + i)%12) >> 1)))) != 0)  
+			signal *= 0.746;
+		signal = (signal - levels[1]) / (levels[7] - levels[1]);
+		
+		float value = signal * Brightness / 12f;
+		yiq.r += value;
+		value *= Saturation;
+		yiq.g += value * cos((3.141592653/6) * (phase  + 3.9f + i));
+		yiq.b += value * sin((3.141592653/6) * (phase  + 3.9f + i));
+	}
+	
+	
+	vec3 rgb = YIQtoRGB(yiq);
+	return min(vec3(255f), vec3(255.95f) * pow(max(vec3(0), rgb), vec3(2.2 / Gamma))) / vec3(255f);
+}
 
 vec3 NEStoYIQ(in ivec2 color)
 {
@@ -54,7 +86,7 @@ vec3 NEStoYIQ(in ivec2 color)
 		high = low;
 	}
 	
-	int p = color.y;
+	int p = color.y * 8;
 	
 	for(int i = 0; i < 12; i++)
 	{
@@ -70,12 +102,12 @@ vec3 NEStoYIQ(in ivec2 color)
 		yiq += vec3(signals[i]) * vec3(1, cos(phasedPi), sin(phasedPi));
 	}
 	
-	return yiq;
+	return vec3(0,color.y/255f,color.x/255f);
 }
 
 void main()
 {
 	vec4 pos = PixelShape + vec4(gl_InstanceID, Scanline, 0, 0);
 	gl_Position = PMatrix * pos;
-	PixelColor = YIQtoRGB(NEStoYIQ(NESColor));
+	PixelColor = NEStoRGB(NESColor.x, NESColor.y);
 }
