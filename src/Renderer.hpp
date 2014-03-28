@@ -33,6 +33,7 @@ private:
 	static float yiqMatrix[3][3];
 
 	static unsigned yiqMatrixLocation;
+	static unsigned ppuPhaseLocation;
 
 
 public:
@@ -146,6 +147,7 @@ public:
 			gl::UniformMatrix4fv(gl::GetUniformLocation(programId, "PMatrix"), 1, true, matrix);
 			scanlineIndexLocation = gl::GetUniformLocation(programId, "Scanline");
 			yiqMatrixLocation = gl::GetUniformLocation(programId, "YIQMatrix");
+			ppuPhaseLocation = gl::GetUniformLocation(programId, "PPUPhase");
 		}
 	}
 
@@ -174,8 +176,9 @@ public:
 		FrameComplete = true;
 	}
 
-	static void BeginScanline()
+	static void BeginScanline(int PPUCycle)
 	{
+		gl::Uniform1f(ppuPhaseLocation, PPUCycle * 8 * 3.9f);
 		gl::BindBuffer(gl::ARRAY_BUFFER, colorburstBuffer);
 		PixelOut = (Pixel*)gl::MapBuffer(gl::ARRAY_BUFFER, gl::WRITE_ONLY);
 		ScanlineComplete = false;

@@ -12,6 +12,7 @@ unsigned Render::scanlineIndex = 0;
 unsigned Render::scanlineIndexLocation = 0;
 unsigned Render::shapeBuffer = 0;
 unsigned Render::yiqMatrixLocation = 0;
+unsigned Render::ppuPhaseLocation = 0;
 
 float Render::orthoMatrix[4][4] = { 0 };
 float Render::yiqMatrix[3][3] = { 0 };
