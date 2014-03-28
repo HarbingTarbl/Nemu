@@ -331,10 +331,13 @@ public:
 	{
 		if (CurrentCycle == 0)
 		{
+			Render::BeginScanline(0); //Should use actual scanline timing
 			//Spin Cycle
 		}
-		else if (CurrentCycle < 256)
+		else if (CurrentCycle <= 256)
 		{
+			Render::PixelOut->Color = 0;
+			Render::PixelOut++;
 			//Render Cycles
 		}
 		else if (CurrentCycle < 320)
@@ -348,6 +351,7 @@ public:
 		else if (CurrentCycle < 340)
 		{
 			//Next scanline fetch?
+			Render::EndScanline();
 		}
 		CurrentCycle++;
 	}
@@ -364,6 +368,7 @@ public:
 		if (CurrentLine == -1 || CurrentLine == 261)
 		{
 			//Fetch Next, VBLANK Scanline
+			Render::BeginFrame();
 		}
 		else if (CurrentLine < 239)
 		{
@@ -380,6 +385,7 @@ public:
 		else
 		{
 			CurrentLine = -2;
+			Render::EndFrame();
 		}
 		CurrentLine++;
 	}

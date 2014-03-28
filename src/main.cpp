@@ -19,24 +19,6 @@ int main(int argc, const char* args[])
 	//while(!Nemu.mCPU.Asserted)
 	//	Nemu.mCPU.Cycle();
 
-	PatternTile tile;
-	uint8_t t[] = 
-	{ 
-		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x7E, 0x3C,
-		0x3C, 0x7E, 0x7E, 0xFF, 0xFF, 0xFF, 0x42, 0x00
-	};
-
-	std::copy_n(t, sizeof(t), tile.Tile.begin());
-
-	for(int i = 0; i < 8; i++)
-	{
-		for(int j = 0; j < 8; j++)
-		{
-			cout << (int)tile.PaletteIndex(j, i) << " ";
-		}
-		cout << endl;
-	}
-
 	try
 	{
 		Render::Initalize(800, 600);
@@ -52,10 +34,11 @@ int main(int argc, const char* args[])
 
 		for (int i = 0; i < 240; i++) //Render 240 scanlines
 		{
+			//Render::BeginScanline(i * 341 + std::rand() & 0x03);
 			Render::BeginScanline(0);
 			for (int k = 0; k < 256; k++) // 256 Pixels
 			{
-				Render::PixelOut[k].Color = 0xF2 + (0 << 4);
+				Render::PixelOut[k].Color = k & 0x0F | ((k & 0x03) << 4);
 			}
 			Render::EndScanline();
 		}

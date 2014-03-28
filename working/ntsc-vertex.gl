@@ -16,7 +16,7 @@ uniform int Scanline;
 uniform int PPUPhase;
 
 uniform float Gamma = 2;
-uniform float Saturation = 1.7;
+uniform float Saturation = 1.2;
 uniform float Brightness = 1.0;
 
 flat out vec3 PixelColor;
@@ -26,8 +26,6 @@ vec3 YIQtoRGB(in vec3 YIQ)
 	return transpose(NonFCCYIQMatrix) * YIQ;
 }
 
-const float black = 0.518f;
-const float white = 1.962f;
 const float atten = 0.746f;
 const float levels[8] = float[](
 	0.350f, 0.518f, 0.962f, 1.550f,
@@ -65,8 +63,8 @@ vec3 NEStoRGB(in int pixel)
 		float value = signal * Brightness / 12f;
 		yiq.r += value;
 		value *= Saturation;
-		yiq.g += value * cos((3.141592653/6) * (decodingPhase + i));
-		yiq.b += value * sin((3.141592653/6) * (decodingPhase + i));
+		yiq.g += value * cos((3.141592653/6) * (decodingPhase +i ) /12f);
+		yiq.b += value * sin((3.141592653/6) * (decodingPhase + i) / 12f);
 	}
 	
 	
