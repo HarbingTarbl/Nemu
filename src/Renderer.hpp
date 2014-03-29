@@ -113,7 +113,7 @@ public:
 
 			gl::GenBuffers(1, &colorburstBuffer);
 			gl::BindBuffer(gl::ARRAY_BUFFER, colorburstBuffer);
-			gl::BufferData(gl::ARRAY_BUFFER, 2 * 256, nullptr, gl::STREAM_DRAW);
+			gl::BufferData(gl::ARRAY_BUFFER, sizeof(Render::Pixel) * 256, nullptr, gl::STREAM_DRAW);
 
 			gl::GenVertexArrays(1, &defaultVAO);
 			gl::BindVertexArray(defaultVAO);
@@ -178,7 +178,7 @@ public:
 
 	static void BeginScanline(int PPUCycle)
 	{
-		gl::Uniform1i(ppuPhaseLocation, (PPUCycle % 12));
+		gl::Uniform1i(ppuPhaseLocation, (PPUCycle * 8) % 12);
 		gl::BindBuffer(gl::ARRAY_BUFFER, colorburstBuffer);
 		PixelOut = (Pixel*)gl::MapBuffer(gl::ARRAY_BUFFER, gl::WRITE_ONLY);
 		ScanlineComplete = false;

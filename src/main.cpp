@@ -45,9 +45,9 @@ int main(int argc, const char* args[])
 
 		for (int i = 0; i < 240; i++) //Render 240 scanlines
 		{
-			//Render::BeginScanline(i * 341 + std::rand() & 0x03);
-			Render::BeginScanline(0);
-			memcpy(Render::PixelOut, image.data() + i * 256, 256 * 2);
+			Render::BeginScanline(i * 341);
+			//Render::BeginScanline(0);
+			memcpy(Render::PixelOut, image.data() + i * 256, 256 * sizeof(Render::Pixel));
 			Render::EndScanline();
 		}
 
