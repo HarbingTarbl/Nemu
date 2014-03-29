@@ -8,7 +8,7 @@ solution "Nemu"
 		kind "ConsoleApp"
 		language "c++"
 		files {"src/**.cpp", "src/**.hpp", "src/**.c", "src/**.h"}
-		includedirs {"includes/**.hpp", "includes/**.h" }
+		includedirs {"includes"}
 		libdirs {"libs"}
 		
 		objdir "bin/obj"
@@ -16,7 +16,7 @@ solution "Nemu"
 
 		configuration "windows"
 			defines "WIN32"
-			links { "glfw3" }
+			links { "glfw3", "opengl32", "glu32" }
 
 		configuration "linux"
 			defines "LINUX"
