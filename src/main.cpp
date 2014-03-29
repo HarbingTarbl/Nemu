@@ -28,6 +28,17 @@ int main(int argc, const char* args[])
 		cout << "Could not initalize window : " << e.what() << endl;
 	}
 
+	vector<uint16_t> image;
+	fstream imageFile("image.clr", fstream::in | fstream::binary);
+	imageFile.seekg(0, imageFile.end);
+	image.resize(imageFile.tellp() / 2);
+	imageFile.seekg(0, imageFile.beg);
+	imageFile.read((char*)image.data(), image.size() * 2);
+	imageFile.close();
+
+
+
+
 	while (Render::WindowOpen())
 	{
 		Render::BeginFrame();
@@ -36,10 +47,7 @@ int main(int argc, const char* args[])
 		{
 			//Render::BeginScanline(i * 341 + std::rand() & 0x03);
 			Render::BeginScanline(0);
-			for (int k = 0; k < 256; k++) // 256 Pixels
-			{
-				Render::PixelOut[k].Color = k & 0x0F | ((k & 0x03) << 4);
-			}
+			memcpy(Render::PixelOut, image.data() + i * 256, 256 * 2);
 			Render::EndScanline();
 		}
 

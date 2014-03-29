@@ -119,7 +119,7 @@ public:
 			gl::BindVertexArray(defaultVAO);
 
 			gl::EnableVertexAttribArray(0);
-			gl::VertexAttribPointer(0, 1, gl::SHORT, false, 0, 0);
+			gl::VertexAttribIPointer(0, 1, gl::SHORT, 0, 0);
 			gl::VertexAttribDivisor(0, 1);
 
 			gl::GenBuffers(1, &shapeBuffer);

@@ -5,6 +5,7 @@
 
 #include "CPU.hpp"	
 #include "VMemory.hpp"
+#include "Renderer.hpp"
 
 class VMemory;
 
