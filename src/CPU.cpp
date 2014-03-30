@@ -89,12 +89,10 @@ void CPU::Cycle()
 		}
 		break;
 	case CPU_STATE_EXECUTING:
-		if (AllocatedCycles >= Instruction->Cycles)
-		{
-			State = CPU_STATE_FETCHING;
-			Execute();
-			AllocatedCycles -= Instruction->Cycles;
-		}
+		AllocatedCycles -= Instruction->Cycles;
+		Execute();
+		State = CPU_STATE_FETCHING;
+
 		break;
 	case CPU_STATE_INTERRUPT:
 		Interrupt();
@@ -124,7 +122,7 @@ void CPU::Cycle()
 
 void CPU::Step()
 {
-	while (AllocatedCycles > 0)
+	if (AllocatedCycles > 0)
 		Cycle();
 }
 

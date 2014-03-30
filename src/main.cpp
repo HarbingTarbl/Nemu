@@ -50,12 +50,12 @@ int main(int argc, const char* args[])
 	{
 		while (Render::WindowOpen())
 		{
-			Nemu.mCPU.Cycle();
-			for (int i = 0; i < Nemu.mCPU.Instruction->Cycles * 3; i++)
-			{
-				Nemu.mPPU.Cycle();
-			}
+			Nemu.mCPU.AllocateCycles(1);
+			Nemu.mPPU.AllocateCycles(1 * 3);
+			Nemu.mCPU.Step();
+			Nemu.mPPU.Step();
 		}
+
 
 		if (Render::FrameComplete)
 			Render::BeginFrame();
