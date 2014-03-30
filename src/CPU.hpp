@@ -24,8 +24,22 @@ public:
 
 
 	int Addr;
+	int AllocatedCycles;
 
+	enum
+	{
+		CPU_STATE_STARTUP,
+		CPU_STATE_FETCHING,
+		CPU_STATE_EXECUTING,
+		CPU_STATE_INTERRUPT,
+		CPU_STATE_DMA_START,
+		CPU_STATE_DMA_EXECUTING,
+		CPU_STATE_DMA_END
+	};
+
+	int State;
 	bool Asserted;
+	bool AwaitingNMI;
 
 	unsigned CurrentCyle;
 	const InstructionTable::InstructionPack* Instruction;
@@ -66,6 +80,11 @@ public:
 	void SoftReset();
 
 	void HardReset();
+	void AllocateCycles(int nTicks);
+
+	void TriggerNMI();
+	void TriggerVINT();
+	void ClearNMI();
 };
 
 

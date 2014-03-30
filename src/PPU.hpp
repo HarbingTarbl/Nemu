@@ -7,7 +7,6 @@
 #include "VMemory.hpp"
 #include "Renderer.hpp"
 
-class VMemory;
 
 class NameTable
 {
@@ -190,6 +189,8 @@ public:
 	int TempAddr;
 	int AddrIncAmount;
 
+	int AllocatedCycles;
+
 	int TilemapAddr;
 	int BackgroundAddr, BackgroundAddrTemp;
 	int NametableAddr, NametableAddrTemp;
@@ -224,6 +225,12 @@ public:
 		MASK_BLUE
 	};
 
+
+	void AllocateCycles(int nTicks)
+	{
+		AllocatedCycles += nTicks;
+
+	}
 
 	uint8_t ReadPRG(int addr)
 	{
@@ -406,10 +413,10 @@ public:
 			}
 
 			
-
-			Render::PixelOut->Color =
-				PatternTile::Get(TilemapHigh, TilemapLow, cycleOffset)
+			int index = PatternTile::Get(TilemapHigh, TilemapLow, cycleOffset)
 				| (((AttributeTableByte & attribMask) >> attribIndex) << 2);
+
+			Render::PixelOut->Color = rand();
 			Render::PixelOut++;
 			//Render Cycles
 		}

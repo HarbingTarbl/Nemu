@@ -11,7 +11,8 @@ CPU::CPU()
 	SP(0),
 	X(0),
 	Y(0),
-	PC(0)
+	PC(0),
+	State(CPU_STATE_STARTUP)
 {
 
 }
@@ -37,6 +38,8 @@ void CPU::DumpRegisters()
 void CPU::Fetch()
 {
 	IR = Memory->ReadPRG(PC);
+	if (AwaitingNMI)
+		ClearNMI();
 	PC++;
 	Instruction = InstructionTable::GetInstruction(IR);
 }
@@ -69,14 +72,40 @@ uint8_t CPU::Write(int addr, uint8_t value)
 
 void CPU::Interrupt()
 {
-
+	State = CPU_STATE_FETCHING;
 }
 
 void CPU::Cycle()
 {
-	Fetch();
-	Execute();
-	Interrupt();
+	switch (State)
+	{
+	case CPU_STATE_STARTUP:
+		State = CPU_STATE_FETCHING;
+	case CPU_STATE_FETCHING:
+		if (AllocatedCycles > 0)
+		{
+			State = CPU_STATE_EXECUTING;
+			Fetch();
+		}
+		break;
+	case CPU_STATE_EXECUTING:
+		if (AllocatedCycles >= Instruction->Cycles)
+		{
+			State = CPU_STATE_FETCHING;
+			Execute();
+			AllocatedCycles -= Instruction->Cycles;
+		}
+		break;
+	case CPU_STATE_INTERRUPT:
+		Interrupt();
+		break;
+	case CPU_STATE_DMA_START:
+		break;
+	case CPU_STATE_DMA_EXECUTING:
+		break;
+	case CPU_STATE_DMA_END:
+		break;
+	}
 }
 
 
@@ -103,6 +132,9 @@ void CPU::HardReset()
 	A = X = Y = 0;
 	SP = 0xFD;
 	Asserted = false;
+	AwaitingNMI = false;
+	State = CPU_STATE_STARTUP;
+	AllocatedCycles = 1;
 
 	Memory->WritePRG(0x8, 0xF7);
 	Memory->WritePRG(0x9, 0xEF);
@@ -119,4 +151,25 @@ void CPU::HardReset()
 
 	PC = Memory->GetRV();
 	CurrentCyle = 0;
+}
+
+void CPU::AllocateCycles(int nTicks)
+{
+	AllocatedCycles += nTicks;
+}
+
+void CPU::TriggerNMI()
+{
+	AwaitingNMI = true;
+	PC = Memory->GetNMIV();
+}
+
+void CPU::ClearNMI()
+{
+	AwaitingNMI = false;
+}
+
+void CPU::TriggerVINT()
+{
+	TriggerNMI();
 }
