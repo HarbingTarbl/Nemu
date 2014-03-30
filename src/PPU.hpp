@@ -380,10 +380,10 @@ public:
 		}
 		else if (CurrentCycle <= 256)
 		{
-			uint8_t currentX, currentY;
+			static int attribMask, attribIndex;
 			uint16_t paletteAddr;
-			int cycleOffset = CurrentCycle % 8;
-			if (cycleOffset)
+			int cycleOffset = (CurrentCycle - 1) % 8;
+			if (cycleOffset == 0)
 			{
 				NametableAddrTemp += 8;
 				NametableByte = ReadCHR(NametableAddrTemp);
@@ -391,13 +391,25 @@ public:
 				SpritePatternAddrTemp = SpritePatternAddr + 16 * NametableByte;
 				TilemapLow = ReadCHR(SpritePatternAddrTemp);
 				TilemapHigh = ReadCHR(SpritePatternAddrTemp + 8);
+				//2bits of attribute data per 16 pixels or 4 tiles
+				//2 pixels per tile
+				//xAttrb = CurrentCycle / 16
+				//yAttrb = CurrentScanline / 16
+				int attribX = (CurrentCycle / 16) % 2;
+				int attribY = (CurrentLine / 16) % 2;
+				attribIndex = (attribY * 2 + attribX);
+				attribMask = 0x03 << attribIndex;
 			}
 			else
 			{
-
+				
 			}
 
-			Render::PixelOut->Color = PatternTile::Get(TilemapHigh, TilemapLow, cycleOffset);
+			
+
+			Render::PixelOut->Color =
+				PatternTile::Get(TilemapHigh, TilemapLow, cycleOffset)
+				| (((AttributeTableByte & attribMask) >> attribIndex) << 2);
 			Render::PixelOut++;
 			//Render Cycles
 		}
