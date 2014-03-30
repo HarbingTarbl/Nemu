@@ -24,6 +24,7 @@ public:
 
 
 	int Addr;
+	int DMAAddr, DMACount;
 	int AllocatedCycles;
 
 	enum

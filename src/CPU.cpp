@@ -100,8 +100,22 @@ void CPU::Cycle()
 		Interrupt();
 		break;
 	case CPU_STATE_DMA_START:
+		DMAAddr = Memory->ReadPRG(0x4014) + 0x100;
+		State = CPU_STATE_DMA_START;
+		AllocatedCycles--;
+		DMACount = 0;
 		break;
 	case CPU_STATE_DMA_EXECUTING:
+		if (AllocatedCycles >= 4)
+		{
+			AllocatedCycles -= 4;
+			DMACount++;
+			Memory->WriteCHR(0x2004, Memory->ReadPRG(DMAAddr++));
+			if (DMACount == 256)
+			{
+				State = CPU_STATE_FETCHING;
+			}
+		}
 		break;
 	case CPU_STATE_DMA_END:
 		break;

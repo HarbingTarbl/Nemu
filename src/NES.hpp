@@ -18,6 +18,7 @@ public:
 	NES()
 	{
 		mCPU.Memory = &mMemory;
+		mAPU.mCPU = &mCPU;
 		mMemory.mCPU = &mCPU;
 		mMemory.mPPU = &mPPU;
 		mMemory.mAPU = &mAPU;
