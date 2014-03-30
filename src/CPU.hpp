@@ -81,6 +81,7 @@ public:
 
 	void HardReset();
 	void AllocateCycles(int nTicks);
+	void Step();
 
 	void TriggerNMI();
 	void TriggerVINT();

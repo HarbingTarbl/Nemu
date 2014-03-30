@@ -108,6 +108,12 @@ void CPU::Cycle()
 	}
 }
 
+void CPU::Step()
+{
+	while (AllocatedCycles > 0)
+		Cycle();
+}
+
 
 uint8_t CPU::Pop()
 {
