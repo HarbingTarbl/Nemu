@@ -178,7 +178,10 @@ public:
 
 	static void BeginScanline(int PPUCycle)
 	{
-		gl::Uniform1i(ppuPhaseLocation, (PPUCycle * 8) % 12);
+		if (!ScanlineComplete)
+			EndScanline();
+
+		//gl::Uniform1i(ppuPhaseLocation, (PPUCycle * 12) % 12);
 		gl::BindBuffer(gl::ARRAY_BUFFER, colorburstBuffer);
 		PixelOut = (Pixel*)gl::MapBuffer(gl::ARRAY_BUFFER, gl::WRITE_ONLY);
 		ScanlineComplete = false;

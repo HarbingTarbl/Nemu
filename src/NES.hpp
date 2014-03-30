@@ -22,6 +22,7 @@ public:
 		mMemory.mPPU = &mPPU;
 		mMemory.mAPU = &mAPU;
 		mMemory.mCart = &mCart;
+		mPPU.Memory = &mMemory;
 	}
 
 

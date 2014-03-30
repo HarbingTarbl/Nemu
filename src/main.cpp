@@ -2,6 +2,7 @@
 #include "CPU.hpp"
 #include "NES.hpp"
 #include "Renderer.hpp"
+#include "OpCodes.hpp"
 #include <iostream>
 #include <iomanip>
 #include <thread>
@@ -10,51 +11,81 @@
 int main(int argc, const char* args[])
 {
 	using namespace std;
-
-	//NES Nemu;
-
-	//Nemu.mCart.LoadROM("nestest.nes");
-	//Nemu.mMemory.SetRV(0xC000);
-	//Nemu.mCPU.HardReset();
-	//while(!Nemu.mCPU.Asserted)
-	//	Nemu.mCPU.Cycle();
-
+	bool Ok = true;
 	try
 	{
 		Render::Initalize(800, 600);
 	}
 	catch (exception& e)
 	{
+		Ok = false;
 		cout << "Could not initalize window : " << e.what() << endl;
 	}
 
-	vector<uint16_t> image;
-	fstream imageFile("image.clr", fstream::in | fstream::binary);
-	imageFile.seekg(0, imageFile.end);
-	image.resize(imageFile.tellp() / 2);
-	imageFile.seekg(0, imageFile.beg);
-	imageFile.read((char*)image.data(), image.size() * 2);
-	imageFile.close();
+	NES Nemu;
+	if (!Ok)
+	{
+		cin.get();
+		return 1;
+	}
 
+	try
+	{
+		Nemu.mCart.LoadROM("../roms/nestest.nes");
+		Nemu.mCPU.HardReset();
+	}
+	catch (exception& e)
+	{
+		Ok = false;
+		cout << "Could not load NES : " << e.what() << endl;
+	}
 
-
+	if (!Ok)
+	{
+		cin.get();
+		return 2;
+	}
 
 	while (Render::WindowOpen())
 	{
-		Render::BeginFrame();
-
-		for (int i = 0; i < 240; i++) //Render 240 scanlines
+		while (Render::WindowOpen())
 		{
-			Render::BeginScanline(i * 341);
-			//Render::BeginScanline(0);
-			memcpy(Render::PixelOut, image.data() + i * 256, 256 * sizeof(Render::Pixel));
-			Render::EndScanline();
+			Nemu.mCPU.Cycle();
+			for (int i = 0; i < Nemu.mCPU.Instruction->Cycles * 3; i++)
+			{
+				Nemu.mPPU.Cycle();
+			}
 		}
 
-		Render::EndFrame();
+		if (Render::FrameComplete)
+			Render::BeginFrame();
+		else
+			Render::EndFrame();
 	}
 
-	Render::Terminate();
+	//vector<uint16_t> image;
+	//fstream imageFile("image.clr", fstream::in | fstream::binary);
+	//imageFile.seekg(0, imageFile.end);
+	//image.resize(imageFile.tellp() / 2);
+	//imageFile.seekg(0, imageFile.beg);
+	//imageFile.read((char*)image.data(), image.size() * 2);
+	//imageFile.close();
+
+	//while (Render::WindowOpen())
+	//{
+	//	Render::BeginFrame();
+
+	//	for (int i = 0; i < 240; i++) //Render 240 scanlines
+	//	{
+	//		Render::BeginScanline(0);
+	//		memcpy(Render::PixelOut, image.data() + i * 256, 256 * sizeof(Render::Pixel));
+	//		Render::EndScanline();
+	//	}
+
+	//	Render::EndFrame();
+	//}
+
+	//Render::Terminate();
 
 
 	return 0;

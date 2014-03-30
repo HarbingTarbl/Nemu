@@ -33,6 +33,12 @@ public:
 		r |= ((Tile[byte + 8] & shift) >> x) << 1;
 		return r;
 	}
+
+	static inline int Get(uint8_t upper, uint8_t lower, uint8_t x)
+	{
+		x = 7 - x;
+		return (((upper >> x) & 0x01) << 1) | ((lower >> x) & 0x01);
+	}
 };
 
 
@@ -168,6 +174,12 @@ public:
 		DATA_REG
 	};
 
+	PPU()
+	{
+		CurrentCycle = 0;
+		CurrentLine = 0;
+	}
+
 	unsigned CurrentCycle;
 	int CurrentLine;
 	unsigned CurrentFrame;
@@ -178,13 +190,21 @@ public:
 	int TempAddr;
 	int AddrIncAmount;
 
-	int BackgroundAddr;
-	int NametableAddr;
-	int SpritePatternAddr;
+	int TilemapAddr;
+	int BackgroundAddr, BackgroundAddrTemp;
+	int NametableAddr, NametableAddrTemp;
+	int SpritePatternAddr, SpritePatternAddrTemp;
 	int SpriteSize; //8x8 = 64, 8x16 = 128
 
 	uint8_t Scroll[2]; //0 -> X, 1 -> Y
 	uint8_t ScrollIndex;
+
+	uint8_t Sprite8[8];
+	uint8_t SpriteLatches[8];
+	uint8_t SpriteCounters[8];
+
+	uint16_t Back16[2];
+	uint16_t Back8[2];
 
 	uint16_t Addr;
 	uint8_t AddrShift;
@@ -330,14 +350,54 @@ public:
 
 	void Cycle()
 	{
+		if (CurrentLine == 0)
+		{
+			Render::BeginFrame();
+		}
+		else if (CurrentLine >= 241)
+		{
+			Render::EndFrame();
+			CurrentLine = 0;
+			CurrentCycle = 0;
+			return;
+		}
+		else
+		{
+
+		}
+
 		if (CurrentCycle == 0)
 		{
+			CurrentLine++;
+
+			mRegisters[STATUS_REG] =  0;
+			NametableAddrTemp = NametableAddr;
+			SpritePatternAddrTemp = SpritePatternAddr;
+			BackgroundAddrTemp = BackgroundAddr;
 			Render::BeginScanline(0); //Should use actual scanline timing
+
 			//Spin Cycle
 		}
 		else if (CurrentCycle <= 256)
 		{
-			Render::PixelOut->Color = 0;
+			uint8_t currentX, currentY;
+			uint16_t paletteAddr;
+			int cycleOffset = CurrentCycle % 8;
+			if (cycleOffset)
+			{
+				NametableAddrTemp += 8;
+				NametableByte = ReadCHR(NametableAddrTemp);
+				AttributeTableByte = ReadCHR(NametableAddrTemp + 0x3C0);
+				SpritePatternAddrTemp = SpritePatternAddr + 16 * NametableByte;
+				TilemapLow = ReadCHR(SpritePatternAddrTemp);
+				TilemapHigh = ReadCHR(SpritePatternAddrTemp + 8);
+			}
+			else
+			{
+
+			}
+
+			Render::PixelOut->Color = PatternTile::Get(TilemapHigh, TilemapLow, cycleOffset);
 			Render::PixelOut++;
 			//Render Cycles
 		}
@@ -353,6 +413,8 @@ public:
 		{
 			//Next scanline fetch?
 			Render::EndScanline();
+			CurrentLine++;
+			CurrentCycle = -1;
 		}
 		CurrentCycle++;
 	}
