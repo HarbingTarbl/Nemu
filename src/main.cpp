@@ -21,7 +21,7 @@ int main(int argc, const char* args[])
 		Ok = false;
 		cout << "Could not initalize window : " << e.what() << endl;
 	}
-
+	/*
 	NES Nemu;
 	if (!Ok)
 	{
@@ -60,32 +60,32 @@ int main(int argc, const char* args[])
 		if (Render::FrameComplete)
 			Render::BeginFrame();
 		else
-			Render::EndFrame();
+		*/	Render::EndFrame();
+//	}
+
+	vector<uint16_t> image;
+	fstream imageFile("image.clr", fstream::in | fstream::binary);
+	imageFile.seekg(0, imageFile.end);
+	image.resize(imageFile.tellp() / 2);
+	imageFile.seekg(0, imageFile.beg);
+	imageFile.read((char*)image.data(), image.size() * 2);
+	imageFile.close();
+
+	while (Render::WindowOpen())
+	{
+		Render::BeginFrame();
+
+		for (int i = 0; i < 240; i++) //Render 240 scanlines
+		{
+			Render::BeginScanline(0);
+			memcpy(Render::PixelOut, image.data() + i * 256, 256 * sizeof(Render::Pixel));
+			Render::EndScanline();
+		}
+
+		Render::EndFrame();
 	}
 
-	//vector<uint16_t> image;
-	//fstream imageFile("image.clr", fstream::in | fstream::binary);
-	//imageFile.seekg(0, imageFile.end);
-	//image.resize(imageFile.tellp() / 2);
-	//imageFile.seekg(0, imageFile.beg);
-	//imageFile.read((char*)image.data(), image.size() * 2);
-	//imageFile.close();
-
-	//while (Render::WindowOpen())
-	//{
-	//	Render::BeginFrame();
-
-	//	for (int i = 0; i < 240; i++) //Render 240 scanlines
-	//	{
-	//		Render::BeginScanline(0);
-	//		memcpy(Render::PixelOut, image.data() + i * 256, 256 * sizeof(Render::Pixel));
-	//		Render::EndScanline();
-	//	}
-
-	//	Render::EndFrame();
-	//}
-
-	//Render::Terminate();
+	Render::Terminate();
 
 
 	return 0;

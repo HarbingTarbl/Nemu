@@ -37,6 +37,7 @@ void CPU::DumpRegisters()
 
 void CPU::Fetch()
 {
+	CycleOffset = 0;
 	IR = Memory->ReadPRG(PC);
 	if (AwaitingNMI)
 		ClearNMI();
@@ -75,57 +76,13 @@ void CPU::Interrupt()
 	State = CPU_STATE_FETCHING;
 }
 
-void CPU::Cycle()
+int CPU::Cycle()
 {
-	switch (State)
-	{
-	case CPU_STATE_STARTUP:
-		State = CPU_STATE_FETCHING;
-	case CPU_STATE_FETCHING:
-		if (AllocatedCycles > 0)
-		{
-			State = CPU_STATE_EXECUTING;
-			Fetch();
-		}
-		break;
-	case CPU_STATE_EXECUTING:
-		AllocatedCycles -= Instruction->Cycles;
-		Execute();
-		State = CPU_STATE_FETCHING;
-
-		break;
-	case CPU_STATE_INTERRUPT:
-		Interrupt();
-		break;
-	case CPU_STATE_DMA_START:
-		DMAAddr = Memory->ReadPRG(0x4014) + 0x100;
-		State = CPU_STATE_DMA_START;
-		AllocatedCycles--;
-		DMACount = 0;
-		break;
-	case CPU_STATE_DMA_EXECUTING:
-		if (AllocatedCycles >= 4)
-		{
-			AllocatedCycles -= 4;
-			DMACount++;
-			Memory->WriteCHR(0x2004, Memory->ReadPRG(DMAAddr++));
-			if (DMACount == 256)
-			{
-				State = CPU_STATE_FETCHING;
-			}
-		}
-		break;
-	case CPU_STATE_DMA_END:
-		break;
-	}
+	Fetch();
+	Execute();
+	Interrupt();
+	return Instruction->Cycles + CycleOffset;
 }
-
-void CPU::Step()
-{
-	if (AllocatedCycles > 0)
-		Cycle();
-}
-
 
 uint8_t CPU::Pop()
 {

@@ -169,6 +169,122 @@ void PPU::RenderPixel(int color)
 
 }
 
+
+void PPU::BackgroundScanline()
+{
+	uint16_t ntAddr, ptAddr, atAddr, tileAddr, attrAddr;
+	uint8_t attrByte, tileIndex, groupIndex, paletteIndex;
+	uint8_t patternLow, patternHigh, paletteHigh;
+	uint8_t tileX, tileY, tileScrollX, tileScrollY;
+
+
+	ptAddr = BackgroundAddr;
+	for (int i = 0; i < 32; i++)
+	{
+		ntAddr = NametableAddr;
+		atAddr = ntAddr + 0x3C0;
+		tileX = Addr & 0x1F;
+		tileY = (Addr >> 5) & 0x1F;
+		tileScrollX = (Addr >> 12) & 0x07;
+		tileScrollY = Scroll[0]; //Fine scroll X
+		tileAddr = ntAddr | (Addr & 0x03FF);
+
+
+
+		for (int p = 0; p < 8; p++)
+		{
+			tileIndex = Memory->ReadCHR(tileAddr);
+			patternLow = Memory->ReadCHR(ptAddr + (tileIndex << 4) + tileScrollY);
+			patternHigh = Memory->ReadCHR(ptAddr + (tileIndex << 4) + tileScrollY + 8);
+
+			attrAddr = atAddr | (((((tileY * 8) + tileScrollY) / 32) * 8) + (((tileX * 8) + tileScrollX) / 32));
+			attrByte = Memory->ReadCHR(attrAddr);
+			groupIndex = (((tileX % 4) & 0x02) >> 1) + ((tileY % 4) & 0x02);
+			paletteHigh = ((attrByte >> (groupIndex << 1)) & 0x3) << 2;
+
+			paletteIndex = paletteHigh;
+			paletteIndex |= patternLow & (0x80 >> tileScrollX) ? 0x1 : 0;
+			paletteIndex |= patternHigh & (0x80 >> tileScrollX) ? 0x1 : 0;
+
+			if (paletteIndex & 0x03 == 0)
+			{
+				//Handle transparent
+				Render::PixelOut->Color = 0;
+				Render::PixelOut++;
+			}
+			else
+			{
+				Render::PixelOut->Color = Memory->ReadCHR(0x3F00 + paletteIndex);
+				Render::PixelOut++;
+			}
+
+			tileScrollX++;
+
+			if (tileScrollX >= 8)
+			{
+				tileScrollX = 0;
+				tileAddr++;
+				tileX++;
+
+				if (tileAddr & 0x1F == 0)
+				{
+					tileAddr++;
+					tileX--;
+					tileAddr %= ~0x001F;
+					tileAddr ^= 0x0400;
+				}
+			}
+		}
+
+		if (Addr & 0x001F == 31)
+		{
+			Addr %= ~0x001F;
+			Addr ^= 0x0400;
+		}
+		else
+		{
+			Addr++;
+		}
+
+		if (Addr & 0x7000 != 0x7000)
+		{
+			Addr += 0x1000;
+		}
+		else
+		{
+			Addr &= 0x0FFF;
+			uint16_t y = (Addr & 0x3E0) >> 5;
+			if (y == 29)
+			{
+				y = 0;
+				Addr ^= 0x0800;
+			}
+			else if (y == 31)
+			{
+				y = 0;
+			}
+			else
+			{
+				y++;
+			}
+
+			Addr = (Addr & ~0x03E0) | (y << 5);
+		}
+	}
+
+}
+
+void PPU::StartDMA(int addr)
+{
+	int spriteAddr = mRegisters[OAM_ADDR_REG];
+	for (int i = 0; i < 256; i++)
+	{
+		mPrimaryOAM[(spriteAddr + i) & 0xFF] = Memory->ReadPRG(addr * 0x100 + i);
+	}
+
+	TotalCycles += 512 * 3;
+}
+
 void PPU::Cycle()
 {
 	switch (State)

@@ -174,16 +174,15 @@ public:
 	int CurrentLine;
 	unsigned CurrentFrame;
 
-	uint8_t NametableByte, AttributeTableByte, TilemapLow, TilemapHigh;
 	uint8_t LastRegisterWrite;
 
-	int TempAddr;
+
 	int AddrIncAmount;
 	int State;
 
 	int AllocatedCycles;
 
-	int TilemapAddr;
+
 	int BackgroundAddr, BackgroundAddrTemp;
 	int NametableAddr, NametableAddrTemp;
 	int SpritePatternAddr, SpritePatternAddrTemp;
@@ -191,6 +190,8 @@ public:
 
 	uint8_t Scroll[2]; //0 -> X, 1 -> Y
 	uint8_t ScrollIndex;
+
+	unsigned TotalCycles;
 
 
 
@@ -232,6 +233,8 @@ public:
 
 	uint8_t WriteCHR(int addr, uint8_t value);
 
+	void StartDMA(int addr);
+
 	void ClearVBlank();
 
 	int IsVBlanking();
@@ -257,5 +260,8 @@ public:
 	void Scanline();
 
 	void VBlank();
+
+	void BackgroundScanline();
+	void SpriteScanline();
 
 };

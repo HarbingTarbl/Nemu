@@ -41,6 +41,7 @@ public:
 	int State;
 	bool Asserted;
 	bool AwaitingNMI;
+	int CycleOffset;
 
 	unsigned CurrentCyle;
 	const InstructionTable::InstructionPack* Instruction;
@@ -73,7 +74,7 @@ public:
 
 	void Interrupt();
 
-	void Cycle();
+	int Cycle();
 
 	uint8_t Pop();
 	void Push(uint8_t value);

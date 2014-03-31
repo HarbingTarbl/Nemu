@@ -29,7 +29,7 @@ public:
 		switch (addr)
 		{
 		case IO_OAM_ADDR:
-			mCPU->State = CPU::CPU_STATE_DMA_START;
+			mPPU->StartDMA(value);
 			break;
 		}
 		return value;
