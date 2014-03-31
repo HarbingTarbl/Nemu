@@ -118,6 +118,8 @@ uint8_t PPU::WriteSecondOAM(uint8_t addr, uint8_t value)
 
 void PPU::SpriteEvaluation()
 {
+	throw std::bad_exception();
+
 	if (CurrentCycle < 64)
 	{
 		//zzzz
@@ -132,8 +134,10 @@ void PPU::SpriteEvaluation()
 
 void PPU::Step()
 {
+	throw std::bad_exception();
+
 	while (AllocatedCycles > 0)
-		Cycle();
+		Cycle(0);
 }
 
 void PPU::Reset()
@@ -161,7 +165,11 @@ void PPU::Reset()
 	};
 
 	memcpy(&mVRAM[0x3F00], defaultPalette, 0xFF);
+
 	AllocatedCycles = 0;
+	CurrentCycle = 0;
+	CurrentLine = LastLine = 241;
+	CurrentFrame = 0;
 }
 
 void PPU::RenderPixel(int color)
@@ -214,7 +222,7 @@ void PPU::BackgroundScanline()
 			}
 			else
 			{
-				Render::PixelOut->Color = Memory->ReadCHR(0x3F00 + paletteIndex);
+				Render::PixelOut->Color = Memory->ReadPRG(Memory->mCPU->PC); ///HACK BLARRRG
 				Render::PixelOut++;
 			}
 
@@ -285,204 +293,66 @@ void PPU::StartDMA(int addr)
 	TotalCycles += 512 * 3;
 }
 
-void PPU::Cycle()
+void PPU::Cycle(unsigned nCycles)
 {
-	switch (State)
+	uint16_t cc = nCycles * 3;
+	CurrentCycle += cc;
+
+	if (CurrentCycle >= 341)
 	{
-	case PPU_STATE_STARTUP:
-		AllocatedCycles -= 99396;
-		Reset();
-		State = PPU_STATE_SCAN_PRE;
-		break;
-	case PPU_STATE_SCAN_PRE:
-		CurrentLine = 0;
-		AllocatedCycles -= CurrentFrame % 2 ? 340 : 341;;
-		State = PPU_STATE_SCAN_VISIBLE;
-		Render::BeginFrame();
-		NametableAddrTemp = NametableAddr;
-		SpritePatternAddrTemp = SpritePatternAddr;
-		break;
-	case PPU_STATE_SCAN_VISIBLE:
-		if (1)
+		CurrentLine += CurrentCycle / 341;
+		CurrentCycle = CurrentCycle % 341;
+	}
+
+	if (CurrentLine < 240)
+	{
+		if (CurrentLine != LastLine)
 		{
-			AllocatedCycles--;
-			int cycleOffset8 = CurrentCycle & 0x07;
-			int cycleOffset16 = CurrentCycle & 0x0F;
+			LastLine = CurrentLine;
+			Render::BeginScanline(0); //Also ends the last scanline which is cool.
+			//Sprite Scanline
+			BackgroundScanline();
+			//Sprite Scanline
 
-			if (cycleOffset8 == 0)
+			if (MaskBits[MASK_BACKGROUND] || MaskBits[MASK_SPRITES])
 			{
-				NametableByte = ReadCHR(NametableAddrTemp);
-				AttributeTableByte = ReadCHR(NametableAddrTemp + 0x3C0);
-				TilemapLow = ReadCHR(NametableByte * 16 + BackgroundAddr);
-				TilemapHigh = ReadCHR(NametableByte * 16 + BackgroundAddr + 8);
-				NametableAddrTemp += 8;
+				//Addr = (Addr & (~0x1F & ~(1 << 10)) | ())
 			}
-
-			if (CurrentCycle == 0)
-			{
-				//Fetch Tile
-				//Fetch Attribute
-				//Fetch bitlow, bithigh
-				Render::BeginScanline(0);
-			}
-			else if (CurrentCycle <= 256)
-			{
-
-			}
-			else if (CurrentCycle <= 320)
-			{
-
-			}
-			else if (CurrentCycle <= 336)
-			{
-
-			}
-			else if (CurrentCycle <= 340)
-			{
-
-			}
-			else
-			{
-				CurrentCycle = 0;
-				CurrentLine++;
-				Render::EndScanline();
-				if (CurrentLine == 240)
-					State = PPU_STATE_SCAN_POST;
-			}
+			Render::EndScanline();
 		}
-		break;
-	case PPU_STATE_SCAN_POST:
-		AllocatedCycles -= 341;
-		State = PPU_STATE_VINT;
-		CurrentLine++;
-		Render::EndFrame();
-		break;
-	case PPU_STATE_VINT:
-		Memory->mCPU->TriggerVINT();
-		AllocatedCycles -= 6820;
-		State = PPU_STATE_SCAN_PRE;
-		CurrentLine += 20;
-		CurrentFrame++;
-		break;
-	}
-
-
-	if (CurrentLine == 0)
-	{
-		Render::BeginFrame();
-	}
-	else if (CurrentLine >= 241)
-	{
-		Render::EndFrame();
-		CurrentLine = 0;
-		CurrentCycle = 0;
-		return;
-	}
-	else
-	{
-
-	}
-
-	if (CurrentCycle == 0)
-	{
-		CurrentLine++;
-
-		mRegisters[STATUS_REG] = 0;
-		NametableAddrTemp = NametableAddr;
-		SpritePatternAddrTemp = SpritePatternAddr;
-		BackgroundAddrTemp = BackgroundAddr;
-		Render::BeginScanline(0); //Should use actual scanline timing
-
-		//Spin Cycle
-	}
-	else if (CurrentCycle <= 256)
-	{
-		static int attribMask, attribIndex;
-		uint16_t paletteAddr;
-		int cycleOffset = (CurrentCycle - 1) % 8;
-		if (cycleOffset == 0)
-		{
-			NametableAddrTemp += 8;
-			NametableByte = ReadCHR(NametableAddrTemp);
-			AttributeTableByte = ReadCHR(NametableAddrTemp + 0x3C0);
-			SpritePatternAddrTemp = SpritePatternAddr + 16 * NametableByte;
-			TilemapLow = ReadCHR(SpritePatternAddrTemp);
-			TilemapHigh = ReadCHR(SpritePatternAddrTemp + 8);
-			//2bits of attribute data per 16 pixels or 4 tiles
-			//2 pixels per tile
-			//xAttrb = CurrentCycle / 16
-			//yAttrb = CurrentScanline / 16
-			int attribX = (CurrentCycle / 16) % 2;
-			int attribY = (CurrentLine / 16) % 2;
-			attribIndex = (attribY * 2 + attribX);
-			attribMask = 0x03 << attribIndex;
-		}
-		else
-		{
-
-		}
-
-
-		int index = PatternTile::Get(TilemapHigh, TilemapLow, cycleOffset)
-			| (((AttributeTableByte & attribMask) >> attribIndex) << 2);
-
-		Render::PixelOut->Color = rand();
-		Render::PixelOut++;
-		//Render Cycles
-	}
-	else if (CurrentCycle < 320)
-	{
-		//Garbage cycles
-	}
-	else if (CurrentCycle < 336)
-	{
-		//Nametable
-	}
-	else if (CurrentCycle < 340)
-	{
-		//Next scanline fetch?
-		Render::EndScanline();
-		CurrentLine++;
-		CurrentCycle = -1;
-	}
-	CurrentCycle++;
-}
-
-void PPU::Frame()
-{
-	CurrentLine = 0;
-	TempAddr = Addr;
-}
-
-void PPU::Scanline()
-{
-	CurrentCycle = 0;
-	if (CurrentLine == -1 || CurrentLine == 261)
-	{
-		//Fetch Next, VBLANK Scanline
-		Render::BeginFrame();
-	}
-	else if (CurrentLine < 239)
-	{
-		//Visible Scanlines
 	}
 	else if (CurrentLine == 240)
 	{
-		//Post render scanline
-	}
-	else if (CurrentLine < 260)
-	{
-		//Spinlines
-	}
-	else
-	{
-		CurrentLine = -2;
 		Render::EndFrame();
+		if (!IsVBlanking())
+		{
+			SetVBlanking();
+		}
 	}
-	CurrentLine++;
-}
+	else if (CurrentLine > 261)
+	{
+		mRegisters[STATUS_REG] &= ~0x40;
+		mRegisters[STATUS_REG] &= ~0x20;
 
-void PPU::VBlank()
-{
-	SetVBlanking();
+		///Todo latches?
+
+		CurrentLine = LastLine = 0;
+		NMIGenerated = false;
+	}
+	else if (CurrentLine > 259)
+	{
+		if (IsVBlanking())
+		{
+			ClearVBlank();
+		}
+	}
+
+	if (IsVBlanking() &&
+		!NMIGenerated &&
+		(mRegisters[CONTROL_REG] & 0x80) &&
+		(mRegisters[STATUS_REG] & 0x80))
+	{
+		NMIGenerated = true;
+		Memory->mCPU->InterruptQueue.push_front(CPU::INTERRUPT_NMI);
+	}
 }

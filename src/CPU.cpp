@@ -14,7 +14,7 @@ CPU::CPU()
 	PC(0),
 	State(CPU_STATE_STARTUP)
 {
-
+	AwaitingNMI = false;
 }
 
 void CPU::DumpRegisters()
@@ -39,8 +39,6 @@ void CPU::Fetch()
 {
 	CycleOffset = 0;
 	IR = Memory->ReadPRG(PC);
-	if (AwaitingNMI)
-		ClearNMI();
 	PC++;
 	Instruction = InstructionTable::GetInstruction(IR);
 }
@@ -71,16 +69,57 @@ uint8_t CPU::Write(int addr, uint8_t value)
 	return value;
 }
 
-void CPU::Interrupt()
+int CPU::Interrupt()
 {
-	State = CPU_STATE_FETCHING;
+	if (InterruptQueue.front() != 0 && (Status & 0x04))
+	{
+		return 0;
+	}
+
+	PC = HandleInterrupt(InterruptQueue.front());
+	InterruptQueue.pop_front();
+
+	return 7;
+}
+
+int CPU::HandleInterrupt(int type)
+{
+	switch (type)
+	{
+	case 0: //NMI
+		Push(PC >> 8);
+		Push(PC & 0xFF);
+		Push(Status & ~0x10);
+		Status |= 0x04;
+		return Memory->GetNMIV();
+	case 1: //IRQ
+		Push(PC >> 8);
+		Push(PC & 0xFF);
+		Push(Status & ~0x10);
+		Status |= 0x04;
+		return Memory->GetIRQ();
+	case 2: //BRK
+		Push(PC >> 8);
+		Push(PC & 0xFF);
+		Push(Status | 0x10);
+		Status |= 0x04;
+		return Memory->GetIRQ();
+	case 3: //RESET
+		return Memory->GetRV();
+	}
 }
 
 int CPU::Cycle()
 {
+	if (InterruptQueue.size() > 0)
+	{
+		if (Interrupt())
+			return 7; //?
+	}
+
 	Fetch();
 	Execute();
-	Interrupt();
+	Render::BeginFrame();
 	return Instruction->Cycles + CycleOffset;
 }
 
@@ -123,8 +162,9 @@ void CPU::HardReset()
 		Memory->WritePRG(i, 0x00);
 
 	std::fill_n(RAM.data(), 0x800, 0);
-
 	PC = Memory->GetRV();
+	InterruptQueue.clear();
+	InterruptQueue.push_front(INTERRUPT_RESET);
 	CurrentCyle = 0;
 }
 

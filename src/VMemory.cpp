@@ -78,7 +78,7 @@ uint8_t VMemory::WriteCHR(int addr, uint8_t value)
 uint8_t VMemory::ReadCHR(int addr)
 {
 	addr = CHRAddr(addr);
-	if ((addr & 0x2000) >> 15)
+	if ((addr & 0x2000) >> 13)
 		return mPPU->ReadCHR(addr);
 	else
 		return mCart->ReadCHR(addr);

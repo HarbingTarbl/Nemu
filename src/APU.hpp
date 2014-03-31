@@ -18,22 +18,6 @@ public:
 		IO_OAM_ADDR = 0x14,
 	};
 
-	uint8_t Read(int addr)
-	{
-		return mData[addr];
-	}
-
-	uint8_t Write(int addr, uint8_t value)
-	{
-		mData[addr] = value;
-		switch (addr)
-		{
-		case IO_OAM_ADDR:
-			mPPU->StartDMA(value);
-			break;
-		}
-		return value;
-	}
-
-
+	uint8_t Read(int addr);
+	uint8_t Write(int addr, uint8_t value);
 };

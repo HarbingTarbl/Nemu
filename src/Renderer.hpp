@@ -164,8 +164,7 @@ public:
 
 	static void BeginFrame()
 	{
-		glfwPollEvents();
-		CurrentScanline = 0;
+		glfwPollEvents();	
 		FrameComplete = false;
 	}
 
@@ -173,6 +172,7 @@ public:
 	{
 		glfwSwapBuffers(window);
 		CurrentFrame++;
+		CurrentScanline = 0;
 		FrameComplete = true;
 	}
 

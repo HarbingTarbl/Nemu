@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <array>
+#include <deque>
 
 class VMemory;
 
@@ -22,6 +23,7 @@ public:
 	uint16_t PC;
 	uint8_t IR;
 
+	std::deque<uint8_t> InterruptQueue;
 
 	int Addr;
 	int DMAAddr, DMACount;
@@ -36,6 +38,14 @@ public:
 		CPU_STATE_DMA_START,
 		CPU_STATE_DMA_EXECUTING,
 		CPU_STATE_DMA_END
+	};
+
+	enum
+	{
+		INTERRUPT_NMI = 0,
+		INTERRUPT_IRQ = 1,
+		INTERRUPT_BRK = 2,
+		INTERRUPT_RESET = 3
 	};
 
 	int State;
@@ -72,7 +82,8 @@ public:
 
 	uint8_t Write(int addr, uint8_t value);
 
-	void Interrupt();
+	int Interrupt();
+	int HandleInterrupt(int type);
 
 	int Cycle();
 

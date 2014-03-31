@@ -7,138 +7,6 @@
 #include "VMemory.hpp"
 #include "Renderer.hpp"
 
-class PatternTile
-{
-public:
-	std::array<uint8_t, 16> Tile;
-
-public:
-	inline uint8_t PaletteIndex(uint8_t x, uint8_t y) const
-	{
-		uint8_t byte = y + x / 8;
-		x %= 8;
-		x = (7 - x);
-		uint8_t shift = 1 << x;
-		uint8_t r = (Tile[byte] & shift) >> x;
-		r |= ((Tile[byte + 8] & shift) >> x) << 1;
-		return r;
-	}
-
-	static inline int Get(uint8_t upper, uint8_t lower, uint8_t x)
-	{
-		x = 7 - x;
-		return (((upper >> x) & 0x01) << 1) | ((lower >> x) & 0x01);
-	}
-};
-
-
-class PaletteTable
-{
-private:
-
-public:
-	std::array<uint8_t, 0x2000> Patterns;
-
-	inline const PatternTile& Get(uint16_t addr)
-	{
-		return *(reinterpret_cast<PatternTile*>(Patterns.data() + addr));
-	}
-
-};
-
-class AttributeEntry
-{
-private:
-	uint8_t value;
-
-public:
-	inline uint8_t NW()
-	{
-		return (value & 0xC0) >> 6;
-	}
-
-	inline uint8_t NE()
-	{
-		return (value & 0x30) >> 4;
-	}
-
-	inline uint8_t SW()
-	{
-
-		return (value & 0x06) >> 2;
-	}
-
-	inline uint8_t SE()
-	{
-		return (value & 0x3);
-	}
-};
-
-class AttributeTable
-{
-public:
-	std::array<AttributeEntry, 64> Attributes;
-
-	inline AttributeEntry& Get(int x, int y)
-	{
-		return Attributes[y * 8 + x];
-	}
-};
-
-class OAMBlock
-{
-public:
-	uint8_t mTopScanline;
-	uint8_t mTileIndex;
-	uint8_t mAttributeFlags;
-	uint8_t mLeftScanline;
-
-	inline bool PaletteHigh()
-	{
-		return (mAttributeFlags & 0x02) >> 1;
-	}
-
-	inline bool PaletteLow()
-	{
-		return (mAttributeFlags & 0x01) >> 0;
-	}
-
-	inline bool ObjectPriority()
-	{
-		return (mAttributeFlags & 0x20) >> 5;
-	}
-
-	inline bool BitReversal()
-	{
-		return (mAttributeFlags & 0x40) >> 6;
-	}
-
-	inline bool Revert()
-	{
-		return (mAttributeFlags & 0x80) >> 7;
-	}
-
-	static inline uint8_t TopScanline(unsigned block)
-	{
-		return reinterpret_cast<OAMBlock*>(&block)->mTopScanline;
-	}
-
-	static inline uint8_t TileIndex(unsigned block)
-	{
-		return reinterpret_cast<OAMBlock*>(&block)->mTileIndex;
-	}
-
-	static inline uint8_t Flag(unsigned block, bool(OAMBlock::*func)())
-	{
-		return (reinterpret_cast<OAMBlock*>(&block)->*func)();
-	}
-	
-	static inline uint8_t LeftScanline(unsigned block)
-	{
-		return reinterpret_cast<OAMBlock*>(&block)->mLeftScanline;
-	}
-};
-
 class PPU
 {
 private:
@@ -171,8 +39,12 @@ public:
 	}
 
 	unsigned CurrentCycle;
-	int CurrentLine;
+
+	unsigned CurrentLine;
+	unsigned LastLine;
+
 	unsigned CurrentFrame;
+	unsigned LastFrame;
 
 	uint8_t LastRegisterWrite;
 
@@ -199,6 +71,7 @@ public:
 	uint8_t AddrShift;
 
 	bool GenerateNMI;
+	bool NMIGenerated;
 
 	std::bitset<8> MaskBits;
 	enum
@@ -253,13 +126,7 @@ public:
 
 	void RenderPixel(int color);
 
-	void Cycle();
-
-	void Frame();
-
-	void Scanline();
-
-	void VBlank();
+	void Cycle(unsigned nCycles);
 
 	void BackgroundScanline();
 	void SpriteScanline();

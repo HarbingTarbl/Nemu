@@ -116,6 +116,7 @@
     <ClInclude Include="..\src\gl_core_3_3.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\APU.cpp" />
     <ClCompile Include="..\src\CPU.cpp" />
     <ClCompile Include="..\src\OpCodes.cpp" />
     <ClCompile Include="..\src\PPU.cpp" />

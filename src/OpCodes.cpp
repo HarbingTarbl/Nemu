@@ -100,10 +100,7 @@ namespace InstructionTable
 
 	void BRK(CPU& cpu)
 	{
-		PHP(cpu);
-		SEI(cpu);
-		cpu.Asserted = true;
-		///TODO Interrupt Handling, Push
+		cpu.InterruptQueue.push_back(2);
 	}
 
 	void BVC(CPU& cpu)
