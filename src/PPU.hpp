@@ -13,7 +13,7 @@ private:
 	//Pattern Tables are on Cartridge
 	//OAM Data is in RAM
 	std::array<uint8_t, 0x08> mRegisters;
-	std::array<uint8_t, 0xFF> mPrimaryOAM;
+	std::array<uint8_t, 0x100> mPrimaryOAM;
 	std::array<uint8_t, 0x20> mSecondaryOAM;
 	std::array<uint8_t, 0x800> mNameRAM;
 	std::array<uint8_t, 0x20> mPaletteRAM;
@@ -65,6 +65,7 @@ public:
 	
 	uint8_t FineScrollX, FineScrollY;
 	uint16_t ScrollOrigin;
+	uint8_t SpriteOnScanline;
 	bool ScrollLatch;
 
 
@@ -116,7 +117,6 @@ public:
 	void SpriteEvaluation();
 
 
-
 	void Reset();
 
 	void RenderPixel(int color);
@@ -124,6 +124,6 @@ public:
 	void Cycle(unsigned nCycles);
 
 	void BackgroundScanline();
-	void SpriteScanline();
+	void SpriteScanline8(uint8_t);
 
 };

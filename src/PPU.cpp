@@ -253,6 +253,8 @@ void PPU::Reset()
 {
 	std::fill(mRegisters.begin(), mRegisters.end(), 0);
 
+
+	mRegisters[CONTROL_REG] = 0x80;
 	//static uint8_t defaultPalette[] = {
 	//	0x09, 0x01, 0x00, 0x01,
 	//	0x00, 0x02, 0x02, 0x0D,
@@ -284,6 +286,100 @@ void PPU::Reset()
 
 void PPU::RenderPixel(int color)
 {
+
+}
+
+
+void PPU::SpriteScanline8(uint8_t priority)
+{
+	uint16_t ptAddr;
+	uint8_t patternLow, patternHigh, paletteHigh, paletteIndex;
+	uint8_t inRange, spriteX, spriteY, tileIndex, attribute;
+	Render::CurrentScanline = CurrentLine;
+	SpriteOnScanline = 0;
+
+	if (mRegisters[CONTROL_REG] & 0x08)
+	{
+		ptAddr = 0x1000;
+	}
+	else
+	{
+		ptAddr = 0x0000;
+	}
+
+
+	for (int i = 252; i >= 0; i -= 4)
+	{
+		tileIndex = mPrimaryOAM[i + 1];
+		attribute = mPrimaryOAM[i + 2];
+		spriteX = mPrimaryOAM[i + 3];
+		spriteY = mPrimaryOAM[i] + 1;
+
+		if (mPrimaryOAM[i] == 239)
+		{
+			mRegisters[STATUS_REG] |= 0x20; //Overflow
+		}
+		else if (mPrimaryOAM[i] == 255)
+		{
+			mRegisters[STATUS_REG] &= ~0x20;
+		}
+
+		if (priority != (attribute & 0x20))
+		{
+			continue;
+		}
+
+		inRange = CurrentLine - spriteY;
+		if (inRange < 8)
+		{
+			if (SpriteOnScanline++ >= 8)
+			{
+				mRegisters[STATUS_REG] |= 0x20;
+			}
+
+			if (attribute & 0x80) //Vertical Flip
+			{
+				inRange ^= 0x07;
+			}
+
+			patternLow = ReadCHR(ptAddr + (tileIndex << 4) + inRange);
+			patternHigh = ReadCHR(ptAddr + (tileIndex << 4) + inRange + 8);
+			paletteHigh = (attribute & 0x03) << 2;
+			for (int p = 0; p < 8; p++)
+			{
+				paletteIndex = paletteHigh;
+
+				if (attribute & 0x40) //Horzontal Flip
+				{
+					paletteIndex |= patternLow & (1 << p) ? 1 : 0;
+					paletteIndex |= patternHigh & (1 << p) ? 2 : 0;
+				}
+				else
+				{
+					paletteIndex |= patternLow & (0x80 >> p) ? 1 : 0;
+					paletteIndex |= patternHigh & (0x80 >> p) ? 2 : 0;
+				}
+
+				if (paletteIndex & 0x3 == 0)
+				{
+					//Transparent
+				}
+				else
+				{
+					if (i == 0 &&
+						MaskBits[MASK_BACKGROUND] &&
+						MaskBits[MASK_SPRITES])
+					{
+						//Check 0hit
+
+					}
+
+					Render::PixelOut->Color = ReadCHR(0x3F00 + paletteIndex);
+					Render::PixelOut++;
+				}
+			}
+		}
+	}
 
 }
 
@@ -323,7 +419,7 @@ void PPU::BackgroundScanline()
 			break;
 		}
 
-		atAddr = ntAddr + 0x3C0;
+		atAddr = ntAddr + 0x03C0;
 		tileX = VRAMAddress & 0x1F;
 		tileY = (VRAMAddress >> 5) & 0x1F;
 		tileScrollY = (VRAMAddress >> 12) & 0x07;
@@ -350,7 +446,8 @@ void PPU::BackgroundScanline()
 			if (paletteIndex & 0x03 == 0)
 			{
 				//Handle transparent
-				Render::PixelOut->Color = 0x10;
+				Render::PixelOut->Color = 0xFF;
+				std::cout << "Transparent" << std::endl;
 				Render::PixelOut++;
 			}
 			else
@@ -420,6 +517,7 @@ void PPU::StartDMA(int addr)
 	int spriteAddr = mRegisters[OAM_ADDR_REG];
 	for (int i = 0; i < 256; i++)
 	{
+		std::cout << i << std::endl;
 		mPrimaryOAM[(spriteAddr + i) & 0xFF] = Memory->ReadPRG(addr * 0x100 + i);
 	}
 
@@ -451,10 +549,24 @@ void PPU::Cycle(unsigned nCycles)
 		{
 			LastLine = CurrentLine;
 			Render::BeginScanline(0); //Also ends the last scanline which is cool.
+			Render::Pixel* DirtyHack = Render::PixelOut;
 			//Sprite Scanline
-			BackgroundScanline();
+			if (MaskBits[MASK_SPRITES])
+			{
+				//SpriteScanline8(0x20); //Background sprites;
+			}
+			
+			Render::PixelOut = DirtyHack;
+			if (MaskBits[MASK_BACKGROUND])
+			{
+				BackgroundScanline();
+			}
 			//Sprite Scanline
-
+			Render::PixelOut = DirtyHack;
+			if (MaskBits[MASK_SPRITES])
+			{
+				//SpriteScanline8(0); //Background sprites;
+			}
 			if (MaskBits[MASK_BACKGROUND] || MaskBits[MASK_SPRITES])
 			{
 				VRAMAddress = (VRAMAddress & (~0x1F & ~(1 << 10))) | (VRAMAddressLatch & (0x1F | (1 << 10)));
@@ -492,10 +604,10 @@ void PPU::Cycle(unsigned nCycles)
 
 	if (IsVBlanking() &&
 		!NMIGenerated &&
-		(mRegisters[CONTROL_REG] & 0x80) &&
-		(mRegisters[STATUS_REG] & 0x80))
+		(mRegisters[CONTROL_REG] & 0x80))
 	{
 		NMIGenerated = true;
+		mRegisters[STATUS_REG] |= 0x80;
 		Memory->mCPU->InterruptQueue.push_front(CPU::INTERRUPT_NMI);
 	}
 }

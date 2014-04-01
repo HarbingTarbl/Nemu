@@ -27,12 +27,12 @@ void CPU::DumpRegisters()
 	using std::hex;
 	using std::setfill;
 
-	logFile 
-		<< hex << setw(4) << setfill('0') << PC  - Instruction->Size << " " 
-		<< Instruction->Name << " A:" << setfill('0') << setw(2) << (int)A 
-		<< " X:" << setfill('0') << setw(2) << (unsigned)X << " Y:" << setfill('0') << setw(2) << (unsigned)Y << " P:" << setfill('0') << setw(2) << (unsigned)Status
-		<< " SP:" << setfill('0') << setw(2) << (unsigned)SP 
-		<< endl; 
+	//logFile 
+	//	<< hex << setw(4) << setfill('0') << PC  - Instruction->Size << " " 
+	//	<< Instruction->Name << " A:" << setfill('0') << setw(2) << (int)A 
+	//	<< " X:" << setfill('0') << setw(2) << (unsigned)X << " Y:" << setfill('0') << setw(2) << (unsigned)Y << " P:" << setfill('0') << setw(2) << (unsigned)Status
+	//	<< " SP:" << setfill('0') << setw(2) << (unsigned)SP 
+	//	<< endl; 
 
 }
 
@@ -167,8 +167,6 @@ void CPU::HardReset()
 	PC = HandleInterrupt(INTERRUPT_RESET);
 	CurrentCyle = 0;
 
-	if (Memory->mCart->Name == "../roms/nestest.nes")
-		PC -= 0x04;
 }
 
 void CPU::AllocateCycles(int nTicks)

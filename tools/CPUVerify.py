@@ -38,7 +38,7 @@ def compare(l, r):
             return False
     return True
 
-lhs = open("../working/nestest.log", "r")
+lhs = open("../working/nestest.20140401_005727.debug", "r")
 rhs = open("../working/cpu.log", "r")
 line = 0
 
