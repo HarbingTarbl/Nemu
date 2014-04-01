@@ -15,7 +15,8 @@ private:
 	std::array<uint8_t, 0x08> mRegisters;
 	std::array<uint8_t, 0xFF> mPrimaryOAM;
 	std::array<uint8_t, 0x20> mSecondaryOAM;
-	std::array<uint8_t, 0x4000> mVRAM;
+	std::array<uint8_t, 0x800> mNameRAM;
+	std::array<uint8_t, 0x20> mPaletteRAM;
 
 public:
 	VMemory* Memory;
@@ -48,27 +49,24 @@ public:
 
 	uint8_t LastRegisterWrite;
 
+	uint16_t VRAMAddress;
+	uint16_t VRAMAddressLatch;
+	uint8_t VRAMIncAmount;
+	uint8_t VRAMDataBuffer;
+	bool VRAMLatched; //Address Latch Enable
 
-	int AddrIncAmount;
-	int State;
-
-	int AllocatedCycles;
-
+	bool TransferLatch, TransferLatchScroll;
 
 	int BackgroundAddr, BackgroundAddrTemp;
 	int NametableAddr, NametableAddrTemp;
 	int SpritePatternAddr, SpritePatternAddrTemp;
 	int SpriteSize; //8x8 = 64, 8x16 = 128
 
-	uint8_t Scroll[2]; //0 -> X, 1 -> Y
-	uint8_t ScrollIndex;
+	
+	uint8_t FineScrollX, FineScrollY;
+	uint16_t ScrollOrigin;
+	bool ScrollLatch;
 
-	unsigned TotalCycles;
-
-
-
-	uint16_t Addr;
-	uint8_t AddrShift;
 
 	bool GenerateNMI;
 	bool NMIGenerated;
@@ -95,9 +93,6 @@ public:
 		PPU_STATE_SCAN_POST,
 	};
 
-
-	void AllocateCycles(int nTicks);
-
 	uint8_t ReadPRG(int addr);
 
 	uint8_t WritePRG(int addr, uint8_t value);
@@ -120,7 +115,7 @@ public:
 
 	void SpriteEvaluation();
 
-	void Step();
+
 
 	void Reset();
 

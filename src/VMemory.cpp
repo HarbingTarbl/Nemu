@@ -69,7 +69,7 @@ uint8_t VMemory::WritePRG(int addr, uint8_t value)
 uint8_t VMemory::WriteCHR(int addr, uint8_t value)
 {
 	addr = CHRAddr(addr);
-	if ((addr & 0x2000) >> 15)
+	if ((addr & 0x2000) >> 13)
 		return mPPU->WriteCHR(addr, value);
 	else
 		return mCart->WriteCHR(addr, value);
@@ -87,23 +87,23 @@ uint8_t VMemory::ReadCHR(int addr)
 
 uint16_t VMemory::GetNMIV()
 {
-	return (ReadPRG(0xFFFA) << 8) | ReadPRG(0xFFFB);
+	return ReadPRG(0xFFFA) | (ReadPRG(0xFFFB) << 8);
 }
 
 uint16_t VMemory::GetRV()
 {
-	return (ReadPRG(0xFFFC) << 8) | ReadPRG(0xFFFD);
+	return ReadPRG(0xFFFC) | (ReadPRG(0xFFFD) << 8);
 }
 
 uint16_t VMemory::GetIRQ()
 {
-	return (ReadPRG(0xFFFE) << 8) | ReadPRG(0xFFFF);
+	return ReadPRG(0xFFFE) | (ReadPRG(0xFFFF) >> 8);
 }
 
 void VMemory::SetRV(uint16_t value)
 {
-	WritePRG(0xFFFC, (value & 0xFF00) >> 8);
-	WritePRG(0xFFFD, (value & 0x00FF));
+	WritePRG(0xFFFD, (value & 0xFF00) >> 8);
+	WritePRG(0xFFFC, (value & 0x00FF));
 }
 
 

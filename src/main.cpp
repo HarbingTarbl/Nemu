@@ -32,8 +32,9 @@ int main(int argc, const char* args[])
 
 	try
 	{
-		Nemu.mCart.LoadROM("../roms/dkong.nes");
+		Nemu.mCart.LoadROM("../roms/nestest.nes");
 		Nemu.mCPU.HardReset();
+		Nemu.mPPU.Reset();
 	}
 	catch (exception& e)
 	{

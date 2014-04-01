@@ -1,38 +1,40 @@
 #include "PPU.hpp"
 
-
-void PPU::AllocateCycles(int nTicks)
-{
-	AllocatedCycles += nTicks;
-
-}
-
 uint8_t PPU::ReadPRG(int addr)
 {
-	auto r = mRegisters[addr];
+	uint8_t temp; ///TODO Does LRW work here? Or is it a different buffer?
 	switch (addr)
 	{
-	case CONTROL_REG:
+	case CONTROL_REG:	
 	case MASK_REG:
 	case SCROLL_REG:
 	case ADDR_REG:
-		return LastRegisterWrite;
+		return mRegisters[addr];
 	case STATUS_REG:
-		mRegisters[STATUS_REG] &= 0x7F;
-		break;
+		ClearVBlank();
+		VRAMLatched = false; 
+		return mRegisters[STATUS_REG];
 	case OAM_ADDR_REG:
-		break;
+		return mRegisters[addr];
 	case OAM_DATA_REG:
-		if (CurrentFrame >= 20 && CurrentFrame < 26 && CurrentCycle < 64)
-			return 0xFF;
-
-		r = mPrimaryOAM[mRegisters[OAM_ADDR_REG]]; ///TODO, This is wrong, need to simulate the proper latching behavior.
-		mRegisters[OAM_ADDR_REG] += IsVBlanking();
-		return r;
+		return mPrimaryOAM[mRegisters[OAM_ADDR_REG]]; ///TODO, This is wrong, need to simulate the proper latching behavior.
 	case DATA_REG:
-		break;
+		if (VRAMAddress >= 0 && VRAMAddress < 0x3F00)
+		{
+			temp = VRAMDataBuffer;
+			VRAMDataBuffer = ReadCHR(VRAMAddress);
+		}
+		else
+		{
+			VRAMDataBuffer = ReadCHR(VRAMAddress & ~0x1000);
+			temp = ReadCHR(VRAMAddress);
+		}
+
+		VRAMAddress += VRAMIncAmount;
+		return temp;
+	default:
+		throw std::bad_exception();
 	}
-	return r;
 }
 
 uint8_t PPU::WritePRG(int addr, uint8_t value)
@@ -41,8 +43,10 @@ uint8_t PPU::WritePRG(int addr, uint8_t value)
 	switch (addr)
 	{
 	case CONTROL_REG:
+		VRAMAddressLatch = (VRAMAddressLatch & (0x03 << 10)) | ((value & 3) << 10); 
+		//^^^ You prob didn't know that happened, the docs sure didn't
 		NametableAddr = ((value & 0x03) << 10) | 0x2000;
-		AddrIncAmount = 1 << ((value & 0x04) << 3);
+		VRAMIncAmount = 1 << ((value & 0x04) << 3);
 		SpritePatternAddr = ((value & 0x08) << 9);
 		BackgroundAddr = ((value & 0x10) << 8);
 		SpriteSize = 64 + ((value & 0x20) << 1);
@@ -50,39 +54,150 @@ uint8_t PPU::WritePRG(int addr, uint8_t value)
 		return value;
 	case MASK_REG:
 		MaskBits = value;
+		//MaskBits.flip(MASK_BACKGROUND);
+		//MaskBits.flip(MASK_SPRITES);
 		return value;
 	case STATUS_REG:
 		return value;
 	case OAM_ADDR_REG:
-		break;
+		mRegisters[OAM_ADDR_REG] = value;
+		return value;
 	case OAM_DATA_REG:
-		mPrimaryOAM[mRegisters[OAM_ADDR_REG]] = value;
+		mPrimaryOAM[mRegisters[OAM_ADDR_REG]] = value; ///Todo place in individual variables
 		mRegisters[OAM_ADDR_REG]++;
 		return value;
 	case SCROLL_REG:
-		Scroll[ScrollIndex] = value;
-		ScrollIndex = !ScrollIndex;
+		if (!VRAMLatched)
+		{
+			ScrollOrigin = value << 8;
+			FineScrollX = value & 0x07;
+			VRAMAddressLatch = (VRAMAddressLatch & ~0x1F) | ((value >> 3) & 0x1F);
+		}
+		else
+		{
+			ScrollOrigin |= value;
+			FineScrollY = value;
+			VRAMAddressLatch = (VRAMAddressLatch & ~(0x1F << 5)) | (((value >> 3) & 0x1F) << 5);
+			VRAMAddressLatch = (VRAMAddressLatch & ~(0x07 << 12)) | ((value & 0x07) << 12);
+		}
+		VRAMLatched = !VRAMLatched;
 		return value;
 	case ADDR_REG:
-		Addr = (value << AddrShift) | (Addr & (0xFF00 >> AddrShift));
-		AddrShift = (AddrShift + 8) % 16;
+		if (!VRAMLatched)
+		{
+			VRAMAddress = value << 8;
+			VRAMAddressLatch = (VRAMAddressLatch & 0xFF) | ((value & 0x3F) << 8);
+		}
+		else
+		{
+			VRAMAddressLatch = (VRAMAddressLatch & ~0xFF) | value;
+			VRAMAddress = VRAMAddressLatch;
+		}
+		VRAMLatched = !VRAMLatched;
 		return value;
 	case DATA_REG:
+		WriteCHR(VRAMAddress, value);
+		VRAMAddress += VRAMIncAmount;
+		return value;
 		break;
+	default:
+		throw std::bad_exception();
 	}
-
-	mRegisters[addr] = value;
-	return value;
 }
 
 uint8_t PPU::ReadCHR(int addr)
 {
-	return mVRAM[addr & 0x1FFF];
+	if (addr >= 0x3F00)
+	{
+		addr &= 0x1F;
+		switch (addr)
+		{
+		case 0x10:
+			addr = 0x00;
+			break;
+		case 0x14:
+			addr = 0x04;
+			break;
+		case 0x18:
+			addr = 0x08;
+			break;
+		case 0x1C:
+			addr = 0x0C;
+			break;
+		}
+
+		return mPaletteRAM[addr];
+	}
+	else if (addr >= 0x3000)
+	{
+		addr &= 0x0EFF;
+	}
+
+	if (addr >= 0x2C00) //Todo nametable mirroring
+	{
+		//Name Table #3
+		return mNameRAM[addr & 0x7FF];
+	}
+	else if (addr >= 0x2800)
+	{
+		//Name Table #2
+		return mNameRAM[addr & 0x3FF];
+	}
+	else if (addr >= 0x2400)
+	{
+		//Name Table #1
+		return mNameRAM[addr & 0x7FF];
+	}
+	else if (addr >= 0x2000)
+	{
+		//Name Table #0
+		return mNameRAM[addr & 0x3FF];
+	}
+	else
+	{
+		//Not in RAM
+		return Memory->ReadCHR(addr);
+	}
 }
 
 uint8_t PPU::WriteCHR(int addr, uint8_t value)
 {
-	mVRAM[addr & 0x1FFF] = value;
+	if (addr >= 0x3F00)
+	{
+		addr &= 0x1F;
+		mPaletteRAM[addr] = value;
+		return  value;
+	}
+	else if (addr >= 0x3000)
+	{
+		addr &= 0x0EFF;
+	}
+
+	if (addr >= 0x2C00) //Todo nametable mirroring
+	{
+		//Name Table #3
+		mNameRAM[addr & 0x7FF] = value;
+	}
+	else if (addr >= 0x2800)
+	{
+		//Name Table #2
+		mNameRAM[addr & 0x3FF] = value;
+	}
+	else if (addr >= 0x2400)
+	{
+		//Name Table #1
+		mNameRAM[addr & 0x7FF] = value;
+	}
+	else if (addr >= 0x2000)
+	{
+		//Name Table #0
+		mNameRAM[addr & 0x3FF] = value;
+	}
+	else
+	{
+		//Not in RAM
+		return Memory->WriteCHR(addr, value);
+	}
 	return value;
 }
 
@@ -132,44 +247,39 @@ void PPU::SpriteEvaluation()
 	}
 }
 
-void PPU::Step()
-{
-	throw std::bad_exception();
 
-	while (AllocatedCycles > 0)
-		Cycle(0);
-}
 
 void PPU::Reset()
 {
-	WritePRG(CONTROL_REG, 0x00);
-	WritePRG(MASK_REG, 0x00);
-	mRegisters[STATUS_REG] = 0xA0;
-	WritePRG(OAM_ADDR_REG, 00);
+	std::fill(mRegisters.begin(), mRegisters.end(), 0);
 
-	WritePRG(ADDR_REG, 00);
-	WritePRG(ADDR_REG, 00);
+	//static uint8_t defaultPalette[] = {
+	//	0x09, 0x01, 0x00, 0x01,
+	//	0x00, 0x02, 0x02, 0x0D,
+	//	0x08, 0x10, 0x08, 0x24,
+	//	0x00, 0x00, 0x04, 0x2C,
+	//	0x09, 0x01, 0x34, 0x03,
+	//	0x00, 0x04, 0x00, 0x14,
+	//	0x08, 0x3A, 0x00, 0x02,
+	//	0x00, 0x20, 0x2C, 0x08,
+	//};
 
-	WritePRG(SCROLL_REG, 0x00);
-	WritePRG(SCROLL_REG, 0x00);
 
-	static uint8_t defaultPalette[] = {
-		0x09, 0x01, 0x00, 0x01,
-		0x00, 0x02, 0x02, 0x0D,
-		0x08, 0x10, 0x08, 0x24,
-		0x00, 0x00, 0x04, 0x2C,
-		0x09, 0x01, 0x34, 0x03,
-		0x00, 0x04, 0x00, 0x14,
-		0x08, 0x3A, 0x00, 0x02,
-		0x00, 0x20, 0x2C, 0x08,
-	};
+	//for (int i = 0; i < 0x20; i++)
+	//{
+	//	WriteCHR(0x3F00 + i, defaultPalette[i]);
+	//}
 
-	memcpy(&mVRAM[0x3F00], defaultPalette, 0xFF);
-
-	AllocatedCycles = 0;
+	
 	CurrentCycle = 0;
 	CurrentLine = LastLine = 241;
 	CurrentFrame = 0;
+	VRAMAddress = VRAMAddressLatch = 0;
+	VRAMLatched = false;
+	TransferLatch = TransferLatchScroll = false;
+	NMIGenerated = false;
+
+
 }
 
 void PPU::RenderPixel(int color)
@@ -184,45 +294,68 @@ void PPU::BackgroundScanline()
 	uint8_t attrByte, tileIndex, groupIndex, paletteIndex;
 	uint8_t patternLow, patternHigh, paletteHigh;
 	uint8_t tileX, tileY, tileScrollX, tileScrollY;
+	Render::CurrentScanline = CurrentLine;
 
+	if (mRegisters[CONTROL_REG] & 0x10)
+	{
+		ptAddr = 0x1000;
+	}
+	else
+	{
+		ptAddr = 0x0000;
+	}
 
-	ptAddr = BackgroundAddr;
 	for (int i = 0; i < 32; i++)
 	{
-		ntAddr = NametableAddr;
+		switch ((VRAMAddress >> 10) & 0x3)
+		{
+		case 0:
+			ntAddr = 0x2000;
+			break;
+		case 1:
+			ntAddr = 0x2400;
+			break;
+		case 2:
+			ntAddr = 0x2800;
+			break;
+		case 3:
+			ntAddr = 0x2C00;
+			break;
+		}
+
 		atAddr = ntAddr + 0x3C0;
-		tileX = Addr & 0x1F;
-		tileY = (Addr >> 5) & 0x1F;
-		tileScrollX = (Addr >> 12) & 0x07;
-		tileScrollY = Scroll[0]; //Fine scroll X
-		tileAddr = ntAddr | (Addr & 0x03FF);
+		tileX = VRAMAddress & 0x1F;
+		tileY = (VRAMAddress >> 5) & 0x1F;
+		tileScrollY = (VRAMAddress >> 12) & 0x07;
+		tileScrollX = FineScrollX; //Fine scroll X
+		tileAddr = ntAddr | (VRAMAddress & 0x03FF);
 
 
 
 		for (int p = 0; p < 8; p++)
 		{
-			tileIndex = Memory->ReadCHR(tileAddr);
-			patternLow = Memory->ReadCHR(ptAddr + (tileIndex << 4) + tileScrollY);
-			patternHigh = Memory->ReadCHR(ptAddr + (tileIndex << 4) + tileScrollY + 8);
+			tileIndex = ReadCHR(tileAddr);
+			patternLow = ReadCHR(ptAddr + (tileIndex << 4) + tileScrollY);
+			patternHigh = ReadCHR(ptAddr + (tileIndex << 4) + tileScrollY + 8);
 
 			attrAddr = atAddr | (((((tileY * 8) + tileScrollY) / 32) * 8) + (((tileX * 8) + tileScrollX) / 32));
-			attrByte = Memory->ReadCHR(attrAddr);
+			attrByte = ReadCHR(attrAddr);
 			groupIndex = (((tileX % 4) & 0x02) >> 1) + ((tileY % 4) & 0x02);
 			paletteHigh = ((attrByte >> (groupIndex << 1)) & 0x3) << 2;
 
 			paletteIndex = paletteHigh;
 			paletteIndex |= patternLow & (0x80 >> tileScrollX) ? 0x1 : 0;
-			paletteIndex |= patternHigh & (0x80 >> tileScrollX) ? 0x1 : 0;
+			paletteIndex |= patternHigh & (0x80 >> tileScrollX) ? 0x2 : 0;
 
 			if (paletteIndex & 0x03 == 0)
 			{
 				//Handle transparent
-				Render::PixelOut->Color = 0;
+				Render::PixelOut->Color = 0x10;
 				Render::PixelOut++;
 			}
 			else
 			{
-				Render::PixelOut->Color = Memory->ReadPRG(Memory->mCPU->PC); ///HACK BLARRRG
+				Render::PixelOut->Color = ReadCHR(0x3F00 + paletteIndex); // | MaskBits[MASK_BLUE] << 6 | MaskBits[MASK_RED] << 7 | MaskBits[MASK_GREEN] << 8; ///HACK BLARRRG
 				Render::PixelOut++;
 			}
 
@@ -244,28 +377,28 @@ void PPU::BackgroundScanline()
 			}
 		}
 
-		if (Addr & 0x001F == 31)
+		if (VRAMAddress & 0x001F == 31)
 		{
-			Addr %= ~0x001F;
-			Addr ^= 0x0400;
+			VRAMAddress %= ~0x001F;
+			VRAMAddress ^= 0x0400;
 		}
 		else
 		{
-			Addr++;
+			VRAMAddress++;
 		}
 
-		if (Addr & 0x7000 != 0x7000)
+		if (VRAMAddress & 0x7000 != 0x7000)
 		{
-			Addr += 0x1000;
+			VRAMAddress += 0x1000;
 		}
 		else
 		{
-			Addr &= 0x0FFF;
-			uint16_t y = (Addr & 0x3E0) >> 5;
+			VRAMAddress &= 0x0FFF;
+			uint16_t y = (VRAMAddress & 0x3E0) >> 5;
 			if (y == 29)
 			{
 				y = 0;
-				Addr ^= 0x0800;
+				VRAMAddress ^= 0x0800;
 			}
 			else if (y == 31)
 			{
@@ -276,7 +409,7 @@ void PPU::BackgroundScanline()
 				y++;
 			}
 
-			Addr = (Addr & ~0x03E0) | (y << 5);
+			VRAMAddress = (VRAMAddress & ~0x03E0) | (y << 5);
 		}
 	}
 
@@ -290,7 +423,8 @@ void PPU::StartDMA(int addr)
 		mPrimaryOAM[(spriteAddr + i) & 0xFF] = Memory->ReadPRG(addr * 0x100 + i);
 	}
 
-	TotalCycles += 512 * 3;
+	CurrentCycle += 512 * 3;
+
 }
 
 void PPU::Cycle(unsigned nCycles)
@@ -306,6 +440,13 @@ void PPU::Cycle(unsigned nCycles)
 
 	if (CurrentLine < 240)
 	{
+
+		if (!TransferLatch && (MaskBits[MASK_SPRITES] || MaskBits[MASK_BACKGROUND]))
+		{
+			VRAMAddress = VRAMAddressLatch;;
+			TransferLatch = true;
+		}
+
 		if (CurrentLine != LastLine)
 		{
 			LastLine = CurrentLine;
@@ -316,7 +457,8 @@ void PPU::Cycle(unsigned nCycles)
 
 			if (MaskBits[MASK_BACKGROUND] || MaskBits[MASK_SPRITES])
 			{
-				//Addr = (Addr & (~0x1F & ~(1 << 10)) | ())
+				VRAMAddress = (VRAMAddress & (~0x1F & ~(1 << 10))) | (VRAMAddressLatch & (0x1F | (1 << 10)));
+				///Todo mapper IRQ
 			}
 			Render::EndScanline();
 		}
@@ -336,7 +478,8 @@ void PPU::Cycle(unsigned nCycles)
 
 		///Todo latches?
 
-		CurrentLine = LastLine = 0;
+		CurrentLine = LastLine = -1;
+		TransferLatch = TransferLatchScroll = false;
 		NMIGenerated = false;
 	}
 	else if (CurrentLine > 259)

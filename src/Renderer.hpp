@@ -148,6 +148,9 @@ public:
 			scanlineIndexLocation = gl::GetUniformLocation(programId, "Scanline");
 			yiqMatrixLocation = gl::GetUniformLocation(programId, "YIQMatrix");
 			ppuPhaseLocation = gl::GetUniformLocation(programId, "PPUPhase");
+
+			gl::Disable(gl::DEPTH_TEST);
+			gl::Disable(gl::CULL_FACE);
 		}
 	}
 
@@ -171,6 +174,8 @@ public:
 	static void EndFrame()
 	{
 		glfwSwapBuffers(window);
+		gl::ClearColor(1, 1, 1, 1);
+		gl::Clear( gl::DEPTH_BUFFER_BIT);
 		CurrentFrame++;
 		CurrentScanline = 0;
 		FrameComplete = true;
@@ -195,6 +200,7 @@ public:
 		gl::DrawArraysInstanced(gl::TRIANGLE_STRIP, 0, 4, 256);
 		ScanlineComplete = true;
 		CurrentScanline++;
+		CurrentScanline %= 256;
 	}
 
 	static bool WindowOpen()

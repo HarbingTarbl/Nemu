@@ -106,6 +106,7 @@ class Cartridge
 {
 public:
 	std::unique_ptr<MMC> CurrentMMC;
+	std::string Name;
 
 	uint8_t ReadPRG(int addr)
 	{
@@ -143,6 +144,7 @@ public:
 		default:
 			throw std::runtime_error("Unsupported mapper");
 		}
+		Name = filename;
 	}
 };
 

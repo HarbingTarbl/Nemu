@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <array>
 #include <deque>
+#include <fstream>
 
 class VMemory;
 
@@ -28,6 +29,8 @@ public:
 	int Addr;
 	int DMAAddr, DMACount;
 	int AllocatedCycles;
+
+	std::fstream logFile;
 
 	enum
 	{
