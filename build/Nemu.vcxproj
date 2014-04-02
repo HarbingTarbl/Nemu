@@ -121,9 +121,9 @@
     <ClCompile Include="..\src\OpCodes.cpp" />
     <ClCompile Include="..\src\PPU.cpp" />
     <ClCompile Include="..\src\Renderer.cpp" />
+    <ClCompile Include="..\src\VMemory.cpp" />
     <ClCompile Include="..\src\gl_core_3_3.cpp" />
     <ClCompile Include="..\src\main.cpp" />
-    <ClCompile Include="..\src\VMemory.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

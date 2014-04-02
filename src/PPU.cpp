@@ -5,15 +5,16 @@ uint8_t PPU::ReadPRG(int addr)
 	uint8_t temp; ///TODO Does LRW work here? Or is it a different buffer?
 	switch (addr)
 	{
-	case CONTROL_REG:	
+	case CONTROL_REG:
 	case MASK_REG:
 	case SCROLL_REG:
 	case ADDR_REG:
 		return mRegisters[addr];
 	case STATUS_REG:
+		temp = mRegisters[STATUS_REG];
 		ClearVBlank();
-		VRAMLatched = false; 
-		return mRegisters[STATUS_REG];
+		VRAMLatched = false;
+		return temp;
 	case OAM_ADDR_REG:
 		return mRegisters[addr];
 	case OAM_DATA_REG:
@@ -43,7 +44,7 @@ uint8_t PPU::WritePRG(int addr, uint8_t value)
 	switch (addr)
 	{
 	case CONTROL_REG:
-		VRAMAddressLatch = (VRAMAddressLatch & (0x03 << 10)) | ((value & 3) << 10); 
+		VRAMAddressLatch = (VRAMAddressLatch & (0x03 << 10)) | ((value & 3) << 10);
 		//^^^ You prob didn't know that happened, the docs sure didn't
 		NametableAddr = ((value & 0x03) << 10) | 0x2000;
 		VRAMIncAmount = 1 << ((value & 0x04) << 3);
@@ -51,6 +52,7 @@ uint8_t PPU::WritePRG(int addr, uint8_t value)
 		BackgroundAddr = ((value & 0x10) << 8);
 		SpriteSize = 64 + ((value & 0x20) << 1);
 		GenerateNMI = (value & 0x80) >> 7;
+		mRegisters[CONTROL_REG] = value;
 		return value;
 	case MASK_REG:
 		MaskBits = value;
@@ -107,6 +109,7 @@ uint8_t PPU::WritePRG(int addr, uint8_t value)
 
 uint8_t PPU::ReadCHR(int addr)
 {
+	std::cout << "Read from : " << std::hex << addr << " : " << std::endl;
 	if (addr >= 0x3F00)
 	{
 		addr &= 0x1F;
@@ -133,25 +136,25 @@ uint8_t PPU::ReadCHR(int addr)
 		addr &= 0x0EFF;
 	}
 
-	if (addr >= 0x2C00) //Todo nametable mirroring
+	if (addr >= 0x2C00 && addr <= 0x2FFF) //Todo nametable mirroring
 	{
 		//Name Table #3
-		return mNameRAM[addr & 0x7FF];
+		return mNameRAM[(addr - 0x0800) & 0x7FF];
 	}
-	else if (addr >= 0x2800)
+	else if (addr >= 0x2800 && addr <= 0x2BFF)
 	{
 		//Name Table #2
-		return mNameRAM[addr & 0x3FF];
+		return mNameRAM[(addr - 0x0400) & 0x7FF];
 	}
-	else if (addr >= 0x2400)
+	else if (addr >= 0x2400 && addr <= 0x27FF)
 	{
 		//Name Table #1
-		return mNameRAM[addr & 0x7FF];
+		return mNameRAM[(addr - 0x0400) & 0x7FF];
 	}
 	else if (addr >= 0x2000)
 	{
 		//Name Table #0
-		return mNameRAM[addr & 0x3FF];
+		return mNameRAM[addr & 0x7FF];
 	}
 	else
 	{
@@ -162,6 +165,7 @@ uint8_t PPU::ReadCHR(int addr)
 
 uint8_t PPU::WriteCHR(int addr, uint8_t value)
 {
+	std::cout << "Write to : " << std::hex << addr << " : " << std::hex << (int)value << std::endl;
 	if (addr >= 0x3F00)
 	{
 		addr &= 0x1F;
@@ -173,25 +177,25 @@ uint8_t PPU::WriteCHR(int addr, uint8_t value)
 		addr &= 0x0EFF;
 	}
 
-	if (addr >= 0x2C00) //Todo nametable mirroring
+	if (addr >= 0x2C00 && addr <= 0x2FFF) //Todo nametable mirroring
 	{
 		//Name Table #3
-		mNameRAM[addr & 0x7FF] = value;
+		mNameRAM[(addr - 0x800) & 0x7FF] = value;
 	}
-	else if (addr >= 0x2800)
+	else if (addr >= 0x2800 && addr <= 0x2BFF)
 	{
 		//Name Table #2
-		mNameRAM[addr & 0x3FF] = value;
+		mNameRAM[(addr - 0x400) & 0x7FF] = value;
 	}
-	else if (addr >= 0x2400)
+	else if (addr >= 0x2400 && addr <= 0x27FF)
 	{
 		//Name Table #1
-		mNameRAM[addr & 0x7FF] = value;
+		mNameRAM[(addr - 0x0400) & 0x7FF] = value;
 	}
 	else if (addr >= 0x2000)
 	{
 		//Name Table #0
-		mNameRAM[addr & 0x3FF] = value;
+		mNameRAM[addr & 0x7FF] = value;
 	}
 	else
 	{
@@ -254,25 +258,24 @@ void PPU::Reset()
 	std::fill(mRegisters.begin(), mRegisters.end(), 0);
 
 
-	mRegisters[CONTROL_REG] = 0x80;
-	//static uint8_t defaultPalette[] = {
-	//	0x09, 0x01, 0x00, 0x01,
-	//	0x00, 0x02, 0x02, 0x0D,
-	//	0x08, 0x10, 0x08, 0x24,
-	//	0x00, 0x00, 0x04, 0x2C,
-	//	0x09, 0x01, 0x34, 0x03,
-	//	0x00, 0x04, 0x00, 0x14,
-	//	0x08, 0x3A, 0x00, 0x02,
-	//	0x00, 0x20, 0x2C, 0x08,
-	//};
+	static uint8_t defaultPalette[] = {
+		0x09, 0x01, 0x00, 0x01,
+		0x00, 0x02, 0x02, 0x0D,
+		0x08, 0x10, 0x08, 0x24,
+		0x00, 0x00, 0x04, 0x2C,
+		0x09, 0x01, 0x34, 0x03,
+		0x00, 0x04, 0x00, 0x14,
+		0x08, 0x3A, 0x00, 0x02,
+		0x00, 0x20, 0x2C, 0x08,
+	};
 
 
-	//for (int i = 0; i < 0x20; i++)
-	//{
-	//	WriteCHR(0x3F00 + i, defaultPalette[i]);
-	//}
+	for (int i = 0; i < 0x20; i++)
+	{
+		WriteCHR(0x3F00 + i, defaultPalette[i]);
+	}
 
-	
+
 	CurrentCycle = 0;
 	CurrentLine = LastLine = 241;
 	CurrentFrame = 0;
@@ -280,7 +283,7 @@ void PPU::Reset()
 	VRAMLatched = false;
 	TransferLatch = TransferLatchScroll = false;
 	NMIGenerated = false;
-
+	WaitVBlank = false;
 
 }
 
@@ -391,6 +394,7 @@ void PPU::BackgroundScanline()
 	uint8_t patternLow, patternHigh, paletteHigh;
 	uint8_t tileX, tileY, tileScrollX, tileScrollY;
 	Render::CurrentScanline = CurrentLine;
+	std::cout << "VADDR : " << std::hex << VRAMAddress << std::endl;
 
 	if (mRegisters[CONTROL_REG] & 0x10)
 	{
@@ -452,7 +456,9 @@ void PPU::BackgroundScanline()
 			}
 			else
 			{
-				Render::PixelOut->Color = ReadCHR(0x3F00 + paletteIndex); // | MaskBits[MASK_BLUE] << 6 | MaskBits[MASK_RED] << 7 | MaskBits[MASK_GREEN] << 8; ///HACK BLARRRG
+
+				int color = ReadCHR(0x3F02 + paletteIndex);
+				Render::PixelOut->Color = color; // | MaskBits[MASK_BLUE] << 6 | MaskBits[MASK_RED] << 7 | MaskBits[MASK_GREEN] << 8; ///HACK BLARRRG
 				Render::PixelOut++;
 			}
 
@@ -510,6 +516,7 @@ void PPU::BackgroundScanline()
 		}
 	}
 
+
 }
 
 void PPU::StartDMA(int addr)
@@ -517,7 +524,6 @@ void PPU::StartDMA(int addr)
 	int spriteAddr = mRegisters[OAM_ADDR_REG];
 	for (int i = 0; i < 256; i++)
 	{
-		std::cout << i << std::endl;
 		mPrimaryOAM[(spriteAddr + i) & 0xFF] = Memory->ReadPRG(addr * 0x100 + i);
 	}
 
@@ -536,12 +542,12 @@ void PPU::Cycle(unsigned nCycles)
 		CurrentCycle = CurrentCycle % 341;
 	}
 
-	if (CurrentLine < 240)
+	if (CurrentLine >= 0 && CurrentLine <= 239)
 	{
 
 		if (!TransferLatch && (MaskBits[MASK_SPRITES] || MaskBits[MASK_BACKGROUND]))
 		{
-			VRAMAddress = VRAMAddressLatch;;
+			VRAMAddress = VRAMAddressLatch;
 			TransferLatch = true;
 		}
 
@@ -555,7 +561,7 @@ void PPU::Cycle(unsigned nCycles)
 			{
 				//SpriteScanline8(0x20); //Background sprites;
 			}
-			
+
 			Render::PixelOut = DirtyHack;
 			if (MaskBits[MASK_BACKGROUND])
 			{
@@ -578,9 +584,11 @@ void PPU::Cycle(unsigned nCycles)
 	else if (CurrentLine == 240)
 	{
 		Render::EndFrame();
-		if (!IsVBlanking())
+		if (!WaitVBlank)
 		{
-			SetVBlanking();
+			WaitVBlank = true;
+			mRegisters[STATUS_REG] |= 0x80;
+			std::cout << "VBlank Set" << std::endl;
 		}
 	}
 	else if (CurrentLine > 261)
@@ -596,18 +604,19 @@ void PPU::Cycle(unsigned nCycles)
 	}
 	else if (CurrentLine > 259)
 	{
-		if (IsVBlanking())
+		if (WaitVBlank)
 		{
-			ClearVBlank();
+			WaitVBlank = false;
+			mRegisters[STATUS_REG] &= ~0x80;
 		}
 	}
 
-	if (IsVBlanking() &&
+	if (WaitVBlank &&
 		!NMIGenerated &&
-		(mRegisters[CONTROL_REG] & 0x80))
+		(mRegisters[CONTROL_REG] & 0x80) &&
+		(mRegisters[STATUS_REG] & 0x80))
 	{
 		NMIGenerated = true;
-		mRegisters[STATUS_REG] |= 0x80;
 		Memory->mCPU->InterruptQueue.push_front(CPU::INTERRUPT_NMI);
 	}
 }

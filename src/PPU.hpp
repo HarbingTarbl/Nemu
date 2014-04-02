@@ -62,6 +62,8 @@ public:
 	int SpritePatternAddr, SpritePatternAddrTemp;
 	int SpriteSize; //8x8 = 64, 8x16 = 128
 
+	bool WaitVBlank;
+
 	
 	uint8_t FineScrollX, FineScrollY;
 	uint16_t ScrollOrigin;
