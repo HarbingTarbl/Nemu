@@ -109,7 +109,6 @@ uint8_t PPU::WritePRG(int addr, uint8_t value)
 
 uint8_t PPU::ReadCHR(int addr)
 {
-	std::cout << "Read from : " << std::hex << addr << " : " << std::endl;
 	if (addr >= 0x3F00)
 	{
 		addr &= 0x1F;
@@ -165,7 +164,6 @@ uint8_t PPU::ReadCHR(int addr)
 
 uint8_t PPU::WriteCHR(int addr, uint8_t value)
 {
-	std::cout << "Write to : " << std::hex << addr << " : " << std::hex << (int)value << std::endl;
 	if (addr >= 0x3F00)
 	{
 		addr &= 0x1F;
@@ -389,10 +387,10 @@ void PPU::SpriteScanline8(uint8_t priority)
 
 void PPU::BackgroundScanline()
 {
-	uint16_t ntAddr, ptAddr, atAddr, tileAddr, attrAddr;
-	uint8_t attrByte, tileIndex, groupIndex, paletteIndex;
-	uint8_t patternLow, patternHigh, paletteHigh;
-	uint8_t tileX, tileY, tileScrollX, tileScrollY;
+	uint16_t ntAddr = 0, ptAddr = 0, atAddr = 0, tileAddr = 0, attrAddr = 0;
+	uint8_t attrByte = 0, tileIndex = 0, groupIndex = 0, paletteIndex = 0;
+	uint8_t patternLow = 0, patternHigh = 0, paletteHigh = 0;
+	uint8_t tileX = 0, tileY = 0, tileScrollX = 0, tileScrollY = 0;
 	Render::CurrentScanline = CurrentLine;
 	std::cout << "VADDR : " << std::hex << VRAMAddress << std::endl;
 
@@ -407,7 +405,7 @@ void PPU::BackgroundScanline()
 
 	for (int i = 0; i < 32; i++)
 	{
-		switch ((VRAMAddress >> 10) & 0x3)
+		switch (0)
 		{
 		case 0:
 			ntAddr = 0x2000;
@@ -424,29 +422,51 @@ void PPU::BackgroundScanline()
 		}
 
 		atAddr = ntAddr + 0x03C0;
-		tileX = VRAMAddress & 0x1F;
-		tileY = (VRAMAddress >> 5) & 0x1F;
-		tileScrollY = (VRAMAddress >> 12) & 0x07;
-		tileScrollX = FineScrollX; //Fine scroll X
-		tileAddr = ntAddr | (VRAMAddress & 0x03FF);
+		//tileX = VRAMAddress & 0x1F;
+		//tileY = (VRAMAddress >> 5) & 0x1F;
+		//tileScrollY = (VRAMAddress >> 12) & 0x07;
+		//tileScrollX = FineScrollX; //Fine scroll X
+		//tileAddr = ntAddr | (VRAMAddress & 0x03FF);
 
+		tileAddr = ntAddr + 32 * CurrentLine + i;
 
+		attrAddr = atAddr + i / 4;
+
+		groupIndex = (CurrentLine % 2 ? 2 : 0) + (i % 2 ? 1 : 0);
+
+		tileIndex = ReadCHR(tileAddr);
+
+		attrByte = ReadCHR(attrAddr);
+		patternLow = ReadCHR(ptAddr + (tileIndex << 4));
+		patternHigh = ReadCHR(ptAddr + (tileIndex << 4) + 8);
 
 		for (int p = 0; p < 8; p++)
 		{
-			tileIndex = ReadCHR(tileAddr);
-			patternLow = ReadCHR(ptAddr + (tileIndex << 4) + tileScrollY);
-			patternHigh = ReadCHR(ptAddr + (tileIndex << 4) + tileScrollY + 8);
 
-			attrAddr = atAddr | (((((tileY * 8) + tileScrollY) / 32) * 8) + (((tileX * 8) + tileScrollX) / 32));
-			attrByte = ReadCHR(attrAddr);
-			groupIndex = (((tileX % 4) & 0x02) >> 1) + ((tileY % 4) & 0x02);
-			paletteHigh = ((attrByte >> (groupIndex << 1)) & 0x3) << 2;
+
+			//paletteHigh = ((attrByte >> (groupIndex << 1)) & 0x3) << 2;
 
 			paletteIndex = paletteHigh;
-			paletteIndex |= patternLow & (0x80 >> tileScrollX) ? 0x1 : 0;
-			paletteIndex |= patternHigh & (0x80 >> tileScrollX) ? 0x2 : 0;
+			paletteIndex |= patternLow & (0x80 >> (7 - p)) ? 0x1 : 0;
+			paletteIndex |= patternHigh & (0x80 >> (7 - p)) ? 0x2 : 0;
 
+			using std::endl;
+			using std::hex;
+
+			/*	std::cout << "GPU LOG: "
+					<< "\tTileIndex " << hex << (int)tileIndex << endl
+					<< "\tPatternLow " << hex << (int)patternLow << endl
+					<< "\tPatternHigh " << hex << (int)patternHigh << endl
+					<< "\tAttribute Byte " << hex << (int)attrByte << endl
+					<< "\tAttribute Address " << hex << (int)attrAddr << endl
+					<< "\tGroup Index " << hex << (int)groupIndex << endl
+					<< "\tPaletteHigh " << hex << (int)paletteHigh << endl
+					<< "\tAT Address " << hex << (int)attrAddr << endl
+					<< "\tTile X " << hex << (int)tileX << endl
+					<< "\tTile Y " << hex << (int)tileY << endl
+					<< "\tTile Address " << hex << (int)tileAddr << endl
+					<< "\tPixel " << hex << (int)p << endl;
+					*/
 			if (paletteIndex & 0x03 == 0)
 			{
 				//Handle transparent
@@ -457,66 +477,12 @@ void PPU::BackgroundScanline()
 			else
 			{
 
-				int color = ReadCHR(0x3F02 + paletteIndex);
+				int color = ReadCHR(0x3F00 + paletteIndex);
 				Render::PixelOut->Color = color; // | MaskBits[MASK_BLUE] << 6 | MaskBits[MASK_RED] << 7 | MaskBits[MASK_GREEN] << 8; ///HACK BLARRRG
 				Render::PixelOut++;
 			}
-
-			tileScrollX++;
-
-			if (tileScrollX >= 8)
-			{
-				tileScrollX = 0;
-				tileAddr++;
-				tileX++;
-
-				if (tileAddr & 0x1F == 0)
-				{
-					tileAddr++;
-					tileX--;
-					tileAddr %= ~0x001F;
-					tileAddr ^= 0x0400;
-				}
-			}
-		}
-
-		if (VRAMAddress & 0x001F == 31)
-		{
-			VRAMAddress %= ~0x001F;
-			VRAMAddress ^= 0x0400;
-		}
-		else
-		{
-			VRAMAddress++;
-		}
-
-		if (VRAMAddress & 0x7000 != 0x7000)
-		{
-			VRAMAddress += 0x1000;
-		}
-		else
-		{
-			VRAMAddress &= 0x0FFF;
-			uint16_t y = (VRAMAddress & 0x3E0) >> 5;
-			if (y == 29)
-			{
-				y = 0;
-				VRAMAddress ^= 0x0800;
-			}
-			else if (y == 31)
-			{
-				y = 0;
-			}
-			else
-			{
-				y++;
-			}
-
-			VRAMAddress = (VRAMAddress & ~0x03E0) | (y << 5);
 		}
 	}
-
-
 }
 
 void PPU::StartDMA(int addr)
