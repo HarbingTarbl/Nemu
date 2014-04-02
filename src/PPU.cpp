@@ -450,21 +450,26 @@ void PPU::BackgroundScanline()
 
 		tileAddr = ntAddr + (CurrentLine / 8) * 32 + i ;
 
-		attrAddr = atAddr + i / 4;
+		attrAddr = atAddr + i / 4 + (CurrentLine / 32) * 8;
 
-		groupIndex = (CurrentLine % 2 ? 2 : 0) + (i % 2 ? 1 : 0);
+
+		groupIndex = 0;
+		if ((CurrentLine % 32) > 16)
+			groupIndex += 0;
+
+		groupIndex += (i % 2 ? 2 : 0);
 
 		tileIndex = ReadCHR(tileAddr);
 
 		attrByte = ReadCHR(attrAddr);
 		patternLow = ReadCHR(ptAddr + tileIndex * 16 + CurrentLine % 8);
 		patternHigh = ReadCHR(ptAddr + tileIndex * 16 + 8 + CurrentLine % 8);
-		paletteHigh = ((attrByte >> (groupIndex << 1)) & 0x3) << 2;
+		paletteHigh = (attrByte >> groupIndex) & 0x03;
 
 
 		for (int p = 0; p < 8; p++)
 		{
-			paletteIndex = paletteHigh;
+			paletteIndex = 0;
 			paletteIndex |= (patternLow & (0x80 >>  p)) ? 0x1 : 0;
 			paletteIndex |= (patternHigh & (0x80 >> p)) ? 0x2 : 0;
 
@@ -496,7 +501,7 @@ void PPU::BackgroundScanline()
 			{
 
 				int color = ReadCHR(0x3F00 + paletteIndex);
-				Render::PixelOut->Color = color; // | MaskBits[MASK_BLUE] << 6 | MaskBits[MASK_RED] << 7 | MaskBits[MASK_GREEN] << 8; ///HACK BLARRRG
+				Render::PixelOut->Color = color | MaskBits[MASK_BLUE] << 6 | MaskBits[MASK_RED] << 7 | MaskBits[MASK_GREEN] << 8; ///HACK BLARRRG
 				Render::PixelOut++;
 			}
 		}

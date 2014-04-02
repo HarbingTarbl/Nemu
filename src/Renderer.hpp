@@ -177,14 +177,10 @@ public:
 		{
 			NES::Instance->mPPU.DumpVRAM();
 		}
-		FrameComplete = false;
 	}
 
 	static void EndFrame()
 	{
-		glfwSwapBuffers(window);
-		gl::ClearColor(1, 1, 1, 1);
-		gl::Clear( gl::DEPTH_BUFFER_BIT);
 		CurrentFrame++;
 		CurrentScanline = 0;
 		FrameComplete = true;
@@ -210,6 +206,12 @@ public:
 		gl::Uniform1i(scanlineIndexLocation, CurrentScanline);
 		gl::DrawArraysInstanced(gl::TRIANGLE_STRIP, 0, 4, 256);
 		ScanlineComplete = true;
+
+		if (CurrentScanline == 0)
+		{
+			glfwSwapBuffers(window);
+			gl::Clear(gl::DEPTH_BUFFER_BIT);
+		}
 		CurrentScanline++;
 		CurrentScanline %= 256;
 	}
