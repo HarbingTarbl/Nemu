@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef _RENDERER_H_
+#define _RENDERER_H_
+
 #define GLFW_INCLUDE_NONE
 #include "gl_core_3_3.hpp"
 #include <GLFW/glfw3.h>
@@ -9,6 +12,8 @@
 #include <string>
 #include <exception>
 #include <vector>
+
+#include "NES.hpp"
 
 
 class Render
@@ -167,7 +172,11 @@ public:
 
 	static void BeginFrame()
 	{
-		glfwPollEvents();	
+		glfwPollEvents();
+		if (glfwGetKey(window, GLFW_KEY_F1))
+		{
+			NES::Instance->mPPU.DumpVRAM();
+		}
 		FrameComplete = false;
 	}
 
@@ -179,6 +188,8 @@ public:
 		CurrentFrame++;
 		CurrentScanline = 0;
 		FrameComplete = true;
+
+
 	}
 
 	static void BeginScanline(int PPUCycle)
@@ -223,3 +234,5 @@ public:
 	static bool ScanlineComplete;
 };
 
+
+#endif

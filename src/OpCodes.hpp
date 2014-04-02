@@ -1,4 +1,8 @@
 #pragma once
+
+#ifndef _OPCODES_H
+#define _OPCODES_H
+
 #include <cstdint>
 
 class CPU;
@@ -128,3 +132,5 @@ namespace AddressingModes
 	static void NOP2(CPU& cpu);
 	static void NOP3(CPU& cpu);
 };
+
+#endif

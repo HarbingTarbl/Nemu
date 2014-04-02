@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef _CPU_H
+#define _CPU_H
+
 #include <cstdint>
 #include <array>
 #include <deque>
@@ -105,3 +108,5 @@ public:
 };
 
 
+
+#endif

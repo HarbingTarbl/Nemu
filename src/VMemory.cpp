@@ -1,4 +1,8 @@
 #include "VMemory.hpp"
+#include "CPU.hpp"
+#include "PPU.hpp"
+#include "Cartridge.hpp"
+#include "APU.hpp"
 
 int VMemory::CartAddr(int addr)
 {

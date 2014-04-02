@@ -1,8 +1,13 @@
 #pragma once
 
+#ifndef _NES_H
+#define _NES_H
+
 #include "CPU.hpp"
 #include "PPU.hpp"
+#include "APU.hpp"
 #include "VMemory.hpp"
+#include "Cartridge.hpp"
 #include "Rom.hpp"
 
 
@@ -15,16 +20,13 @@ public:
 	Cartridge mCart;
 	VMemory mMemory;
 
-	NES()
-	{
-		mCPU.Memory = &mMemory;
-		mAPU.mCPU = &mCPU;
-		mMemory.mCPU = &mCPU;
-		mMemory.mPPU = &mPPU;
-		mMemory.mAPU = &mAPU;
-		mMemory.mCart = &mCart;
-		mPPU.Memory = &mMemory;
-	}
+	static NES* Instance;
 
 
+	NES();
 };
+
+
+
+
+#endif

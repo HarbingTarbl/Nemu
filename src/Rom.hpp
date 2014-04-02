@@ -1,5 +1,8 @@
 #pragma once
-#include "VMemory.hpp"
+
+#ifndef _ROM_H
+#define _ROM_H
+
 #include <string>
 #include <fstream>
 
@@ -87,3 +90,6 @@ public:
 		return std::move(info);
 	}
 };
+
+
+#endif

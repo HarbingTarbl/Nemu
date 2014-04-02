@@ -1,11 +1,14 @@
 #pragma once
+
+#ifndef _PPU_H
+#define _PPU_H
+
 #include <array>
 #include <cstdint>
 #include <bitset>
 
-#include "CPU.hpp"	
-#include "VMemory.hpp"
-#include "Renderer.hpp"
+
+class VMemory;
 
 class PPU
 {
@@ -48,6 +51,8 @@ public:
 	unsigned LastFrame;
 
 	uint8_t LastRegisterWrite;
+
+	void DumpVRAM();
 
 	uint16_t VRAMAddress;
 	uint16_t VRAMAddressLatch;
@@ -129,3 +134,5 @@ public:
 	void SpriteScanline8(uint8_t);
 
 };
+
+#endif

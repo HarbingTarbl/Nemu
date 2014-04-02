@@ -118,6 +118,7 @@
   <ItemGroup>
     <ClCompile Include="..\src\APU.cpp" />
     <ClCompile Include="..\src\CPU.cpp" />
+    <ClCompile Include="..\src\NES.cpp" />
     <ClCompile Include="..\src\OpCodes.cpp" />
     <ClCompile Include="..\src\PPU.cpp" />
     <ClCompile Include="..\src\Renderer.cpp" />

@@ -1,5 +1,10 @@
 #include "PPU.hpp"
 
+#include "CPU.hpp"	
+#include "VMemory.hpp"
+#include "Renderer.hpp"
+
+
 uint8_t PPU::ReadPRG(int addr)
 {
 	uint8_t temp; ///TODO Does LRW work here? Or is it a different buffer?
@@ -291,6 +296,22 @@ void PPU::RenderPixel(int color)
 }
 
 
+void PPU::DumpVRAM()
+{
+	using namespace std;
+	FILE* f;
+	if (!fopen_s(&f, "VRAM-Dump.log", "w"))
+	{
+		for (int i = 0; i < 0x4000; i++)
+		{
+			uint8_t byte = ReadCHR(i);
+			fwrite(&byte, 1, 1, f);
+		}
+
+		fclose(f);
+	}
+}
+
 void PPU::SpriteScanline8(uint8_t priority)
 {
 	uint16_t ptAddr;
@@ -392,7 +413,6 @@ void PPU::BackgroundScanline()
 	uint8_t patternLow = 0, patternHigh = 0, paletteHigh = 0;
 	uint8_t tileX = 0, tileY = 0, tileScrollX = 0, tileScrollY = 0;
 	Render::CurrentScanline = CurrentLine;
-	std::cout << "VADDR : " << std::hex << VRAMAddress << std::endl;
 
 	if (mRegisters[CONTROL_REG] & 0x10)
 	{
@@ -428,7 +448,7 @@ void PPU::BackgroundScanline()
 		//tileScrollX = FineScrollX; //Fine scroll X
 		//tileAddr = ntAddr | (VRAMAddress & 0x03FF);
 
-		tileAddr = ntAddr + 32 * CurrentLine + i;
+		tileAddr = ntAddr + (CurrentLine / 8) * 32 + i ;
 
 		attrAddr = atAddr + i / 4;
 
@@ -437,18 +457,16 @@ void PPU::BackgroundScanline()
 		tileIndex = ReadCHR(tileAddr);
 
 		attrByte = ReadCHR(attrAddr);
-		patternLow = ReadCHR(ptAddr + (tileIndex << 4));
-		patternHigh = ReadCHR(ptAddr + (tileIndex << 4) + 8);
+		patternLow = ReadCHR(ptAddr + tileIndex * 16 + CurrentLine % 8);
+		patternHigh = ReadCHR(ptAddr + tileIndex * 16 + 8 + CurrentLine % 8);
+		paletteHigh = ((attrByte >> (groupIndex << 1)) & 0x3) << 2;
+
 
 		for (int p = 0; p < 8; p++)
 		{
-
-
-			//paletteHigh = ((attrByte >> (groupIndex << 1)) & 0x3) << 2;
-
 			paletteIndex = paletteHigh;
-			paletteIndex |= patternLow & (0x80 >> (7 - p)) ? 0x1 : 0;
-			paletteIndex |= patternHigh & (0x80 >> (7 - p)) ? 0x2 : 0;
+			paletteIndex |= (patternLow & (0x80 >>  p)) ? 0x1 : 0;
+			paletteIndex |= (patternHigh & (0x80 >> p)) ? 0x2 : 0;
 
 			using std::endl;
 			using std::hex;

@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef _CART_H
+#define _CART_H
+
 #include <cstdint>
 #include <exception>
 #include <memory>
@@ -162,3 +165,5 @@ class MMC4
 		return value;
 	}
 };
+
+#endif

@@ -1,4 +1,7 @@
 #include "APU.hpp"
+#include "CPU.hpp"
+#include "PPU.hpp"
+#include "VMemory.hpp"
 
 uint8_t APU::Write(int addr, uint8_t value)
 {

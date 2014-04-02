@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef _VMEM_H
+#define _VMEM_H
+
 #include <algorithm>
 #include <array>
 #include <limits>
@@ -10,15 +13,11 @@
 #include <map>
 #include <functional>
 
-#include "CPU.hpp"
-#include "PPU.hpp"
-#include "APU.hpp"
-#include "Cartridge.hpp"
 
 class CPU;
 class PPU;
 class APU;
-class mCart;
+class Cartridge;
 
 class VMemory
 {
@@ -54,3 +53,6 @@ public:
 	VMemory();
 };
 
+
+
+#endif

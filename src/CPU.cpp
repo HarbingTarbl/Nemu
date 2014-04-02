@@ -3,6 +3,7 @@
 #include <iomanip>
 #include "VMemory.hpp"
 #include "OpCodes.hpp"
+#include "Renderer.hpp"
 
 
 CPU::CPU()

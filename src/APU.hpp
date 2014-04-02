@@ -1,9 +1,12 @@
 #pragma once
 
+#ifndef _APU_H
+#define _APU_H
+
 #include <array>
 #include <cstdint>
-#include "VMemory.hpp"
-#include "CPU.hpp"
+
+class CPU;
 
 class APU
 {
@@ -21,3 +24,5 @@ public:
 	uint8_t Read(int addr);
 	uint8_t Write(int addr, uint8_t value);
 };
+
+#endif
