@@ -195,7 +195,8 @@ public:
 
 		//gl::Uniform1i(ppuPhaseLocation, (PPUCycle * 12) % 12);
 		gl::BindBuffer(gl::ARRAY_BUFFER, colorburstBuffer);
-		PixelOut = (Pixel*)gl::MapBuffer(gl::ARRAY_BUFFER, gl::WRITE_ONLY);
+		gl::BufferData(gl::ARRAY_BUFFER, sizeof(Render::Pixel) * 256, nullptr, gl::STREAM_DRAW);
+		PixelOut = (Pixel*)gl::MapBufferRange(gl::ARRAY_BUFFER, 0, sizeof(Render::Pixel) * 256, gl::MAP_WRITE_BIT | gl::MAP_INVALIDATE_BUFFER_BIT | gl::MAP_UNSYNCHRONIZED_BIT);
 		ScanlineComplete = false;
 	}
 

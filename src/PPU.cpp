@@ -7,6 +7,7 @@
 
 uint8_t PPU::ReadPRG(int addr)
 {
+	static bool scrollLatch = false;
 	uint8_t temp; ///TODO Does LRW work here? Or is it a different buffer?
 	switch (addr)
 	{
@@ -17,6 +18,7 @@ uint8_t PPU::ReadPRG(int addr)
 		return mRegisters[addr];
 	case STATUS_REG:
 		temp = mRegisters[STATUS_REG];
+		temp = (0xF0 & temp) | (0x0F & LastRegisterWrite);
 		ClearVBlank();
 		VRAMLatched = false;
 		return temp;
@@ -49,10 +51,10 @@ uint8_t PPU::WritePRG(int addr, uint8_t value)
 	switch (addr)
 	{
 	case CONTROL_REG:
-		VRAMAddressLatch = (VRAMAddressLatch & (0x03 << 10)) | ((value & 3) << 10);
+		//VRAMAddressLatch = (VRAMAddressLatch & (0x03 << 10)) | ((value & 3) << 10);
 		//^^^ You prob didn't know that happened, the docs sure didn't
 		NametableAddr = ((value & 0x03) << 10) | 0x2000;
-		VRAMIncAmount = 1 << ((value & 0x04) << 3);
+		VRAMIncAmount = ((value & 0x04) ? 0x20 : 0x01);
 		SpritePatternAddr = ((value & 0x08) << 9);
 		BackgroundAddr = ((value & 0x10) << 8);
 		SpriteSize = 64 + ((value & 0x20) << 1);
@@ -61,8 +63,6 @@ uint8_t PPU::WritePRG(int addr, uint8_t value)
 		return value;
 	case MASK_REG:
 		MaskBits = value;
-		//MaskBits.flip(MASK_BACKGROUND);
-		//MaskBits.flip(MASK_SPRITES);
 		return value;
 	case STATUS_REG:
 		return value;
@@ -78,27 +78,27 @@ uint8_t PPU::WritePRG(int addr, uint8_t value)
 		{
 			ScrollOrigin = value << 8;
 			FineScrollX = value & 0x07;
-			VRAMAddressLatch = (VRAMAddressLatch & ~0x1F) | ((value >> 3) & 0x1F);
+			//VRAMAddressLatch = (VRAMAddressLatch & ~0x1F) | ((value >> 3) & 0x1F);
 		}
 		else
 		{
 			ScrollOrigin |= value;
 			FineScrollY = value;
-			VRAMAddressLatch = (VRAMAddressLatch & ~(0x1F << 5)) | (((value >> 3) & 0x1F) << 5);
-			VRAMAddressLatch = (VRAMAddressLatch & ~(0x07 << 12)) | ((value & 0x07) << 12);
+			//VRAMAddressLatch = (VRAMAddressLatch & ~(0x1F << 5)) | (((value >> 3) & 0x1F) << 5);
+			//VRAMAddressLatch = (VRAMAddressLatch & ~(0x07 << 12)) | ((value & 0x07) << 12);
 		}
-		VRAMLatched = !VRAMLatched;
+		//VRAMLatched = !VRAMLatched;
 		return value;
 	case ADDR_REG:
 		if (!VRAMLatched)
 		{
-			VRAMAddress = value << 8;
-			VRAMAddressLatch = (VRAMAddressLatch & 0xFF) | ((value & 0x3F) << 8);
+			VRAMAddressLatch = value << 8;
+			//VRAMAddressLatch = (VRAMAddressLatch & 0xFF) | ((value & 0x3F) << 8);
 		}
 		else
 		{
-			VRAMAddressLatch = (VRAMAddressLatch & ~0xFF) | value;
-			VRAMAddress = VRAMAddressLatch;
+			//VRAMAddressLatch = (VRAMAddressLatch & ~0xFF) | value;
+			VRAMAddress = VRAMAddressLatch | value;
 		}
 		VRAMLatched = !VRAMLatched;
 		return value;
@@ -143,22 +143,22 @@ uint8_t PPU::ReadCHR(int addr)
 	if (addr >= 0x2C00 && addr <= 0x2FFF) //Todo nametable mirroring
 	{
 		//Name Table #3
-		return mNameRAM[(addr - 0x0800) & 0x7FF];
+		return mNameRAM[(addr - 0x0800) & 0x3FF];
 	}
 	else if (addr >= 0x2800 && addr <= 0x2BFF)
 	{
 		//Name Table #2
-		return mNameRAM[(addr - 0x0400) & 0x7FF];
+		return mNameRAM[(addr - 0x0400) & 0x3FF];
 	}
 	else if (addr >= 0x2400 && addr <= 0x27FF)
 	{
 		//Name Table #1
-		return mNameRAM[(addr - 0x0400) & 0x7FF];
+		return mNameRAM[(addr - 0x0400) & 0x3FF];
 	}
 	else if (addr >= 0x2000)
 	{
 		//Name Table #0
-		return mNameRAM[addr & 0x7FF];
+		return mNameRAM[addr & 0x3FF];
 	}
 	else
 	{
@@ -183,7 +183,7 @@ uint8_t PPU::WriteCHR(int addr, uint8_t value)
 	if (addr >= 0x2C00 && addr <= 0x2FFF) //Todo nametable mirroring
 	{
 		//Name Table #3
-		mNameRAM[(addr - 0x800) & 0x7FF] = value;
+		mNameRAM[(addr - 0x800) & 0x3FF] = value;
 	}
 	else if (addr >= 0x2800 && addr <= 0x2BFF)
 	{
@@ -193,12 +193,15 @@ uint8_t PPU::WriteCHR(int addr, uint8_t value)
 	else if (addr >= 0x2400 && addr <= 0x27FF)
 	{
 		//Name Table #1
-		mNameRAM[(addr - 0x0400) & 0x7FF] = value;
+		mNameRAM[(addr - 0x0400) & 0x3FF] = value;
 	}
 	else if (addr >= 0x2000)
 	{
 		//Name Table #0
-		mNameRAM[addr & 0x7FF] = value;
+		if (value == 0x2A)
+			std::cout << "Break" << std::endl;
+
+		mNameRAM[addr & 0x3FF] = value;
 	}
 	else
 	{
@@ -314,6 +317,7 @@ void PPU::DumpVRAM()
 
 void PPU::SpriteScanline8(uint8_t priority)
 {
+	return;
 	uint16_t ptAddr;
 	uint8_t patternLow, patternHigh, paletteHigh, paletteIndex;
 	uint8_t inRange, spriteX, spriteY, tileIndex, attribute;
@@ -393,7 +397,6 @@ void PPU::SpriteScanline8(uint8_t priority)
 						MaskBits[MASK_SPRITES])
 					{
 						//Check 0hit
-
 					}
 
 					Render::PixelOut->Color = ReadCHR(0x3F00 + paletteIndex);
@@ -414,82 +417,43 @@ void PPU::BackgroundScanline()
 	uint8_t tileX = 0, tileY = 0, tileScrollX = 0, tileScrollY = 0;
 	Render::CurrentScanline = CurrentLine;
 
-	if (mRegisters[CONTROL_REG] & 0x10)
-	{
-		ptAddr = 0x1000;
-	}
-	else
-	{
-		ptAddr = 0x0000;
-	}
-
 	for (int i = 0; i < 32; i++)
 	{
-		switch (0)
-		{
-		case 0:
-			ntAddr = 0x2000;
-			break;
-		case 1:
-			ntAddr = 0x2400;
-			break;
-		case 2:
-			ntAddr = 0x2800;
-			break;
-		case 3:
-			ntAddr = 0x2C00;
-			break;
-		}
-
-		atAddr = ntAddr + 0x03C0;
-		//tileX = VRAMAddress & 0x1F;
-		//tileY = (VRAMAddress >> 5) & 0x1F;
-		//tileScrollY = (VRAMAddress >> 12) & 0x07;
-		//tileScrollX = FineScrollX; //Fine scroll X
-		//tileAddr = ntAddr | (VRAMAddress & 0x03FF);
-
-		tileAddr = ntAddr + (CurrentLine / 8) * 32 + i ;
-
+		atAddr = NametableAddr + 0x03C0;
+		tileAddr = NametableAddr + (CurrentLine / 8) * 32 + i;
 		attrAddr = atAddr + i / 4 + (CurrentLine / 32) * 8;
 
-
 		groupIndex = 0;
-		if ((CurrentLine % 32) > 16)
-			groupIndex += 0;
 
-		groupIndex += (i % 2 ? 2 : 0);
+		if ((CurrentLine % 32) < 16)
+		{
+			groupIndex += 4;
+		}
+
+		if (i % 4 < 2)
+		{
+			groupIndex += 2;
+		}
+
+
 
 		tileIndex = ReadCHR(tileAddr);
 
 		attrByte = ReadCHR(attrAddr);
-		patternLow = ReadCHR(ptAddr + tileIndex * 16 + CurrentLine % 8);
-		patternHigh = ReadCHR(ptAddr + tileIndex * 16 + 8 + CurrentLine % 8);
+		patternLow = ReadCHR(BackgroundAddr + tileIndex * 16 + CurrentLine % 8);
+		patternHigh = ReadCHR(BackgroundAddr + tileIndex * 16 + 8 + CurrentLine % 8);
 		paletteHigh = (attrByte >> groupIndex) & 0x03;
 
 
 		for (int p = 0; p < 8; p++)
 		{
-			paletteIndex = 0;
-			paletteIndex |= (patternLow & (0x80 >>  p)) ? 0x1 : 0;
+			paletteIndex = paletteHigh << 2;
+			paletteIndex |= (patternLow & (0x80 >> p)) ? 0x1 : 0;
 			paletteIndex |= (patternHigh & (0x80 >> p)) ? 0x2 : 0;
 
 			using std::endl;
 			using std::hex;
 
-			/*	std::cout << "GPU LOG: "
-					<< "\tTileIndex " << hex << (int)tileIndex << endl
-					<< "\tPatternLow " << hex << (int)patternLow << endl
-					<< "\tPatternHigh " << hex << (int)patternHigh << endl
-					<< "\tAttribute Byte " << hex << (int)attrByte << endl
-					<< "\tAttribute Address " << hex << (int)attrAddr << endl
-					<< "\tGroup Index " << hex << (int)groupIndex << endl
-					<< "\tPaletteHigh " << hex << (int)paletteHigh << endl
-					<< "\tAT Address " << hex << (int)attrAddr << endl
-					<< "\tTile X " << hex << (int)tileX << endl
-					<< "\tTile Y " << hex << (int)tileY << endl
-					<< "\tTile Address " << hex << (int)tileAddr << endl
-					<< "\tPixel " << hex << (int)p << endl;
-					*/
 			if (paletteIndex & 0x03 == 0)
 			{
 				//Handle transparent
@@ -536,7 +500,7 @@ void PPU::Cycle(unsigned nCycles)
 
 		if (!TransferLatch && (MaskBits[MASK_SPRITES] || MaskBits[MASK_BACKGROUND]))
 		{
-			VRAMAddress = VRAMAddressLatch;
+			//VRAMAddress = VRAMAddressLatch;
 			TransferLatch = true;
 		}
 
@@ -548,7 +512,7 @@ void PPU::Cycle(unsigned nCycles)
 			//Sprite Scanline
 			if (MaskBits[MASK_SPRITES])
 			{
-				//SpriteScanline8(0x20); //Background sprites;
+				SpriteScanline8(0x20);
 			}
 
 			Render::PixelOut = DirtyHack;
@@ -564,7 +528,7 @@ void PPU::Cycle(unsigned nCycles)
 			}
 			if (MaskBits[MASK_BACKGROUND] || MaskBits[MASK_SPRITES])
 			{
-				VRAMAddress = (VRAMAddress & (~0x1F & ~(1 << 10))) | (VRAMAddressLatch & (0x1F | (1 << 10)));
+				//VRAMAddress = (VRAMAddress & (~0x1F & ~(1 << 10))) | (VRAMAddressLatch & (0x1F | (1 << 10)));
 				///Todo mapper IRQ
 			}
 			Render::EndScanline();
@@ -577,7 +541,6 @@ void PPU::Cycle(unsigned nCycles)
 		{
 			WaitVBlank = true;
 			mRegisters[STATUS_REG] |= 0x80;
-			std::cout << "VBlank Set" << std::endl;
 		}
 	}
 	else if (CurrentLine > 261)
