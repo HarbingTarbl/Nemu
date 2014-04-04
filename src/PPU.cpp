@@ -343,40 +343,40 @@ void PPU::SpriteScanline8(uint8_t priority)
 			mRegisters[STATUS_REG] &= ~0x20;
 		}
 
-	/*	if (priority != (attribute & 0x20))
+		if (priority != (attribute & 0x20))
 		{
 			continue;
-		}*/
+		}
 
 		inRange = CurrentLine - spriteY;
-		if (inRange < 8)
+		if (inRange < 8) ///TODO this is prob 900% wrong
 		{
-			//if (SpriteOnScanline++ >= 8)
-			//{
-			//	mRegisters[STATUS_REG] |= 0x20;
-			//}
+			if (SpriteOnScanline++ >= 8)
+			{
+				mRegisters[STATUS_REG] |= 0x20;
+			}
 
-			//if (attribute & 0x80) //Vertical Flip
-			//{
-			//	inRange ^= 0x07;
-			//}
+			if (attribute & 0x80) //Vertical Flip
+			{
+				inRange ^= 0x07;
+			}
 
 			patternLow = ReadCHR(SpritePatternAddr + (tileIndex << 4) + inRange);
 			patternHigh = ReadCHR(SpritePatternAddr + (tileIndex << 4) + inRange + 8);
 			paletteHigh = (attribute & 0x03) << 2;
 			for (int p = 0; p < 8; p++)
 			{
-				paletteIndex = 0;
+				paletteIndex = paletteHigh;
 
 				if (attribute & 0x40) //Horzontal Flip
 				{
-					paletteIndex |= patternLow & (1 << p) ? 1 : 0;
-					paletteIndex |= patternHigh & (1 << p) ? 2 : 0;
+					paletteIndex |= (patternLow & (1 << p)) ? 1 : 0;
+					paletteIndex |= (patternHigh & (1 << p)) ? 2 : 0;
 				}
 				else
 				{
-					paletteIndex |= patternLow & (0x80 >> p) ? 1 : 0;
-					paletteIndex |= patternHigh & (0x80 >> p) ? 2 : 0;
+					paletteIndex |= (patternLow & (0x80 >> p)) ? 1 : 0;
+					paletteIndex |= (patternHigh & (0x80 >> p)) ? 2 : 0;
 				}
 
 				if ((paletteIndex & 0x3) == 0)
@@ -392,7 +392,7 @@ void PPU::SpriteScanline8(uint8_t priority)
 					//{
 					//	//Check 0hit
 					//}
-					Render::PixelOut[spriteX + p].Color = ReadCHR(0x3F00 + paletteIndex);
+					Render::PixelOut[spriteX + p].Color = ReadCHR(0x3F10 + paletteIndex);
 				}
 			}
 		}
@@ -419,14 +419,14 @@ void PPU::BackgroundScanline()
 
 		groupIndex = 0;
 
-		if ((CurrentLine % 32) < 16)
+		if (((CurrentLine + 16) % 32) < 16)
 		{
-			groupIndex += 0;
+			groupIndex += 4;
 		}
 
-		if ((i % 4) < 2)
+		if (((i + 2) % 4) < 2)
 		{
-			groupIndex += 0;
+			groupIndex += 2;
 		}
 		
 		if ((i % 4) == 0)
