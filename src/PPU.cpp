@@ -317,22 +317,11 @@ void PPU::DumpVRAM()
 
 void PPU::SpriteScanline8(uint8_t priority)
 {
-	return;
 	uint16_t ptAddr;
 	uint8_t patternLow, patternHigh, paletteHigh, paletteIndex;
 	uint8_t inRange, spriteX, spriteY, tileIndex, attribute;
 	Render::CurrentScanline = CurrentLine;
 	SpriteOnScanline = 0;
-
-	if (mRegisters[CONTROL_REG] & 0x08)
-	{
-		ptAddr = 0x1000;
-	}
-	else
-	{
-		ptAddr = 0x0000;
-	}
-
 
 	for (int i = 252; i >= 0; i -= 4)
 	{
@@ -343,37 +332,37 @@ void PPU::SpriteScanline8(uint8_t priority)
 
 		if (mPrimaryOAM[i] == 239)
 		{
-			mRegisters[STATUS_REG] |= 0x20; //Overflow
+			//mRegisters[STATUS_REG] |= 0x20; //Overflow
 		}
 		else if (mPrimaryOAM[i] == 255)
 		{
 			mRegisters[STATUS_REG] &= ~0x20;
 		}
 
-		if (priority != (attribute & 0x20))
+	/*	if (priority != (attribute & 0x20))
 		{
 			continue;
-		}
+		}*/
 
 		inRange = CurrentLine - spriteY;
 		if (inRange < 8)
 		{
-			if (SpriteOnScanline++ >= 8)
-			{
-				mRegisters[STATUS_REG] |= 0x20;
-			}
+			//if (SpriteOnScanline++ >= 8)
+			//{
+			//	mRegisters[STATUS_REG] |= 0x20;
+			//}
 
-			if (attribute & 0x80) //Vertical Flip
-			{
-				inRange ^= 0x07;
-			}
+			//if (attribute & 0x80) //Vertical Flip
+			//{
+			//	inRange ^= 0x07;
+			//}
 
-			patternLow = ReadCHR(ptAddr + (tileIndex << 4) + inRange);
-			patternHigh = ReadCHR(ptAddr + (tileIndex << 4) + inRange + 8);
+			patternLow = ReadCHR(SpritePatternAddr + (tileIndex << 4) + inRange);
+			patternHigh = ReadCHR(SpritePatternAddr + (tileIndex << 4) + inRange + 8);
 			paletteHigh = (attribute & 0x03) << 2;
 			for (int p = 0; p < 8; p++)
 			{
-				paletteIndex = paletteHigh;
+				paletteIndex = 0;
 
 				if (attribute & 0x40) //Horzontal Flip
 				{
@@ -388,19 +377,19 @@ void PPU::SpriteScanline8(uint8_t priority)
 
 				if (paletteIndex & 0x3 == 0)
 				{
+					std::cout << "Transparent Sprite" << std::endl;
 					//Transparent
 				}
 				else
 				{
-					if (i == 0 &&
-						MaskBits[MASK_BACKGROUND] &&
-						MaskBits[MASK_SPRITES])
-					{
-						//Check 0hit
-					}
+					//if (i == 0 &&
+					//	MaskBits[MASK_BACKGROUND] &&
+					//	MaskBits[MASK_SPRITES])
+					//{
+					//	//Check 0hit
+					//}
 
-					Render::PixelOut->Color = ReadCHR(0x3F00 + paletteIndex);
-					Render::PixelOut++;
+					Render::PixelOut[spriteX + p].Color = ReadCHR(0x3F00 + paletteIndex);
 				}
 			}
 		}
@@ -417,23 +406,28 @@ void PPU::BackgroundScanline()
 	uint8_t tileX = 0, tileY = 0, tileScrollX = 0, tileScrollY = 0;
 	Render::CurrentScanline = CurrentLine;
 
-	for (int i = 0; i < 32; i++)
+	atAddr = NametableAddr + 0x03C0;
+	tileAddr = NametableAddr + (CurrentLine / 8) * 32;
+	attrAddr = atAddr + (CurrentLine / 32) * 8 - 1;
+
+	for (int i = 0; i < 32; i++, tileAddr++)
 	{
-		atAddr = NametableAddr + 0x03C0;
-		tileAddr = NametableAddr + (CurrentLine / 8) * 32 + i;
-		attrAddr = atAddr + i / 4 + (CurrentLine / 32) * 8;
+		
 
 		groupIndex = 0;
 
 		if ((CurrentLine % 32) < 16)
 		{
-			groupIndex += 4;
+			groupIndex += 0;
 		}
 
-		if (i % 4 < 2)
+		if ((i % 4) < 2)
 		{
-			groupIndex += 2;
+			groupIndex += 0;
 		}
+		
+		if ((i % 4) == 0)
+			attrAddr++;
 
 
 
@@ -465,7 +459,7 @@ void PPU::BackgroundScanline()
 			{
 
 				int color = ReadCHR(0x3F00 + paletteIndex);
-				Render::PixelOut->Color = color | MaskBits[MASK_BLUE] << 6 | MaskBits[MASK_RED] << 7 | MaskBits[MASK_GREEN] << 8; ///HACK BLARRRG
+				Render::PixelOut->Color = color;
 				Render::PixelOut++;
 			}
 		}
@@ -498,11 +492,11 @@ void PPU::Cycle(unsigned nCycles)
 	if (CurrentLine >= 0 && CurrentLine <= 239)
 	{
 
-		if (!TransferLatch && (MaskBits[MASK_SPRITES] || MaskBits[MASK_BACKGROUND]))
-		{
-			//VRAMAddress = VRAMAddressLatch;
-			TransferLatch = true;
-		}
+		//if (!TransferLatch && (MaskBits[MASK_SPRITES] || MaskBits[MASK_BACKGROUND]))
+		//{
+		//	//VRAMAddress = VRAMAddressLatch;
+		//	TransferLatch = true;
+		//}
 
 		if (CurrentLine != LastLine)
 		{
@@ -512,7 +506,7 @@ void PPU::Cycle(unsigned nCycles)
 			//Sprite Scanline
 			if (MaskBits[MASK_SPRITES])
 			{
-				SpriteScanline8(0x20);
+				//SpriteScanline8(0x20);
 			}
 
 			Render::PixelOut = DirtyHack;
@@ -524,13 +518,13 @@ void PPU::Cycle(unsigned nCycles)
 			Render::PixelOut = DirtyHack;
 			if (MaskBits[MASK_SPRITES])
 			{
-				//SpriteScanline8(0); //Background sprites;
+				SpriteScanline8(0x0);
 			}
-			if (MaskBits[MASK_BACKGROUND] || MaskBits[MASK_SPRITES])
-			{
-				//VRAMAddress = (VRAMAddress & (~0x1F & ~(1 << 10))) | (VRAMAddressLatch & (0x1F | (1 << 10)));
-				///Todo mapper IRQ
-			}
+			//if (MaskBits[MASK_BACKGROUND] || MaskBits[MASK_SPRITES])
+			//{
+			//	//VRAMAddress = (VRAMAddress & (~0x1F & ~(1 << 10))) | (VRAMAddressLatch & (0x1F | (1 << 10)));
+			//	///Todo mapper IRQ
+			//}
 			Render::EndScanline();
 		}
 	}
