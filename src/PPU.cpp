@@ -503,6 +503,7 @@ void PPU::Cycle(unsigned nCycles)
 		if (CurrentLine != LastLine)
 		{
 			LastLine = CurrentLine;
+			Render::CurrentScanline = CurrentLine;
 
 			if (MaskBits[MASK_SPRITES])
 			{
@@ -512,17 +513,16 @@ void PPU::Cycle(unsigned nCycles)
 			if (MaskBits[MASK_BACKGROUND])
 			{
 				Render::BeginScanline(0); //Also ends the last scanline which is cool.
-				Render::CurrentScanline = CurrentLine;
 				BackgroundScanline();
 				Render::EndScanline();
 			}
 			//Sprite Scanline
 			if (MaskBits[MASK_SPRITES])
 			{
-				Render::BeginScanline(0);
+				/*Render::BeginScanline(0);
 				Render::CurrentScanline = CurrentLine;
 				SpriteScanline8(0x0);
-				Render::EndScanline();
+				Render::EndScanline();*/
 			}
 
 			if (CurrentLine == 239)
@@ -541,7 +541,7 @@ void PPU::Cycle(unsigned nCycles)
 	}
 	else if (CurrentLine == 240)
 	{
-		Render::EndFrame();
+		//Render::EndFrame();
 		if (!WaitVBlank)
 		{
 			WaitVBlank = true;
