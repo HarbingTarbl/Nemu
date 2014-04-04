@@ -156,6 +156,11 @@ public:
 
 			gl::Disable(gl::DEPTH_TEST);
 			gl::Disable(gl::CULL_FACE);
+
+			gl::Enable(gl::BLEND);
+			gl::BlendEquationSeparate(gl::FUNC_ADD, gl::MAX);
+			gl::BlendFuncSeparate(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA, gl::ONE, gl::ONE);
+			gl::ClearColor(0, 0, 0, 0);
 		}
 	}
 
@@ -202,19 +207,21 @@ public:
 
 	static void EndScanline()
 	{
-		gl::BindBuffer(gl::ARRAY_BUFFER, colorburstBuffer);
-		gl::UnmapBuffer(gl::ARRAY_BUFFER);
-		gl::Uniform1i(scanlineIndexLocation, CurrentScanline);
-		gl::DrawArraysInstanced(gl::TRIANGLE_STRIP, 0, 4, 256);
-		ScanlineComplete = true;
-
-		if (CurrentScanline == 0)
+		if (CurrentScanline != -1)
+		{
+			gl::BindBuffer(gl::ARRAY_BUFFER, colorburstBuffer);
+			gl::UnmapBuffer(gl::ARRAY_BUFFER);
+			gl::Uniform1i(scanlineIndexLocation, CurrentScanline);
+			gl::DrawArraysInstanced(gl::TRIANGLE_STRIP, 0, 4, 256);
+			ScanlineComplete = true;
+		}
+		else
 		{
 			glfwSwapBuffers(window);
-			gl::Clear(gl::DEPTH_BUFFER_BIT);
+			gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 		}
-		CurrentScanline++;
-		CurrentScanline %= 256;
+		//CurrentScanline++;
+		//CurrentScanline %= 256;
 	}
 
 	static bool WindowOpen()

@@ -317,6 +317,7 @@ void PPU::DumpVRAM()
 
 void PPU::SpriteScanline8(uint8_t priority)
 {
+	memset(Render::PixelOut, 0xFF, 256 * sizeof(Render::Pixel));
 	uint16_t ptAddr;
 	uint8_t patternLow, patternHigh, paletteHigh, paletteIndex;
 	uint8_t inRange, spriteX, spriteY, tileIndex, attribute;
@@ -328,7 +329,10 @@ void PPU::SpriteScanline8(uint8_t priority)
 		tileIndex = mPrimaryOAM[i + 1];
 		attribute = mPrimaryOAM[i + 2];
 		spriteX = mPrimaryOAM[i + 3];
-		spriteY = mPrimaryOAM[i] + 1;
+		spriteY = mPrimaryOAM[i];
+
+		if (spriteY >= 0xFE)
+			continue;
 
 		if (mPrimaryOAM[i] == 239)
 		{
@@ -375,10 +379,10 @@ void PPU::SpriteScanline8(uint8_t priority)
 					paletteIndex |= patternHigh & (0x80 >> p) ? 2 : 0;
 				}
 
-				if (paletteIndex & 0x3 == 0)
+				if ((paletteIndex & 0x3) == 0)
 				{
-					std::cout << "Transparent Sprite" << std::endl;
 					//Transparent
+					
 				}
 				else
 				{
@@ -388,7 +392,6 @@ void PPU::SpriteScanline8(uint8_t priority)
 					//{
 					//	//Check 0hit
 					//}
-
 					Render::PixelOut[spriteX + p].Color = ReadCHR(0x3F00 + paletteIndex);
 				}
 			}
@@ -448,11 +451,10 @@ void PPU::BackgroundScanline()
 			using std::endl;
 			using std::hex;
 
-			if (paletteIndex & 0x03 == 0)
+			if ((paletteIndex & 0x03) == 0)
 			{
 				//Handle transparent
-				Render::PixelOut->Color = 0xFF;
-				std::cout << "Transparent" << std::endl;
+				Render::PixelOut->Color = 0xFFFF;
 				Render::PixelOut++;
 			}
 			else
@@ -501,31 +503,40 @@ void PPU::Cycle(unsigned nCycles)
 		if (CurrentLine != LastLine)
 		{
 			LastLine = CurrentLine;
-			Render::BeginScanline(0); //Also ends the last scanline which is cool.
-			Render::Pixel* DirtyHack = Render::PixelOut;
-			//Sprite Scanline
+
 			if (MaskBits[MASK_SPRITES])
 			{
 				//SpriteScanline8(0x20);
 			}
 
-			Render::PixelOut = DirtyHack;
 			if (MaskBits[MASK_BACKGROUND])
 			{
+				Render::BeginScanline(0); //Also ends the last scanline which is cool.
+				Render::CurrentScanline = CurrentLine;
 				BackgroundScanline();
+				Render::EndScanline();
 			}
 			//Sprite Scanline
-			Render::PixelOut = DirtyHack;
 			if (MaskBits[MASK_SPRITES])
 			{
+				Render::BeginScanline(0);
+				Render::CurrentScanline = CurrentLine;
 				SpriteScanline8(0x0);
+				Render::EndScanline();
 			}
+
+			if (CurrentLine == 239)
+			{
+				Render::CurrentScanline = -1;
+				Render::EndScanline();
+			}
+
+
 			//if (MaskBits[MASK_BACKGROUND] || MaskBits[MASK_SPRITES])
 			//{
 			//	//VRAMAddress = (VRAMAddress & (~0x1F & ~(1 << 10))) | (VRAMAddressLatch & (0x1F | (1 << 10)));
 			//	///Todo mapper IRQ
 			//}
-			Render::EndScanline();
 		}
 	}
 	else if (CurrentLine == 240)

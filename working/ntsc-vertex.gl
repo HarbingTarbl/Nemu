@@ -19,7 +19,7 @@ uniform float Gamma = 2;
 uniform float Saturation = 1.7;
 uniform float Brightness = 1.0;
 
-flat out vec3 PixelColor;
+flat out vec4 PixelColor;
 
 vec3 YIQtoRGB(in vec3 YIQ)
 {
@@ -72,5 +72,9 @@ void main()
 {
 	vec4 pos = PixelShape + vec4(gl_InstanceID, Scanline, 0, 0);
 	gl_Position = PMatrix * pos;
-	PixelColor = NEStoRGB(NESColor);
+	
+	if(uint(NESColor) == 0xFFFFFFFF)
+		PixelColor = vec4(0,0,0,0);
+	else
+		PixelColor = vec4(NEStoRGB(NESColor), 1);
 }
