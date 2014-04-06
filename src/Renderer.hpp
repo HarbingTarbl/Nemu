@@ -12,14 +12,20 @@
 #include <string>
 #include <exception>
 #include <vector>
+#include <chrono>
 
 #include "NES.hpp"
 
 
 class Render
 {
+public:
+	typedef std::chrono::system_clock clock;
+
 private:
 	static GLFWwindow* window;
+
+	static clock::time_point lastFrame;
 	
 	static unsigned programId;
 	
@@ -42,6 +48,7 @@ private:
 
 
 public:
+
 	static void Initalize(int windowWidth, int windowHeight)
 	{
 		using namespace std;
@@ -219,6 +226,9 @@ public:
 		{
 			glfwSwapBuffers(window);
 			gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
+			auto old = lastFrame;
+			lastFrame = clock::now();
+			std::cout << "FPS : " << 1.0f / std::chrono::duration_cast<std::chrono::duration<float>>(lastFrame - old).count() << std::endl;
 		}
 		//CurrentScanline++;
 		//CurrentScanline %= 256;

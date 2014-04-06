@@ -17,7 +17,7 @@ unsigned Render::ppuPhaseLocation = 0;
 float Render::orthoMatrix[4][4] = { 0 };
 float Render::yiqMatrix[3][3] = { 0 };
 
-
+Render::clock::time_point Render::lastFrame = Render::clock::now();
 
 Render::Pixel* Render::PixelOut = nullptr;
 
