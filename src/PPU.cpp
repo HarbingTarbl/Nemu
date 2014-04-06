@@ -519,10 +519,9 @@ void PPU::Cycle(unsigned nCycles)
 			//Sprite Scanline
 			if (MaskBits[MASK_SPRITES])
 			{
-				/*Render::BeginScanline(0);
-				Render::CurrentScanline = CurrentLine;
+				Render::BeginScanline(0);
 				SpriteScanline8(0x0);
-				Render::EndScanline();*/
+				Render::EndScanline();
 			}
 
 			if (CurrentLine == 239)

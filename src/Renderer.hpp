@@ -13,6 +13,7 @@
 #include <exception>
 #include <vector>
 #include <array>
+#include <chrono>
 
 #include "NES.hpp"
 
@@ -20,8 +21,11 @@
 class Render
 {
 private:
+	using clock = std::chrono::system_clock;
+
 	static GLFWwindow* window;
-	
+	static clock::time_point lastFrame;
+
 	static unsigned programId;
 	
 	static unsigned shapeBuffer;
@@ -120,7 +124,7 @@ public:
 			gl::UseProgram(programId);
 
 			gl::GenBuffers(colorburstBuffers.size(), colorburstBuffers.data());
-			gl::GenVertexArrays(colorburstVertexAO.size(), colorburstVertexAO.data();
+			gl::GenVertexArrays(colorburstVertexAO.size(), colorburstVertexAO.data());
 			gl::GenBuffers(1, &shapeBuffer);
 			const float shape[] = {
 				0, 0, 0, 1,
@@ -172,6 +176,7 @@ public:
 			gl::BlendFuncSeparate(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA, gl::ONE, gl::ONE);
 			gl::ClearColor(0, 0, 0, 0);
 			FrameComplete = true;
+
 		}
 	}
 
@@ -207,11 +212,11 @@ public:
 
 		//gl::Uniform1i(ppuPhaseLocation, (PPUCycle * 12) % 12);
 
-		gl::BindBuffer(gl::ARRAY_BUFFER, colorburstBuffer);
+		gl::BindBuffer(gl::ARRAY_BUFFER, colorburstBuffers[CurrentFrame % 3]);
+
 		PixelOut = (Pixel*)gl::MapBufferRange(gl::ARRAY_BUFFER, 
-			sizeof(Render::Pixel) * 256 * 240 * (CurrentFrame % 2), 
-			sizeof(Render::Pixel) * 256 * 240, 
-			gl::MAP_WRITE_BIT | gl::MAP_INVALIDATE_RANGE_BIT | gl::MAP_UNSYNCHRONIZED_BIT);
+			0, 256 * 240 * sizeof(Render::Pixel),
+			gl::MAP_WRITE_BIT | gl::MAP_INVALIDATE_BUFFER_BIT | gl::MAP_UNSYNCHRONIZED_BIT);
 		FrameComplete = false;
 	}
 
@@ -230,13 +235,18 @@ public:
 			if (FrameComplete)
 				return;
 
-			gl::BindBuffer(gl::ARRAY_BUFFER, colorburstBuffer);
+			gl::BindBuffer(gl::ARRAY_BUFFER, colorburstBuffers[CurrentFrame % 3]);
 			gl::UnmapBuffer(gl::ARRAY_BUFFER);
+
+			gl::BindVertexArray(colorburstVertexAO[CurrentFrame % 3]);
 			gl::DrawArraysInstanced(gl::TRIANGLE_STRIP, 0, 4, 256 * 240);
 			glfwSwapBuffers(window);
 			gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 			FrameComplete = true;
 			Render::CurrentFrame++;
+			auto old = lastFrame;
+			lastFrame = clock::now();
+			std::cout << "FPS : " << 1.0f / std::chrono::duration_cast<std::chrono::duration<float>>(lastFrame - old).count() << std::endl;
 		}
 		//CurrentScanline++;
 		//CurrentScanline %= 256;
