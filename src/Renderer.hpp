@@ -12,6 +12,7 @@
 #include <string>
 #include <exception>
 #include <vector>
+#include <array>
 #include <chrono>
 
 #include "NES.hpp"
@@ -20,17 +21,17 @@
 class Render
 {
 public:
-	typedef std::chrono::system_clock clock;
+	using clock = std::chrono::system_clock;
 
-private:
 	static GLFWwindow* window;
-
-	static clock::time_point lastFrame;
 	
+	static clock::time_point lastFrame;
+
 	static unsigned programId;
 	
 	static unsigned shapeBuffer;
-	static unsigned colorburstBuffer;
+	static std::array<unsigned, 2> colorburstBuffers;
+	static std::array<unsigned, 2> colorburstVertexAO;
 	static unsigned bufferIndex;
 
 	static unsigned scanlineIndex;
@@ -54,6 +55,7 @@ public:
 		using namespace std;
 		if (!window)
 		{
+			CurrentFrame = 0;
 			glfwInit();
 			window = glfwCreateWindow(windowWidth, windowHeight, "NES Emulator", nullptr, nullptr);
 			glfwMakeContextCurrent(window);
@@ -123,30 +125,37 @@ public:
 		
 			gl::UseProgram(programId);
 
-			gl::GenBuffers(1, &colorburstBuffer);
-			gl::BindBuffer(gl::ARRAY_BUFFER, colorburstBuffer);
-			gl::BufferData(gl::ARRAY_BUFFER, sizeof(Render::Pixel) * 256, nullptr, gl::STREAM_DRAW);
-
-			gl::GenVertexArrays(1, &defaultVAO);
-			gl::BindVertexArray(defaultVAO);
-
-			gl::EnableVertexAttribArray(0);
-			gl::VertexAttribIPointer(0, 1, gl::SHORT, 0, 0);
-			gl::VertexAttribDivisor(0, 1);
-
+			gl::GenBuffers(colorburstBuffers.size(), colorburstBuffers.data());
+			gl::GenVertexArrays(colorburstVertexAO.size(), colorburstVertexAO.data());
 			gl::GenBuffers(1, &shapeBuffer);
-			gl::BindBuffer(gl::ARRAY_BUFFER, shapeBuffer);
 			const float shape[] = {
 				0, 0, 0, 1,
 				1, 0, 0, 1,
 				0, 1, 0, 1,
 				1, 1, 0, 1
 			};
-			gl::BufferData(gl::ARRAY_BUFFER, sizeof(shape), shape, gl::STATIC_DRAW);
-			gl::EnableVertexAttribArray(1);
-			gl::VertexAttribPointer(1, 4, gl::FLOAT, false, 0, 0);
 
-			gl::Enable(gl::VERTEX_PROGRAM_POINT_SIZE);
+			gl::BindBuffer(gl::ARRAY_BUFFER, shapeBuffer);
+			gl::BufferData(gl::ARRAY_BUFFER, sizeof(shape), shape, gl::STATIC_DRAW);
+
+			auto& cbb = colorburstBuffers;
+			auto& cbv = colorburstVertexAO;
+
+			for (int i = 0; i < colorburstBuffers.size(); i++)
+			{
+				gl::BindBuffer(gl::ARRAY_BUFFER, cbb[i]);
+				gl::BufferData(gl::ARRAY_BUFFER, sizeof(Render::Pixel) * 256 * 240, nullptr, gl::STREAM_DRAW);
+				gl::BindVertexArray(cbv[i]);
+				
+				gl::EnableVertexAttribArray(0);
+				gl::VertexAttribIPointer(0, 1, gl::SHORT, 0, 0);
+				gl::VertexAttribDivisor(0, 1);
+
+				gl::BindBuffer(gl::ARRAY_BUFFER, shapeBuffer);
+				gl::EnableVertexAttribArray(1);
+				gl::VertexAttribPointer(1, 4, gl::FLOAT, false, 0, 0);
+			}
+
 
 			float matrix[] = {
 				 2.0 / 256, 0, 0, -1 ,
@@ -168,6 +177,8 @@ public:
 			gl::BlendEquationSeparate(gl::FUNC_ADD, gl::MAX);
 			gl::BlendFuncSeparate(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA, gl::ONE, gl::ONE);
 			gl::ClearColor(0, 0, 0, 0);
+			FrameComplete = true;
+
 		}
 	}
 
@@ -193,39 +204,48 @@ public:
 
 	static void EndFrame()
 	{
-		CurrentFrame++;
 		CurrentScanline = 0;
-		FrameComplete = true;
-
-
 	}
 
 	static void BeginScanline(int PPUCycle)
 	{
-		if (!ScanlineComplete)
-			EndScanline();
+		if (!FrameComplete)
+			return;
 
 		//gl::Uniform1i(ppuPhaseLocation, (PPUCycle * 12) % 12);
-		gl::BindBuffer(gl::ARRAY_BUFFER, colorburstBuffer);
-		gl::BufferData(gl::ARRAY_BUFFER, sizeof(Render::Pixel) * 256, nullptr, gl::STREAM_DRAW);
-		PixelOut = (Pixel*)gl::MapBufferRange(gl::ARRAY_BUFFER, 0, sizeof(Render::Pixel) * 256, gl::MAP_WRITE_BIT | gl::MAP_INVALIDATE_BUFFER_BIT | gl::MAP_UNSYNCHRONIZED_BIT);
-		ScanlineComplete = false;
+
+		gl::BindBuffer(gl::ARRAY_BUFFER, colorburstBuffers[CurrentFrame % 2]);
+
+		PixelOut = (Pixel*)gl::MapBufferRange(gl::ARRAY_BUFFER, 
+			0, 256 * 240 * sizeof(Render::Pixel),
+			gl::MAP_WRITE_BIT | gl::MAP_INVALIDATE_BUFFER_BIT | gl::MAP_UNSYNCHRONIZED_BIT);
+		FrameComplete = false;
 	}
 
 	static void EndScanline()
 	{
+		if (PixelOut == nullptr)
+			return;
+
 		if (CurrentScanline != -1)
-		{
-			gl::BindBuffer(gl::ARRAY_BUFFER, colorburstBuffer);
-			gl::UnmapBuffer(gl::ARRAY_BUFFER);
-			gl::Uniform1i(scanlineIndexLocation, CurrentScanline);
-			gl::DrawArraysInstanced(gl::TRIANGLE_STRIP, 0, 4, 256);
+		{	
 			ScanlineComplete = true;
+			FrameComplete = false;
 		}
 		else
 		{
+			if (FrameComplete)
+				return;
+
+			gl::BindBuffer(gl::ARRAY_BUFFER, colorburstBuffers[CurrentFrame % 2]);
+			gl::UnmapBuffer(gl::ARRAY_BUFFER);
+
+			gl::BindVertexArray(colorburstVertexAO[CurrentFrame % 2]);
+			gl::DrawArraysInstanced(gl::TRIANGLE_STRIP, 0, 4, 256 * 240);
 			glfwSwapBuffers(window);
 			gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
+			FrameComplete = true;
+			Render::CurrentFrame++;
 			auto old = lastFrame;
 			lastFrame = clock::now();
 			std::cout << "FPS : " << 1.0f / std::chrono::duration_cast<std::chrono::duration<float>>(lastFrame - old).count() << std::endl;
