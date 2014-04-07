@@ -60,6 +60,14 @@ uint8_t PPU::WritePRG(int addr, uint8_t value)
 		SpriteSize = 64 + ((value & 0x20) << 1);
 		GenerateNMI = (value & 0x80) >> 7;
 		mRegisters[CONTROL_REG] = value;
+		using std::cout;
+		using std::endl;
+		printf("CONTROL WRITE\n\tNameTable Address %X\n\tVRAM Increment %hhX\n\tSprite Address %X\n\tBackground Address %X\n\tSprite Size %d\n\n",
+			NametableAddr,
+			VRAMIncAmount,
+			SpritePatternAddr,
+			BackgroundAddr,
+			SpriteSize);
 		return value;
 	case MASK_REG:
 		MaskBits = value;
@@ -352,7 +360,7 @@ void PPU::SpriteScanline8(uint8_t priority)
 
 		spriteY++;
 		inRange = CurrentLine - spriteY;
-		if (inRange < 8) ///TODO this is prob 900% wrong
+		if (inRange < 9) ///TODO this is prob 900% wrong
 		{
 			if (SpriteOnScanline++ >= 8)
 			{

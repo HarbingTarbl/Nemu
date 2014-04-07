@@ -81,7 +81,7 @@ public:
 	uint8_t WritePRG(int addr, uint8_t value)
 	{
 		if(addr >= 0x8000)
-			return PRGROM[addr & 0xBFDF] = value;
+			return PRGROM[addr & 0x7FFF] = value;
 
 		return PRGRAM[addr & 0x1FFF] = value;
 	}
@@ -89,7 +89,7 @@ public:
 	uint8_t ReadPRG(int addr)
 	{
 		if(addr >= 0x8000)
-			return PRGROM[addr & 0xBFDF];
+			return PRGROM[addr & 0x7FFF];
 		
 		return PRGRAM[addr & 0x1FFF];
 	}
