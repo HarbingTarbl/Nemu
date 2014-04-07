@@ -317,7 +317,6 @@ void PPU::DumpVRAM()
 
 void PPU::SpriteScanline8(uint8_t priority)
 {
-	memset(Render::PixelOut, 0xFF, 256 * sizeof(Render::Pixel));
 	uint16_t ptAddr;
 	uint8_t patternLow, patternHigh, paletteHigh, paletteIndex;
 	uint8_t inRange, spriteX, spriteY, tileIndex, attribute;
@@ -326,10 +325,11 @@ void PPU::SpriteScanline8(uint8_t priority)
 
 	for (int i = 252; i >= 0; i -= 4)
 	{
+
+		spriteY = mPrimaryOAM[i];
 		tileIndex = mPrimaryOAM[i + 1];
 		attribute = mPrimaryOAM[i + 2];
 		spriteX = mPrimaryOAM[i + 3];
-		spriteY = mPrimaryOAM[i];
 
 		if (spriteY >= 0xFE)
 			continue;
@@ -348,6 +348,9 @@ void PPU::SpriteScanline8(uint8_t priority)
 			continue;
 		}
 
+		
+
+		spriteY++;
 		inRange = CurrentLine - spriteY;
 		if (inRange < 8) ///TODO this is prob 900% wrong
 		{
@@ -386,13 +389,18 @@ void PPU::SpriteScanline8(uint8_t priority)
 				}
 				else
 				{
-					//if (i == 0 &&
-					//	MaskBits[MASK_BACKGROUND] &&
-					//	MaskBits[MASK_SPRITES])
-					//{
-					//	//Check 0hit
-					//}
-					Render::PixelOut[spriteX + p].Color = ReadCHR(0x3F10 + paletteIndex);
+					if (i == 0 &&
+						MaskBits[MASK_BACKGROUND] &&
+						MaskBits[MASK_SPRITES])
+					{
+						if (Render::BasePixel[spriteX + p + CurrentLine * 256].Color != 0xFFFF)
+						{
+							//Set Zero Hit
+							mRegisters[STATUS_REG] |= 0x40;
+						}
+					}
+
+					Render::BasePixel[spriteX + p + CurrentLine * 256].Color = ReadCHR(0x3F10 + paletteIndex);
 				}
 			}
 		}
@@ -502,8 +510,10 @@ void PPU::Cycle(unsigned nCycles)
 
 		if (CurrentLine != LastLine)
 		{
+
 			LastLine = CurrentLine;
 			Render::CurrentScanline = CurrentLine;
+			Render::BeginScanline(0); //Also ends the last scanline which is cool.
 
 			if (MaskBits[MASK_SPRITES])
 			{
@@ -512,16 +522,12 @@ void PPU::Cycle(unsigned nCycles)
 
 			if (MaskBits[MASK_BACKGROUND])
 			{
-				Render::BeginScanline(0); //Also ends the last scanline which is cool.
 				BackgroundScanline();
-				Render::EndScanline();
 			}
 			//Sprite Scanline
 			if (MaskBits[MASK_SPRITES])
 			{
-				Render::BeginScanline(0);
 				SpriteScanline8(0x0);
-				Render::EndScanline();
 			}
 
 			if (CurrentLine == 239)
@@ -541,6 +547,7 @@ void PPU::Cycle(unsigned nCycles)
 	else if (CurrentLine == 240)
 	{
 		//Render::EndFrame();
+
 		if (!WaitVBlank)
 		{
 			WaitVBlank = true;

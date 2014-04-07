@@ -57,6 +57,11 @@ public:
 		{
 			CurrentFrame = 0;
 			glfwInit();
+
+			glfwWindowHint(GLFW_RESIZABLE, false);
+			//glfwWindowHint(GLFW_DECORATED, false);
+
+
 			window = glfwCreateWindow(windowWidth, windowHeight, "NES Emulator", nullptr, nullptr);
 			glfwMakeContextCurrent(window);
 			gl::sys::LoadFunctions();
@@ -178,6 +183,7 @@ public:
 			gl::BlendFuncSeparate(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA, gl::ONE, gl::ONE);
 			gl::ClearColor(0, 0, 0, 0);
 			FrameComplete = true;
+			glfwSwapInterval(0);
 
 		}
 	}
@@ -200,6 +206,9 @@ public:
 		{
 			NES::Instance->mPPU.DumpVRAM();
 		}
+
+		if (glfwGetKey(window, GLFW_KEY_ESCAPE))
+			glfwSetWindowShouldClose(window, 1);
 	}
 
 	static void EndFrame()
@@ -216,7 +225,7 @@ public:
 
 		gl::BindBuffer(gl::ARRAY_BUFFER, colorburstBuffers[CurrentFrame % 2]);
 
-		PixelOut = (Pixel*)gl::MapBufferRange(gl::ARRAY_BUFFER, 
+		BasePixel = PixelOut = (Pixel*)gl::MapBufferRange(gl::ARRAY_BUFFER, 
 			0, 256 * 240 * sizeof(Render::Pixel),
 			gl::MAP_WRITE_BIT | gl::MAP_INVALIDATE_BUFFER_BIT | gl::MAP_UNSYNCHRONIZED_BIT);
 		FrameComplete = false;
@@ -266,6 +275,7 @@ public:
 	};
 	
 	static Pixel* PixelOut;
+	static Pixel* BasePixel;
 	
 	static unsigned CurrentScanline;
 	static unsigned CurrentFrame;

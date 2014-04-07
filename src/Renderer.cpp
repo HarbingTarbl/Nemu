@@ -16,13 +16,13 @@ unsigned Render::ppuPhaseLocation = 0;
 float Render::orthoMatrix[4][4] = { 0 };
 float Render::yiqMatrix[3][3] = { 0 };
 
-Render::clock::time_point Render::lastFrame = Render::clock::now();
 std::array<unsigned, 2> Render::colorburstBuffers;
 std::array<unsigned, 2> Render::colorburstVertexAO;
 Render::clock::time_point Render::lastFrame = clock::now();
 
 
 Render::Pixel* Render::PixelOut = nullptr;
+Render::Pixel* Render::BasePixel = nullptr;
 
 
 bool Render::ScanlineComplete = false;
