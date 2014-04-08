@@ -34,7 +34,6 @@ uint8_t PPU::ReadPRG(int addr)
 		{
 			temp = VRAMDataBuffer;
 			VRAMDataBuffer = ReadCHR(VRAMAddress);
-			return temp;
 		}
 		else
 		{
