@@ -210,7 +210,7 @@ uint8_t PPU::WriteCHR(int addr, uint8_t value)
 {
 	if (addr >= 0x3F00)
 	{
-		printf("Color @ %X = %hhX\n", addr, value);
+		//printf("Color @ %X = %hhX\n", addr, value);
 		addr &= 0x1F;
 		switch (addr)
 		{
@@ -572,14 +572,14 @@ void PPU::Cycle(unsigned nCycles)
 
 			if (MaskBits[MASK_SPRITES])
 			{
-				//SpriteScanline8(0x20);
+				SpriteScanline8(0x20);
 			}
 
 			if (MaskBits[MASK_BACKGROUND])
 			{
 				BackgroundScanline();
 			}
-			//Sprite Scanline
+
 			if (MaskBits[MASK_SPRITES])
 			{
 				SpriteScanline8(0x0);
