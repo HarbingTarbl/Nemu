@@ -65,6 +65,11 @@ public:
 
 			window = glfwCreateWindow(windowWidth, windowHeight, "NES Emulator", nullptr, nullptr);
 			glfwMakeContextCurrent(window);
+
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			glfwSetInputMode(window, GLFW_STICKY_KEYS, false);
+			glfwSetInputMode(window, GLFW_STICKY_MOUSE_BUTTONS, false);
+
 			gl::sys::LoadFunctions();
 			cout << "Initalized " << gl::sys::GetMajorVersion() << "." << gl::sys::GetMinorVersion() << endl;
 			programId = gl::CreateProgram();
@@ -203,7 +208,7 @@ public:
 
 	static void BeginFrame()
 	{
-		if ((CurrentFrame % 20) == 0)
+		//if ((CurrentFrame % 20) == 0)
 			glfwPollEvents();
 
 		if (glfwGetKey(window, GLFW_KEY_F1))
