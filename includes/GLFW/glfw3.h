@@ -161,7 +161,7 @@ extern "C" {
   #elif defined(GLFW_INCLUDE_ES31)
     #include <GLES3/gl31.h>
   #elif !defined(GLFW_INCLUDE_NONE)
-    #include <GL/gl3.h>
+    #include <GL/gl.h>
   #endif
   #if defined(GLFW_INCLUDE_GLU)
     #include <GL/glu.h>
@@ -784,13 +784,13 @@ typedef void (* GLFWkeyfun)(GLFWwindow*,int,int,int,int);
 typedef void (* GLFWcharfun)(GLFWwindow*,unsigned int);
 
 
-/*! @brief The function signature for drop callbacks.
+/*! @brief The function signature for file drop callbacks.
  *
- *  This is the function signature for drop callbacks.
+ *  This is the function signature for file drop callbacks.
  *
  *  @param[in] window The window that received the event.
- *  @param[in] count The number of dropped objects.
- *  @param[in] names The UTF-8 encoded names of the dropped objects.
+ *  @param[in] count The number of dropped files.
+ *  @param[in] names The UTF-8 encoded path names of the dropped files.
  *
  *  @sa glfwSetDropCallback
  *
@@ -1003,9 +1003,9 @@ GLFWAPI const char* glfwGetVersionString(void);
  *
  *  @note This function may only be called from the main thread.
  *
- *  @note The error callback is called by the thread where the error was
- *  generated.  If you are using GLFW from multiple threads, your error callback
- *  needs to be written accordingly.
+ *  @note The error callback is called by the thread where the error occurred.
+ *  If you are using GLFW from multiple threads, your error callback needs to be
+ *  written accordingly.
  *
  *  @note Because the description string provided to the callback may have been
  *  generated specifically for that error, it is not guaranteed to be valid
@@ -1497,6 +1497,33 @@ GLFWAPI void glfwSetWindowSize(GLFWwindow* window, int width, int height);
  *  @ingroup window
  */
 GLFWAPI void glfwGetFramebufferSize(GLFWwindow* window, int* width, int* height);
+
+/*! @brief Retrieves the size of the frame of the window.
+ *
+ *  This function retrieves the size, in screen coordinates, of each edge of the
+ *  frame of the specified window.  This size includes the title bar, if the
+ *  window has one.  The size of the frame may vary depending on the
+ *  [window-related hints](@ref window_hints_wnd) used to create it.
+ *
+ *  @param[in] window The window whose frame size to query.
+ *  @param[out] left Where to store the size, in screen coordinates, of the left
+ *  edge of the window frame.
+ *  @param[out] top Where to store the offset, in screen coordinates, of the top
+ *  edge of the window frame.
+ *  @param[out] right Where to store the offset, in screen coordinates, of the
+ *  right edge of the window frame.
+ *  @param[out] bottom Where to store the offset, in screen coordinates, of the
+ *  bottom edge of the window frame.
+ *
+ *  @remarks This function returns the size of each window frame edge, not its
+ *  offset from the client area edge, so the returned values will always be zero
+ *  or positive.
+ *
+ *  @note This function may only be called from the main thread.
+ *
+ *  @ingroup window
+ */
+GLFWAPI void glfwGetWindowFrameSize(GLFWwindow* window, int* left, int* top, int* right, int* bottom);
 
 /*! @brief Iconifies the specified window.
  *
@@ -2195,15 +2222,15 @@ GLFWAPI GLFWcursorenterfun glfwSetCursorEnterCallback(GLFWwindow* window, GLFWcu
  */
 GLFWAPI GLFWscrollfun glfwSetScrollCallback(GLFWwindow* window, GLFWscrollfun cbfun);
 
-/*! @brief Sets the drop callback.
+/*! @brief Sets the file drop callback.
  *
- *  This function sets the drop callback of the specified window, which is
- *  called when an object is dropped over the window.
+ *  This function sets the file drop callback of the specified window, which is
+ *  called when one or more dragged files are dropped on the window.
  *
  *
  *  @param[in] window The window whose callback to set.
- *  @param[in] cbfun The new drop callback, or `NULL` to remove the currently
- *  set callback.
+ *  @param[in] cbfun The new file drop callback, or `NULL` to remove the
+ *  currently set callback.
  *  @return The previously set callback, or `NULL` if no callback was set or an
  *  error occurred.
  *

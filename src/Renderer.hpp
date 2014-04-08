@@ -14,6 +14,7 @@
 #include <vector>
 #include <array>
 #include <chrono>
+#include <thread>
 
 #include "NES.hpp"
 
@@ -202,7 +203,9 @@ public:
 
 	static void BeginFrame()
 	{
-		glfwPollEvents();
+		if ((CurrentFrame % 20) == 0)
+			glfwPollEvents();
+
 		if (glfwGetKey(window, GLFW_KEY_F1))
 		{
 			NES::Instance->mPPU.DumpVRAM();
@@ -258,12 +261,12 @@ public:
 			gl::BindVertexArray(colorburstVertexAO[CurrentFrame % 2]);
 			gl::DrawArraysInstanced(gl::TRIANGLE_STRIP, 0, 4, 256 * 240);
 			glfwSwapBuffers(window);
-			gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
+			gl::Clear(gl::COLOR_BUFFER_BIT);
 			FrameComplete = true;
 			Render::CurrentFrame++;
 			auto old = lastFrame;
 			lastFrame = clock::now();
-			//std::cout << "FPS : " << 1.0f / std::chrono::duration_cast<std::chrono::duration<float>>(lastFrame - old).count() << std::endl;
+			std::cout << "FPS : " << 1.0f / std::chrono::duration_cast<std::chrono::duration<float>>(lastFrame - old).count() << std::endl;
 		}
 		//CurrentScanline++;
 		//CurrentScanline %= 256;

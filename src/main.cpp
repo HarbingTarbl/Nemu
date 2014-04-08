@@ -32,7 +32,7 @@ int main(int argc, const char* args[])
 
 	try
 	{
-		Nemu.mCart.LoadROM("../roms/smb.nes");
+		Nemu.mCart.LoadROM("../roms/pman.nes");
 		Nemu.mCPU.HardReset();
 		Nemu.mPPU.Reset();
 	}
