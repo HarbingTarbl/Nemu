@@ -8,7 +8,7 @@
 uint8_t PPU::ReadPRG(int addr)
 {
 	static bool scrollLatch = false;
-	uint8_t temp; ///TODO Does LRW work here? Or is it a different buffer?
+	uint8_t temp;
 	switch (addr)
 	{
 	case CONTROL_REG:
@@ -25,12 +25,16 @@ uint8_t PPU::ReadPRG(int addr)
 	case OAM_ADDR_REG:
 		return mRegisters[addr];
 	case OAM_DATA_REG:
-		return mPrimaryOAM[mRegisters[OAM_ADDR_REG]]; ///TODO, This is wrong, need to simulate the proper latching behavior.
+		if (IsVBlanking())
+			return mPrimaryOAM[mRegisters[OAM_ADDR_REG]]; ///TODO, This is wrong, need to simulate the proper latching behavior.
+		else
+			return mPrimaryOAM[mRegisters[OAM_ADDR_REG]++];
 	case DATA_REG:
 		if (VRAMAddress >= 0 && VRAMAddress < 0x3F00)
 		{
 			temp = VRAMDataBuffer;
 			VRAMDataBuffer = ReadCHR(VRAMAddress);
+			return temp;
 		}
 		else
 		{
@@ -62,12 +66,12 @@ uint8_t PPU::WritePRG(int addr, uint8_t value)
 		mRegisters[CONTROL_REG] = value;
 		using std::cout;
 		using std::endl;
-		printf("CONTROL WRITE\n\tNameTable Address %X\n\tVRAM Increment %hhX\n\tSprite Address %X\n\tBackground Address %X\n\tSprite Size %d\n\n",
-			NametableAddr,
-			VRAMIncAmount,
-			SpritePatternAddr,
-			BackgroundAddr,
-			SpriteSize);
+		//printf("CONTROL WRITE\n\tNameTable Address %X\n\tVRAM Increment %hhX\n\tSprite Address %X\n\tBackground Address %X\n\tSprite Size %d\n\n",
+		//	NametableAddr,
+		//	VRAMIncAmount,
+		//	SpritePatternAddr,
+		//	BackgroundAddr,
+		//	SpriteSize);
 		return value;
 	case MASK_REG:
 		MaskBits = value;
@@ -148,38 +152,89 @@ uint8_t PPU::ReadCHR(int addr)
 		addr &= 0x0EFF;
 	}
 
-	if (addr >= 0x2C00 && addr <= 0x2FFF) //Todo nametable mirroring
+	switch (Memory->mCart->Mirroring)
 	{
-		//Name Table #3
-		return mNameRAM[(addr - 0x0800) & 0x3FF];
+	case Mirroring::Vertical:
+		if (addr >= 0x2C00 && addr <= 0x2FFF) //Todo nametable mirroring
+		{
+			//Name Table #3
+			return mNameRAM[addr & 0x7FF];
+		}
+		else if (addr >= 0x2800 && addr <= 0x2BFF)
+		{
+			//Name Table #2
+			return mNameRAM[addr & 0x3FF];
+		}
+		else if (addr >= 0x2400 && addr <= 0x27FF)
+		{
+			//Name Table #1
+			return mNameRAM[addr & 0x7FF];
+		}
+		else if (addr >= 0x2000)
+		{
+			//Name Table #0
+			return mNameRAM[addr & 0x3FF];
+		}
+		else
+		{
+			//Not in RAM
+			return Memory->ReadCHR(addr);
+		}
+		break;
+	case Mirroring::Horizontal:
+		if (addr >= 0x2C00 && addr <= 0x2FFF)
+		{
+			return mNameRAM[addr & 0x7FF];
+		}
+		else if (addr >= 0x2800 && addr <= 0x2BFF)
+		{
+			return mNameRAM[(addr - 0x400) & 0x7FF];
+		}
+		else if (addr >= 0x2400 && addr <= 0x7FF)
+		{
+			return mNameRAM[addr & 0x3FF];
+		}
+		else if (addr >= 0x2000)
+		{
+			return mNameRAM[addr & 0x3FF];
+		}
+		else
+		{
+			return Memory->ReadCHR(addr);
+		}
+		break;
 	}
-	else if (addr >= 0x2800 && addr <= 0x2BFF)
-	{
-		//Name Table #2
-		return mNameRAM[(addr - 0x0400) & 0x3FF];
-	}
-	else if (addr >= 0x2400 && addr <= 0x27FF)
-	{
-		//Name Table #1
-		return mNameRAM[(addr - 0x0400) & 0x3FF];
-	}
-	else if (addr >= 0x2000)
-	{
-		//Name Table #0
-		return mNameRAM[addr & 0x3FF];
-	}
-	else
-	{
-		//Not in RAM
-		return Memory->ReadCHR(addr);
-	}
+
 }
 
 uint8_t PPU::WriteCHR(int addr, uint8_t value)
 {
 	if (addr >= 0x3F00)
 	{
+		printf("Color @ %X = %hhX\n", addr, value);
 		addr &= 0x1F;
+		switch (addr)
+		{
+		case 0x10:
+			addr = 0x00;
+			break;
+		case 0x14:
+			addr = 0x04;
+			break;
+		case 0x18:
+			addr = 0x08;
+			break;
+		case 0x1C:
+			addr = 0x0C;
+			break;
+		}
+
+		switch (addr)
+		{
+		case 0x00:
+			Render::SetClearColor(value);
+			break;
+		}
 		mPaletteRAM[addr] = value;
 		return  value;
 	}
@@ -188,34 +243,59 @@ uint8_t PPU::WriteCHR(int addr, uint8_t value)
 		addr &= 0x0EFF;
 	}
 
-	if (addr >= 0x2C00 && addr <= 0x2FFF) //Todo nametable mirroring
+	switch (Memory->mCart->Mirroring)
 	{
-		//Name Table #3
-		mNameRAM[(addr - 0x800) & 0x3FF] = value;
+	case Mirroring::Vertical:
+		if (addr >= 0x2C00 && addr <= 0x2FFF) //Todo nametable mirroring
+		{
+			//Name Table #3
+			mNameRAM[addr & 0x7FF] = value;
+		}
+		else if (addr >= 0x2800 && addr <= 0x2BFF)
+		{
+			//Name Table #2
+			mNameRAM[addr & 0x3FF] = value;
+		}
+		else if (addr >= 0x2400 && addr <= 0x27FF)
+		{
+			//Name Table #1
+			mNameRAM[addr & 0x7FF] = value;
+		}
+		else if (addr >= 0x2000)
+		{
+			//Name Table #0
+			mNameRAM[addr & 0x3FF] = value;
+		}
+		else
+		{
+			//Not in RAM
+			return Memory->WriteCHR(addr, value);
+		}
+		break;
+	case Mirroring::Horizontal:
+		if (addr >= 0x2C00 && addr <= 0x2FFF)
+		{
+			mNameRAM[addr & 0x7FF] = value;
+		}
+		else if (addr >= 0x2800 && addr <= 0x2BFF)
+		{
+			mNameRAM[(addr - 0x400) & 0x7FF] = value;
+		}
+		else if (addr >= 0x2400 && addr <= 0x7FF)
+		{
+			mNameRAM[addr & 0x3FF] = value;
+		}
+		else if (addr >= 0x2000)
+		{
+			mNameRAM[addr & 0x3FF] = value;
+		}
+		else
+		{
+			return Memory->WriteCHR(addr, value);
+		}
+		break;
 	}
-	else if (addr >= 0x2800 && addr <= 0x2BFF)
-	{
-		//Name Table #2
-		mNameRAM[(addr - 0x400) & 0x7FF] = value;
-	}
-	else if (addr >= 0x2400 && addr <= 0x27FF)
-	{
-		//Name Table #1
-		mNameRAM[(addr - 0x0400) & 0x3FF] = value;
-	}
-	else if (addr >= 0x2000)
-	{
-		//Name Table #0
-		if (value == 0x2A)
-			std::cout << "Break" << std::endl;
 
-		mNameRAM[addr & 0x3FF] = value;
-	}
-	else
-	{
-		//Not in RAM
-		return Memory->WriteCHR(addr, value);
-	}
 	return value;
 }
 
@@ -233,38 +313,6 @@ void PPU::SetVBlanking()
 {
 	mRegisters[STATUS_REG] |= 0x80;
 }
-
-uint8_t PPU::ReadSecondOAM(uint8_t addr)
-{
-	if (CurrentCycle < 64)
-		return 0xFF;
-	else
-		return mSecondaryOAM[addr];
-}
-
-uint8_t PPU::WriteSecondOAM(uint8_t addr, uint8_t value)
-{
-	mSecondaryOAM[addr] = value;
-	return value;
-}
-
-
-void PPU::SpriteEvaluation()
-{
-	throw std::bad_exception();
-
-	if (CurrentCycle < 64)
-	{
-		//zzzz
-	}
-	else if (CurrentCycle < 256)
-	{
-		int n = 0;
-
-
-	}
-}
-
 
 
 void PPU::Reset()
@@ -298,6 +346,7 @@ void PPU::Reset()
 	TransferLatch = TransferLatchScroll = false;
 	NMIGenerated = false;
 	WaitVBlank = false;
+	VRAMDataBuffer = 0;
 
 }
 
@@ -358,9 +407,8 @@ void PPU::SpriteScanline8(uint8_t priority)
 
 		
 
-		spriteY++;
 		inRange = CurrentLine - spriteY;
-		if (inRange < 9) ///TODO this is prob 900% wrong
+		if (inRange < 8) ///TODO this is prob 900% wrong
 		{
 			if (SpriteOnScanline++ >= 8)
 			{

@@ -46,7 +46,7 @@ public:
 
 	static unsigned yiqMatrixLocation;
 	static unsigned ppuPhaseLocation;
-
+	static unsigned clearColorLocation;
 
 public:
 
@@ -174,6 +174,7 @@ public:
 			scanlineIndexLocation = gl::GetUniformLocation(programId, "Scanline");
 			yiqMatrixLocation = gl::GetUniformLocation(programId, "YIQMatrix");
 			ppuPhaseLocation = gl::GetUniformLocation(programId, "PPUPhase");
+			clearColorLocation = gl::GetUniformLocation(programId, "ClearColor");
 
 			gl::Disable(gl::DEPTH_TEST);
 			gl::Disable(gl::CULL_FACE);
@@ -229,6 +230,11 @@ public:
 			0, 256 * 240 * sizeof(Render::Pixel),
 			gl::MAP_WRITE_BIT | gl::MAP_INVALIDATE_BUFFER_BIT | gl::MAP_UNSYNCHRONIZED_BIT);
 		FrameComplete = false;
+	}
+
+	static void SetClearColor(unsigned color)
+	{
+		gl::Uniform1i(clearColorLocation, color);
 	}
 
 	static void EndScanline()

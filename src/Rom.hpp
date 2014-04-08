@@ -6,6 +6,13 @@
 #include <string>
 #include <fstream>
 
+enum class Mirroring
+{
+	Horizontal,
+	Vertical
+};
+
+
 using std::string;
 
 struct RomInfo
@@ -67,6 +74,11 @@ public:
 	uint8_t NumCHR() const
 	{
 		return CHRPages;
+	}
+
+	Mirroring Mirroring() const ///HACK 4 Screen VRAM
+	{
+		return (Flags6 & 0x01) ? Mirroring::Vertical : Mirroring::Horizontal;
 	}
 
 	uint8_t MapperID() const

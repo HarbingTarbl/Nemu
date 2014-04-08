@@ -14,6 +14,7 @@ const mat3 NonFCCYIQMatrix = mat3(
 
 uniform int Scanline;
 uniform int PPUPhase;
+uniform int ClearColor;
 
 uniform float Gamma = 2;
 uniform float Saturation = 1.7;
@@ -74,7 +75,7 @@ void main()
 	gl_Position = PMatrix * pos;
 	
 	if(uint(NESColor) == 0xFFFFFFFF)
-		PixelColor = vec4(0,0,0,0);
+		PixelColor = vec4(NEStoRGB(ClearColor),1);
 	else
 		PixelColor = vec4(NEStoRGB(NESColor), 1);
 }

@@ -17,7 +17,6 @@ private:
 	//OAM Data is in RAM
 	std::array<uint8_t, 0x08> mRegisters;
 	std::array<uint8_t, 0x100> mPrimaryOAM;
-	std::array<uint8_t, 0x20> mSecondaryOAM;
 	std::array<uint8_t, 0x800> mNameRAM;
 	std::array<uint8_t, 0x20> mPaletteRAM;
 
@@ -116,13 +115,6 @@ public:
 	int IsVBlanking();
 
 	void SetVBlanking();
-
-	uint8_t ReadSecondOAM(uint8_t addr);
-
-	uint8_t WriteSecondOAM(uint8_t addr, uint8_t value);
-
-	void SpriteEvaluation();
-
 
 	void Reset();
 
