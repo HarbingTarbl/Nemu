@@ -19,6 +19,7 @@ public:
 	enum
 	{
 		IO_OAM_ADDR = 0x14,
+		IO_CONTROLLER_ADDR = 0x16
 	};
 
 	uint8_t Read(int addr);

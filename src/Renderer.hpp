@@ -49,7 +49,54 @@ public:
 	static unsigned ppuPhaseLocation;
 	static unsigned clearColorLocation;
 
+
 public:
+
+	static unsigned ControllerStrobe;
+
+	enum class ButtonState : unsigned int
+	{
+		A,
+		B,
+		SELECT,
+		START,
+		UP,
+		DOWN,
+		LEFT,
+		RIGHT
+	};
+
+	enum class ButtonTranslate : unsigned int
+	{
+		A = GLFW_KEY_LEFT,
+		B = GLFW_KEY_DOWN,
+		SELECT = GLFW_KEY_BACKSPACE,
+		START = GLFW_KEY_ENTER,
+		UP = GLFW_KEY_W,
+		DOWN = GLFW_KEY_S,
+		LEFT = GLFW_KEY_A,
+		RIGHT = GLFW_KEY_D
+	};
+
+	static int ControllerStatus()
+	{
+#define BUTTON( mx ) case (unsigned)ButtonState::##mx: return glfwGetKey(window, ((int)ButtonTranslate::##mx))
+		
+		switch (ControllerStrobe++)
+		{
+			BUTTON(A);
+			BUTTON(B);
+			BUTTON(SELECT);
+			BUTTON(START);
+			BUTTON(UP);
+			BUTTON(DOWN);
+			BUTTON(LEFT);
+			BUTTON(RIGHT);
+		}
+
+#undef BUTTON
+	}
+
 
 	static void Initalize(int windowWidth, int windowHeight)
 	{

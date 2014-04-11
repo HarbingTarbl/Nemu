@@ -82,6 +82,7 @@
       <ProgramDataBaseFileName>$(OutDir)NemuD.pdb</ProgramDataBaseFileName>
       <Optimization>Disabled</Optimization>
       <AdditionalOptions>-std=c++11 %(AdditionalOptions)</AdditionalOptions>
+      <PreprocessToFile>false</PreprocessToFile>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
