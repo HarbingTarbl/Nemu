@@ -250,7 +250,7 @@ public:
 
 	static void BeginFrame()
 	{
-		if ((CurrentFrame % 20) == 0)
+		//if ((CurrentFrame % 1) == 0)
 			glfwPollEvents();
 
 		if (glfwGetKey(window, GLFW_KEY_F1))
@@ -313,7 +313,7 @@ public:
 			Render::CurrentFrame++;
 			auto old = lastFrame;
 			lastFrame = clock::now();
-			std::cout << "FPS : " << 1.0f / std::chrono::duration_cast<std::chrono::duration<float>>(lastFrame - old).count() << std::endl;
+			//std::cout << "FPS : " << 1.0f / std::chrono::duration_cast<std::chrono::duration<float>>(lastFrame - old).count() << std::endl;
 		}
 		//CurrentScanline++;
 		//CurrentScanline %= 256;

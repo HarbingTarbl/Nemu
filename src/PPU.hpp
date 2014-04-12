@@ -55,6 +55,14 @@ public:
 
 	uint16_t VRAMAddress;
 	uint16_t VRAMAddressLatch;
+
+
+	uint16_t LoopyV;
+	uint16_t LoopyT;
+	uint8_t LoopyX;
+	bool LoopyW;
+
+
 	uint8_t VRAMIncAmount;
 	uint8_t VRAMDataBuffer;
 	bool VRAMLatched; //Address Latch Enable
@@ -67,14 +75,11 @@ public:
 	int SpriteSize; //8x8 = 64, 8x16 = 128
 
 	bool WaitVBlank;
-
 	
 	uint8_t FineScrollX, FineScrollY;
-	uint16_t ScrollOrigin;
 	uint8_t SpriteOnScanline;
+
 	bool ScrollLatch;
-
-
 	bool GenerateNMI;
 	bool NMIGenerated;
 

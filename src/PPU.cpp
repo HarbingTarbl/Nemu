@@ -21,6 +21,8 @@ uint8_t PPU::ReadPRG(int addr)
 		temp = (0xF0 & temp) | (0x0F & LastRegisterWrite);
 		ClearVBlank();
 		VRAMLatched = false;
+		ScrollLatch = false;
+		LoopyW = false;
 		return temp;
 	case OAM_ADDR_REG:
 		return mRegisters[addr];
@@ -41,6 +43,7 @@ uint8_t PPU::ReadPRG(int addr)
 			temp = ReadCHR(VRAMAddress);
 		}
 
+		LoopyV += VRAMIncAmount;
 		VRAMAddress += VRAMIncAmount;
 		return temp;
 	default:
@@ -54,7 +57,7 @@ uint8_t PPU::WritePRG(int addr, uint8_t value)
 	switch (addr)
 	{
 	case CONTROL_REG:
-		//VRAMAddressLatch = (VRAMAddressLatch & (0x03 << 10)) | ((value & 3) << 10);
+		LoopyT = (LoopyT & ~(0x03 << 10)) | ((value & 0x03) << 10);
 		//^^^ You prob didn't know that happened, the docs sure didn't
 		NametableAddr = ((value & 0x03) << 10) | 0x2000;
 		VRAMIncAmount = ((value & 0x04) ? 0x20 : 0x01);
@@ -85,32 +88,41 @@ uint8_t PPU::WritePRG(int addr, uint8_t value)
 		mRegisters[OAM_ADDR_REG]++;
 		return value;
 	case SCROLL_REG:
-		if (!VRAMLatched)
+		if (!ScrollLatch)
 		{
-			ScrollOrigin = value << 8;
-			FineScrollX = value & 0x07;
-			//VRAMAddressLatch = (VRAMAddressLatch & ~0x1F) | ((value >> 3) & 0x1F);
+			LoopyT &= ~0x1F;
+			LoopyT |= (value >> 3);
+			LoopyX = (value & 0x03);
+
+			FineScrollX = value;
 		}
 		else
 		{
-			ScrollOrigin |= value;
+			LoopyT &= 0xC1F;
+			LoopyT |= (value & 0x03) << 12;
+			LoopyT |= (value & 0xFC) << 2;
+
 			FineScrollY = value;
-			//VRAMAddressLatch = (VRAMAddressLatch & ~(0x1F << 5)) | (((value >> 3) & 0x1F) << 5);
-			//VRAMAddressLatch = (VRAMAddressLatch & ~(0x07 << 12)) | ((value & 0x07) << 12);
 		}
+		ScrollLatch = !ScrollLatch;
+		LoopyW = !LoopyW;
 		//VRAMLatched = !VRAMLatched;
 		return value;
 	case ADDR_REG:
 		if (!VRAMLatched)
 		{
 			VRAMAddressLatch = value << 8;
-			//VRAMAddressLatch = (VRAMAddressLatch & 0xFF) | ((value & 0x3F) << 8);
+			LoopyT &= ~0xFF00;
+			LoopyT |= (value & ~0xC0) << 9;
 		}
 		else
 		{
-			//VRAMAddressLatch = (VRAMAddressLatch & ~0xFF) | value;
+			LoopyT &= ~0x00FF;
+			LoopyT |= value;
+			LoopyV = LoopyT;
 			VRAMAddress = VRAMAddressLatch | value;
 		}
+		LoopyW = !LoopyW;
 		VRAMLatched = !VRAMLatched;
 		return value;
 	case DATA_REG:
@@ -346,6 +358,7 @@ void PPU::Reset()
 	NMIGenerated = false;
 	WaitVBlank = false;
 	VRAMDataBuffer = 0;
+	FineScrollX = FineScrollY = 0;
 
 }
 
@@ -378,6 +391,8 @@ void PPU::SpriteScanline8(uint8_t priority)
 	uint8_t inRange, spriteX, spriteY, tileIndex, attribute;
 	Render::CurrentScanline = CurrentLine;
 	SpriteOnScanline = 0;
+
+
 
 	for (int i = 252; i >= 0; i -= 4)
 	{
@@ -444,11 +459,11 @@ void PPU::SpriteScanline8(uint8_t priority)
 				}
 				else
 				{
-					if (i == 0 &&
+					if (true || (i == 0 &&
 						MaskBits[MASK_BACKGROUND] &&
-						MaskBits[MASK_SPRITES])
+						MaskBits[MASK_SPRITES]))
 					{
-						if (Render::BasePixel[spriteX + p + CurrentLine * 256].Color != 0xFFFF)
+						if (true || Render::BasePixel[spriteX + p + CurrentLine * 256 + FineScrollX].Color != 0xFFFF)
 						{
 							//Set Zero Hit
 							mRegisters[STATUS_REG] |= 0x40;
@@ -461,42 +476,34 @@ void PPU::SpriteScanline8(uint8_t priority)
 		}
 	}
 
+	CurrentLine = Render::CurrentScanline;
+
 }
 
 
 void PPU::BackgroundScanline()
 {
-	uint16_t ntAddr = 0, ptAddr = 0, atAddr = 0, tileAddr = 0, attrAddr = 0;
+	uint16_t tileAddr = 0, attrAddr = 0;
 	uint8_t attrByte = 0, tileIndex = 0, groupIndex = 0, paletteIndex = 0;
 	uint8_t patternLow = 0, patternHigh = 0, paletteHigh = 0;
-	uint8_t tileX = 0, tileY = 0, tileScrollX = 0, tileScrollY = 0;
 	Render::CurrentScanline = CurrentLine;
 
-	atAddr = NametableAddr + 0x03C0;
-	tileAddr = NametableAddr + (CurrentLine / 8) * 32;
-	attrAddr = atAddr + (CurrentLine / 32) * 8 - 1;
-
-	for (int i = 0; i < 32; i++, tileAddr++)
+	for (int i = 0; i < 32; i++)
 	{
-		
-
 		groupIndex = 0;
+		tileAddr = 0x2000 | (LoopyV & 0x0FFF);
+		attrAddr = 0x23C0 | (LoopyV & 0x0C00) | ((LoopyV >> 4) & 0x38) | ((LoopyV >> 2) & 0x07);
 
 		if (((CurrentLine + 16) % 32) < 16)
 		{
 			groupIndex += 4;
 		}
 
-		if (((i + 2) % 4) < 2)
+		if (((i + FineScrollX + 2) % 4) < 2)
 		{
 			groupIndex += 2;
 		}
 		
-		if ((i % 4) == 0)
-			attrAddr++;
-
-
-
 		tileIndex = ReadCHR(tileAddr);
 
 		attrByte = ReadCHR(attrAddr);
@@ -528,7 +535,20 @@ void PPU::BackgroundScanline()
 				Render::PixelOut++;
 			}
 		}
+
+
+		if ((LoopyV & 0x001F) == 31)
+		{
+			LoopyV &= ~0x001F;
+			LoopyV ^= 0x0400;
+		}
+		else
+		{
+			LoopyV++;
+		}
 	}
+
+	CurrentLine = Render::CurrentScanline;
 }
 
 void PPU::StartDMA(int addr)
@@ -592,17 +612,43 @@ void PPU::Cycle(unsigned nCycles)
 			}
 
 
-			//if (MaskBits[MASK_BACKGROUND] || MaskBits[MASK_SPRITES])
-			//{
-			//	//VRAMAddress = (VRAMAddress & (~0x1F & ~(1 << 10))) | (VRAMAddressLatch & (0x1F | (1 << 10)));
-			//	///Todo mapper IRQ
-			//}
+
+
+			if (MaskBits[MASK_BACKGROUND] || MaskBits[MASK_SPRITES])
+			{
+				//Inc Vertical
+				if ((LoopyV & 0x7000) != 0x7000)
+					LoopyV += 0x1000;
+				else
+				{
+					LoopyV &= ~0x7000;
+					int what = (LoopyV & 0x3E0) >> 5;
+					if (what == 29)
+					{
+						what = 0;
+						LoopyV ^= 0x0800;
+					}
+					else if (what == 31)
+					{
+						what = 0;
+					}
+					else
+					{
+						what++;
+					}
+
+					LoopyV = (LoopyV & ~0x03E0) | (what << 5);
+				}
+
+				//Copy Horizontal
+				LoopyV &= ~0x41F;
+				LoopyV |= (LoopyT & 0x41F);
+				///Todo mapper IRQ
+			}
 		}
 	}
 	else if (CurrentLine == 240)
 	{
-		//Render::EndFrame();
-
 		if (!WaitVBlank)
 		{
 			WaitVBlank = true;
