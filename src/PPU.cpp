@@ -92,9 +92,9 @@ uint8_t PPU::WritePRG(int addr, uint8_t value)
 		{
 			LoopyT &= ~0x1F;
 			LoopyT |= (value >> 3);
-			LoopyX = (value & 0x03);
+			LoopyX = value & 0x03;
 
-			FineScrollX = value;
+			//FineScrollX = value;
 		}
 		else
 		{
@@ -485,58 +485,23 @@ void PPU::BackgroundScanline()
 {
 	uint16_t tileAddr = 0, attrAddr = 0;
 	uint8_t attrByte = 0, tileIndex = 0, groupIndex = 0, paletteIndex = 0;
-	uint8_t patternLow = 0, patternHigh = 0, paletteHigh = 0;
+	uint8_t paletteHigh = 0;
 	Render::CurrentScanline = CurrentLine;
+	uint16_t patternLow, patternHigh;
 
-	for (int i = 0; i < 32; i++)
+	uint16_t bgaddr = BackgroundAddr + CurrentLine % 8;
+
+	tileAddr = 0x2000 | (LoopyV & 0x0FFF);
+	attrAddr = 0x23C0 | (LoopyV & 0x0C00) | ((LoopyV >> 4) & 0x38) | ((LoopyV >> 2) & 0x07);
+
+	tileIndex = ReadCHR(tileAddr);
+	attrByte = ReadCHR(attrAddr);
+
+	patternLow = ReadCHR(bgaddr + tileIndex * 16) << 8;
+	patternHigh = ReadCHR(bgaddr + tileIndex * 16 + 8) << 8;
+
+	for (int tile = 0; tile < 32; tile++)
 	{
-		groupIndex = 0;
-		tileAddr = 0x2000 | (LoopyV & 0x0FFF);
-		attrAddr = 0x23C0 | (LoopyV & 0x0C00) | ((LoopyV >> 4) & 0x38) | ((LoopyV >> 2) & 0x07);
-
-		if (((CurrentLine + 16) % 32) < 16)
-		{
-			groupIndex += 4;
-		}
-
-		if (((i + FineScrollX + 2) % 4) < 2)
-		{
-			groupIndex += 2;
-		}
-		
-		tileIndex = ReadCHR(tileAddr);
-
-		attrByte = ReadCHR(attrAddr);
-		patternLow = ReadCHR(BackgroundAddr + tileIndex * 16 + CurrentLine % 8);
-		patternHigh = ReadCHR(BackgroundAddr + tileIndex * 16 + 8 + CurrentLine % 8);
-		paletteHigh = (attrByte >> groupIndex) & 0x03;
-
-
-		for (int p = 0; p < 8; p++)
-		{
-			paletteIndex = paletteHigh << 2;
-			paletteIndex |= (patternLow & (0x80 >> p)) ? 0x1 : 0;
-			paletteIndex |= (patternHigh & (0x80 >> p)) ? 0x2 : 0;
-
-			using std::endl;
-			using std::hex;
-
-			if ((paletteIndex & 0x03) == 0)
-			{
-				//Handle transparent
-				Render::PixelOut->Color = 0xFFFF;
-				Render::PixelOut++;
-			}
-			else
-			{
-
-				int color = ReadCHR(0x3F00 + paletteIndex);
-				Render::PixelOut->Color = color;
-				Render::PixelOut++;
-			}
-		}
-
-
 		if ((LoopyV & 0x001F) == 31)
 		{
 			LoopyV &= ~0x001F;
@@ -546,7 +511,43 @@ void PPU::BackgroundScanline()
 		{
 			LoopyV++;
 		}
+
+		tileAddr = 0x2000 | (LoopyV & 0x0FFF);
+		attrAddr = 0x23C0 | (LoopyV & 0x0C00) | ((LoopyV >> 4) & 0x38) | ((LoopyV >> 2) & 0x07);
+
+		tileIndex = ReadCHR(tileAddr);
+		attrByte = ReadCHR(attrAddr);
+
+		patternLow |= ReadCHR(bgaddr + tileIndex * 16);
+		patternHigh |= ReadCHR(bgaddr + tileIndex * 16 + 8);
+
+
+		for (int pixel = 0; pixel < 8; pixel++)
+		{
+			paletteIndex = 0;
+
+			paletteIndex |= (patternLow & (0x8000 >> (LoopyX))) ? 1 : 0;
+			paletteIndex |= (patternHigh & (0x8000 >> (LoopyX))) ? 2 : 0;
+
+			if ((paletteIndex & 0x03) == 0)
+			{
+				Render::PixelOut->Color = 0xFFFF;
+			}
+			else
+			{
+				Render::PixelOut->Color = ReadCHR(0x3F00 + paletteIndex);
+			}
+
+			Render::PixelOut++;
+
+			patternLow <<= 1;
+			patternHigh <<= 1;
+		}
+
+		
 	}
+
+
 
 	CurrentLine = Render::CurrentScanline;
 }
@@ -576,6 +577,7 @@ void PPU::Cycle(unsigned nCycles)
 
 	if (CurrentLine >= 0 && CurrentLine <= 239)
 	{
+
 
 		//if (!TransferLatch && (MaskBits[MASK_SPRITES] || MaskBits[MASK_BACKGROUND]))
 		//{
@@ -616,6 +618,8 @@ void PPU::Cycle(unsigned nCycles)
 
 			if (MaskBits[MASK_BACKGROUND] || MaskBits[MASK_SPRITES])
 			{
+				
+
 				//Inc Vertical
 				if ((LoopyV & 0x7000) != 0x7000)
 					LoopyV += 0x1000;
