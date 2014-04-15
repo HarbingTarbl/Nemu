@@ -20,8 +20,6 @@ uint8_t PPU::ReadPRG(int addr)
 		temp = mRegisters[STATUS_REG];
 		temp = (0xF0 & temp) | (0x0F & LastRegisterWrite);
 		ClearVBlank();
-		VRAMLatched = false;
-		ScrollLatch = false;
 		LoopyW = false;
 		return temp;
 	case OAM_ADDR_REG:
@@ -88,7 +86,7 @@ uint8_t PPU::WritePRG(int addr, uint8_t value)
 		mRegisters[OAM_ADDR_REG]++;
 		return value;
 	case SCROLL_REG:
-		if (!ScrollLatch)
+		if (!LoopyW)
 		{
 			LoopyT &= ~0x1F;
 			LoopyT |= (value >> 3);
@@ -101,29 +99,24 @@ uint8_t PPU::WritePRG(int addr, uint8_t value)
 			LoopyT &= 0xC1F;
 			LoopyT |= (value & 0x03) << 12;
 			LoopyT |= (value & 0xFC) << 2;
-
-			FineScrollY = value;
 		}
-		ScrollLatch = !ScrollLatch;
 		LoopyW = !LoopyW;
-		//VRAMLatched = !VRAMLatched;
 		return value;
 	case ADDR_REG:
-		if (!VRAMLatched)
+		if (!LoopyW)
 		{
-			VRAMAddressLatch = value << 8;
 			LoopyT &= ~0xFF00;
 			LoopyT |= (value & ~0xC0) << 9;
+			VRAMAddress = value;
 		}
 		else
 		{
 			LoopyT &= ~0x00FF;
 			LoopyT |= value;
 			LoopyV = LoopyT;
-			VRAMAddress = VRAMAddressLatch | value;
+			VRAMAddress = (VRAMAddress << 8) | value;
 		}
 		LoopyW = !LoopyW;
-		VRAMLatched = !VRAMLatched;
 		return value;
 	case DATA_REG:
 		WriteCHR(VRAMAddress, value);
@@ -352,13 +345,10 @@ void PPU::Reset()
 	CurrentCycle = 0;
 	CurrentLine = LastLine = 241;
 	CurrentFrame = 0;
-	VRAMAddress = VRAMAddressLatch = 0;
-	VRAMLatched = false;
-	TransferLatch = TransferLatchScroll = false;
+	VRAMAddress = 0;
 	NMIGenerated = false;
 	WaitVBlank = false;
 	VRAMDataBuffer = 0;
-	FineScrollX = FineScrollY = 0;
 
 }
 
@@ -400,7 +390,7 @@ void PPU::SpriteScanline8(uint8_t priority)
 		spriteY = mPrimaryOAM[i];
 		tileIndex = mPrimaryOAM[i + 1];
 		attribute = mPrimaryOAM[i + 2];
-		spriteX = mPrimaryOAM[i + 3];
+		spriteX = mPrimaryOAM[i + 3] + LoopyX;
 
 		if (spriteY >= 0xFE)
 			continue;
@@ -459,11 +449,11 @@ void PPU::SpriteScanline8(uint8_t priority)
 				}
 				else
 				{
-					if (true || (i == 0 &&
+					if ((i == 0 &&
 						MaskBits[MASK_BACKGROUND] &&
 						MaskBits[MASK_SPRITES]))
 					{
-						if (true || Render::BasePixel[spriteX + p + CurrentLine * 256 + FineScrollX].Color != 0xFFFF)
+						if (Render::BasePixel[spriteX + p + CurrentLine * 256].Color != 0xFFFF)
 						{
 							//Set Zero Hit
 							mRegisters[STATUS_REG] |= 0x40;
@@ -526,8 +516,8 @@ void PPU::BackgroundScanline()
 		{
 			paletteIndex = 0;
 
-			paletteIndex |= (patternLow & (0x8000 >> (LoopyX))) ? 1 : 0;
-			paletteIndex |= (patternHigh & (0x8000 >> (LoopyX))) ? 2 : 0;
+			paletteIndex |= (patternLow & (0x8000 >> (0))) ? 1 : 0;
+			paletteIndex |= (patternHigh & (0x8000 >> (0))) ? 2 : 0;
 
 			if ((paletteIndex & 0x03) == 0)
 			{
@@ -577,16 +567,9 @@ void PPU::Cycle(unsigned nCycles)
 
 	if (CurrentLine >= 0 && CurrentLine <= 239)
 	{
-
-
-		//if (!TransferLatch && (MaskBits[MASK_SPRITES] || MaskBits[MASK_BACKGROUND]))
-		//{
-		//	//VRAMAddress = VRAMAddressLatch;
-		//	TransferLatch = true;
-		//}
-
 		if (CurrentLine != LastLine)
 		{
+		
 
 			LastLine = CurrentLine;
 			Render::CurrentScanline = CurrentLine;
@@ -614,19 +597,15 @@ void PPU::Cycle(unsigned nCycles)
 			}
 
 
-
-
 			if (MaskBits[MASK_BACKGROUND] || MaskBits[MASK_SPRITES])
 			{
-				
-
 				//Inc Vertical
 				if ((LoopyV & 0x7000) != 0x7000)
 					LoopyV += 0x1000;
 				else
 				{
 					LoopyV &= ~0x7000;
-					int what = (LoopyV & 0x3E0) >> 5;
+					int what = (LoopyV & 0x03E0) >> 5;
 					if (what == 29)
 					{
 						what = 0;
@@ -647,7 +626,7 @@ void PPU::Cycle(unsigned nCycles)
 				//Copy Horizontal
 				LoopyV &= ~0x41F;
 				LoopyV |= (LoopyT & 0x41F);
-				///Todo mapper IRQ
+
 			}
 		}
 	}
@@ -658,6 +637,7 @@ void PPU::Cycle(unsigned nCycles)
 			WaitVBlank = true;
 			mRegisters[STATUS_REG] |= 0x80;
 		}
+		LoopyV = LoopyT;
 	}
 	else if (CurrentLine > 261)
 	{
@@ -667,7 +647,6 @@ void PPU::Cycle(unsigned nCycles)
 		///Todo latches?
 
 		CurrentLine = LastLine = -1;
-		TransferLatch = TransferLatchScroll = false;
 		NMIGenerated = false;
 	}
 	else if (CurrentLine > 259)

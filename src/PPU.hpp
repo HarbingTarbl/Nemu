@@ -53,21 +53,16 @@ public:
 
 	void DumpVRAM();
 
-	uint16_t VRAMAddress;
-	uint16_t VRAMAddressLatch;
-
-
 	uint16_t LoopyV;
 	uint16_t LoopyT;
 	uint8_t LoopyX;
 	bool LoopyW;
 
+	int VRAMAddress;
+
 
 	uint8_t VRAMIncAmount;
 	uint8_t VRAMDataBuffer;
-	bool VRAMLatched; //Address Latch Enable
-
-	bool TransferLatch, TransferLatchScroll;
 
 	int BackgroundAddr, BackgroundAddrTemp;
 	int NametableAddr, NametableAddrTemp;
@@ -76,10 +71,8 @@ public:
 
 	bool WaitVBlank;
 	
-	uint8_t FineScrollX, FineScrollY;
 	uint8_t SpriteOnScanline;
 
-	bool ScrollLatch;
 	bool GenerateNMI;
 	bool NMIGenerated;
 
