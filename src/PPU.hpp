@@ -57,6 +57,7 @@ public:
 	uint16_t LoopyT;
 	uint8_t LoopyX;
 	bool LoopyW;
+	bool LoopyLatch;
 
 	int VRAMAddress;
 

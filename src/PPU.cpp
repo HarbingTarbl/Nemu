@@ -30,15 +30,15 @@ uint8_t PPU::ReadPRG(int addr)
 		else
 			return mPrimaryOAM[mRegisters[OAM_ADDR_REG]++];
 	case DATA_REG:
-		if (VRAMAddress >= 0 && VRAMAddress < 0x3F00)
+		if (LoopyV >= 0 && LoopyV < 0x3F00)
 		{
 			temp = VRAMDataBuffer;
-			VRAMDataBuffer = ReadCHR(VRAMAddress);
+			VRAMDataBuffer = ReadCHR(LoopyV);
 		}
 		else
 		{
-			VRAMDataBuffer = ReadCHR(VRAMAddress & ~0x1000);
-			temp = ReadCHR(VRAMAddress);
+			VRAMDataBuffer = ReadCHR(LoopyV & ~0x1000);
+			temp = ReadCHR(LoopyV);
 		}
 
 		LoopyV += VRAMIncAmount;
@@ -98,20 +98,20 @@ uint8_t PPU::WritePRG(int addr, uint8_t value)
 		{
 			LoopyT &= 0xC1F;
 			LoopyT |= (value & 0x03) << 12;
-			LoopyT |= (value & 0xFC) << 2;
+			LoopyT |= (value & 0xF8) << 2;
 		}
 		LoopyW = !LoopyW;
 		return value;
 	case ADDR_REG:
 		if (!LoopyW)
 		{
-			LoopyT &= ~0xFF00;
-			LoopyT |= (value & ~0xC0) << 9;
+			LoopyT &= 0x00FF;
+			LoopyT |= (value & 0x3F) << 8;
 			VRAMAddress = value;
 		}
 		else
 		{
-			LoopyT &= ~0x00FF;
+			LoopyT &= 0x7F00;
 			LoopyT |= value;
 			LoopyV = LoopyT;
 			VRAMAddress = (VRAMAddress << 8) | value;
@@ -119,7 +119,8 @@ uint8_t PPU::WritePRG(int addr, uint8_t value)
 		LoopyW = !LoopyW;
 		return value;
 	case DATA_REG:
-		WriteCHR(VRAMAddress, value);
+		WriteCHR(LoopyV, value);
+		LoopyV += VRAMIncAmount;
 		VRAMAddress += VRAMIncAmount;
 		return value;
 		break;
@@ -349,6 +350,7 @@ void PPU::Reset()
 	NMIGenerated = false;
 	WaitVBlank = false;
 	VRAMDataBuffer = 0;
+	LoopyV = LoopyT = LoopyX = LoopyW = 0;
 
 }
 
@@ -567,10 +569,15 @@ void PPU::Cycle(unsigned nCycles)
 
 	if (CurrentLine >= 0 && CurrentLine <= 239)
 	{
+		if (LoopyLatch && (MaskBits[MASK_BACKGROUND] || MaskBits[MASK_SPRITES]))
+		{
+			LoopyV &= 0x41F;
+			LoopyV |= LoopyT & 0x7BE0;
+			LoopyLatch = false;
+		}
+
 		if (CurrentLine != LastLine)
 		{
-		
-
 			LastLine = CurrentLine;
 			Render::CurrentScanline = CurrentLine;
 			Render::BeginScanline(0); //Also ends the last scanline which is cool.
@@ -624,7 +631,7 @@ void PPU::Cycle(unsigned nCycles)
 				}
 
 				//Copy Horizontal
-				LoopyV &= ~0x41F;
+				LoopyV &= 0x7BE0;
 				LoopyV |= (LoopyT & 0x41F);
 
 			}
@@ -636,8 +643,8 @@ void PPU::Cycle(unsigned nCycles)
 		{
 			WaitVBlank = true;
 			mRegisters[STATUS_REG] |= 0x80;
+			LoopyLatch = true;
 		}
-		LoopyV = LoopyT;
 	}
 	else if (CurrentLine > 261)
 	{
@@ -648,6 +655,7 @@ void PPU::Cycle(unsigned nCycles)
 
 		CurrentLine = LastLine = -1;
 		NMIGenerated = false;
+		LoopyW = false;
 	}
 	else if (CurrentLine > 259)
 	{
