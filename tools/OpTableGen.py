@@ -63,7 +63,7 @@ opcodes = [
         ]
      ),
     ("BRK", [
-        (0x00, "IMP", 2, 2)
+        (0x00, "IMP", 1, 7)
         ]
      ),
     ("BVC", [
@@ -128,16 +128,16 @@ opcodes = [
         (0x88, "IMP", 1, 2)
         ]
      ),
-	("DCP", [
-		(0xCF, "ABS", 3, 6, "*DCP"),
-		(0xDF, "ABX", 3, 7, "*DCP"),
-		(0xDB, "ABY", 3, 7, "*DCP"),
-		(0xC7, "ZP", 2, 5, "*DCP"),
-		(0xD7, "ZPX", 2, 6, "*DCP"),
-		(0xC3, "IIX", 2, 8, "*DCP"),
-		(0xD3, "IIY", 2, 8, "*DCP"),
-		]
-	),
+    ("DCP", [
+        (0xCF, "ABS", 3, 6, "*DCP"),
+        (0xDF, "ABX", 3, 7, "*DCP"),
+        (0xDB, "ABY", 3, 7, "*DCP"),
+        (0xC7, "ZP", 2, 5, "*DCP"),
+        (0xD7, "ZPX", 2, 6, "*DCP"),
+        (0xC3, "IIX", 2, 8, "*DCP"),
+        (0xD3, "IIY", 2, 8, "*DCP"),
+        ]
+    ),
     ("EOR", [
         (0x49, "IMM", 2, 2),
         (0x45, "ZP", 2, 3),
@@ -164,16 +164,16 @@ opcodes = [
         (0xC8, "IMP", 1, 2)
         ]
      ),
-	("ISB", [
-		(0xEF, "ABS", 3, 6, "*ISB"),
-		(0xFF, "ABX", 3, 7, "*ISB"),
-		(0xFB, "ABY", 3, 7, "*ISB"),
-		(0xE7, "ZP", 2, 5, "*ISB"),
-		(0xF7, "ZPX", 2, 6, "*ISB"),
-		(0xE3, "IIX", 2, 8, "*ISB"),
-		(0xF3, "IIY", 2, 8, "*ISB"),
-		]
-	),
+    ("ISB", [
+        (0xEF, "ABS", 3, 6, "*ISB"),
+        (0xFF, "ABX", 3, 7, "*ISB"),
+        (0xFB, "ABY", 3, 7, "*ISB"),
+        (0xE7, "ZP", 2, 5, "*ISB"),
+        (0xF7, "ZPX", 2, 6, "*ISB"),
+        (0xE3, "IIX", 2, 8, "*ISB"),
+        (0xF3, "IIY", 2, 8, "*ISB"),
+        ]
+    ),
     ("JMP", [
         (0x4C, "ABS", 3, 3),
         (0x6C, "IND", 3, 5)
@@ -218,40 +218,40 @@ opcodes = [
         (0x5E, "ABX", 3, 7),
         ]
      ),
-	 ("LAX", [
-		(0xA7, "ZP", 2, 3, "*LAX"),  #All
-		(0xB7, "ZPY", 2, 4, "*LAX"), #Of
-		(0xA3, "IIX", 2, 6, "*LAX"), #These
-		(0xB3, "IIY", 2, 6, "*LAX"), #Timings
-		(0xAF, "ABS", 3, 5, "*LAX"), #Are
-		(0xBF, "ABY", 3, 5, "*LAX"), #Wrong
-		]
-	),
+     ("LAX", [
+        (0xA7, "ZP", 2, 3, "*LAX"),  #All
+        (0xB7, "ZPY", 2, 4, "*LAX"), #Of
+        (0xA3, "IIX", 2, 6, "*LAX"), #These
+        (0xB3, "IIY", 2, 6, "*LAX"), #Timings
+        (0xAF, "ABS", 3, 5, "*LAX"), #Are
+        (0xBF, "ABY", 3, 5, "*LAX"), #Wrong
+        ]
+    ),
     ("NOP", [
         (0xEA, "NOP", 1, 2),
-		(0x80, "NOP2", 2, 3, "*NOP"),
-		(0x1A, "NOP", 1, 2, "*NOP"),
-		(0x3A, "NOP", 1, 2, "*NOP"),
-		(0x5A, "NOP", 1, 2, "*NOP"),
-		(0x7A, "NOP", 1, 2, "*NOP"),
-		(0xDA, "NOP", 1, 2, "*NOP"),
-		(0xFA, "NOP", 1, 2, "*NOP"),
-		(0x04, "NOP2", 2, 3, "*NOP"), #Unofficial (but often used) 2-byte NOP
-		(0x44, "NOP2", 2, 3, "*NOP"), #Another 2-byte NOP
-		(0x64, "NOP2", 2, 3, "*NOP"),
-		(0x0c, "NOP3", 3, 4, "*NOP"),
-		(0x1C, "NOP3", 3, 4, "*NOP"),
-		(0x3C, "NOP3", 3, 4, "*NOP"),
-		(0x5C, "NOP3", 3, 4, "*NOP"),
-		(0x7C, "NOP3", 3, 4, "*NOP"),
-		(0xDC, "NOP3", 3, 4, "*NOP"),
-		(0xFC, "NOP3", 3, 4, "*NOP"),
-		(0x14, "NOP2", 2, 3, "*NOP"),
-		(0x34, "NOP2", 2, 3, "*NOP"),
-		(0x54, "NOP2", 2, 3, "*NOP"),
-		(0x74, "NOP2", 2, 3, "*NOP"),
-		(0xD4, "NOP2", 2, 3, "*NOP"),
-		(0xF4, "NOP2", 2, 3, "*NOP"),
+        (0x80, "NOP2", 2, 3, "*NOP"),
+        (0x1A, "NOP", 1, 2, "*NOP"),
+        (0x3A, "NOP", 1, 2, "*NOP"),
+        (0x5A, "NOP", 1, 2, "*NOP"),
+        (0x7A, "NOP", 1, 2, "*NOP"),
+        (0xDA, "NOP", 1, 2, "*NOP"),
+        (0xFA, "NOP", 1, 2, "*NOP"),
+        (0x04, "NOP2", 2, 3, "*NOP"), #Unofficial (but often used) 2-byte NOP
+        (0x44, "NOP2", 2, 3, "*NOP"), #Another 2-byte NOP
+        (0x64, "NOP2", 2, 3, "*NOP"),
+        (0x0c, "NOP3", 3, 4, "*NOP"),
+        (0x1C, "NOP3", 3, 4, "*NOP"),
+        (0x3C, "NOP3", 3, 4, "*NOP"),
+        (0x5C, "NOP3", 3, 4, "*NOP"),
+        (0x7C, "NOP3", 3, 4, "*NOP"),
+        (0xDC, "NOP3", 3, 4, "*NOP"),
+        (0xFC, "NOP3", 3, 4, "*NOP"),
+        (0x14, "NOP2", 2, 3, "*NOP"),
+        (0x34, "NOP2", 2, 3, "*NOP"),
+        (0x54, "NOP2", 2, 3, "*NOP"),
+        (0x74, "NOP2", 2, 3, "*NOP"),
+        (0xD4, "NOP2", 2, 3, "*NOP"),
+        (0xF4, "NOP2", 2, 3, "*NOP"),
         ]
      ),
     ("ORA", [
@@ -305,28 +305,28 @@ opcodes = [
         (0x60, "IMP", 1, 6),
         ]
      ),
-	 ("RLA", [
-		(0x2F, "ABS", 3, 6, "*RLA"),
-		(0x3F, "ABX", 3, 7, "*RLA"),
-		(0x3B, "ABY", 3, 7, "*RLA"),
-		(0x27, "ZP", 2, 5, "*RLA"),
-		(0x37, "ZPX", 2, 6, "*RLA"),
-		(0x23, "IIX", 2, 8, "*RLA"),
-		(0x33, "IIY", 2, 8, "*RLA"),
-		]
-	),
-	("RRA", [
-		(0x6F, "ABS", 3, 6, "*RRA"),
-		(0x7F, "ABX", 3, 7, "*RRA"),
-		(0x7B, "ABY", 3, 7, "*RRA"),
-		(0x67, "ZP", 2, 5, "*RRA"),
-		(0x77, "ZPX", 2, 6, "*RRA"),
-		(0x63, "IIX", 2, 8, "*RRA"),
-		(0x73, "IIY", 2, 8, "*RRA"),
-		]
-	),
+     ("RLA", [
+        (0x2F, "ABS", 3, 6, "*RLA"),
+        (0x3F, "ABX", 3, 7, "*RLA"),
+        (0x3B, "ABY", 3, 7, "*RLA"),
+        (0x27, "ZP", 2, 5, "*RLA"),
+        (0x37, "ZPX", 2, 6, "*RLA"),
+        (0x23, "IIX", 2, 8, "*RLA"),
+        (0x33, "IIY", 2, 8, "*RLA"),
+        ]
+    ),
+    ("RRA", [
+        (0x6F, "ABS", 3, 6, "*RRA"),
+        (0x7F, "ABX", 3, 7, "*RRA"),
+        (0x7B, "ABY", 3, 7, "*RRA"),
+        (0x67, "ZP", 2, 5, "*RRA"),
+        (0x77, "ZPX", 2, 6, "*RRA"),
+        (0x63, "IIX", 2, 8, "*RRA"),
+        (0x73, "IIY", 2, 8, "*RRA"),
+        ]
+    ),
     ("SBC", [
-		(0xEB, "IMM", 2, 2, "*SBC"),
+        (0xEB, "IMM", 2, 2, "*SBC"),
         (0xE9, "IMM", 2, 2),
         (0xE5, "ZP", 2, 3),
         (0xF5, "ZPX", 2, 4),
@@ -349,79 +349,79 @@ opcodes = [
         (0x78, "IMP", 1, 2)
         ]
      ),    
-	("STA", [
-		(0x85, "ZP", 2, 3),
-		(0x95, "ZPX", 2, 4),
-		(0x8D, "ABS", 3, 4),
-		(0x9D, "ABX", 3, 5),
-		(0x99, "ABY", 3, 5),
-		(0x81, "IIX", 2, 6),
-		(0x91, "IIY", 2, 6)
-		]
-	 ),
-	("STX", [
-		(0x86, "ZP", 2, 3),
-		(0x96, "ZPY", 2, 4),
-		(0x8E, "ABS", 3, 4)
-		]
-	 ),
-	("STY", [
-		(0x84, "ZP", 2, 3),
-		(0x94, "ZPX", 2, 4),
-		(0x8C, "ABS", 3, 4)
-		]
-	 ),
-	("SAX", [
-		(0x87, "ZP", 2, 5, "*SAX"), 
-		(0x97, "ZPY", 2, 6, "*SAX"),
-		(0x83, "IIX", 2, 8, "*SAX"),
-		(0x8F, "ABS", 3, 6, "*SAX"),
-		]
-	),
-	("SLO", [
-		(0x0F, "ABS", 3, 6, "*SLO"),
-		(0x1F, "ABX", 3, 7, "*SLO"),
-		(0x1B, "ABY", 3, 7, "*SLO"),
-		(0x07, "ZP", 2, 5, "*SLO"),
-		(0x17, "ZPX", 2, 6, "*SLO"),
-		(0x03, "IIX", 2, 8, "*SLO"),
-		(0x13, "IIY", 2, 8, "*SLO"),
-		]
-	),
-	("SRE", [
-		(0x4F, "ABS", 3, 6, "*SRE"),
-		(0x5F, "ABX", 3, 7, "*SRE"),
-		(0x5B, "ABY", 3, 7, "*SRE"),
-		(0x47, "ZP", 2, 5, "*SRE"),
-		(0x57, "ZPX", 2, 6, "*SRE"),
-		(0x43, "IIX", 2, 8, "*SRE"),
-		(0x53, "IIY", 2, 8, "*SRE"),
-		]
-	),
-	("TAX", [
-		(0xAA, "IMP", 1, 2)
-		]
-	 ),
-	("TAY", [
-		(0xA8, "IMP", 1, 2)
-		]
-	 ),
-	("TSX", [
-		(0xBA, "IMP", 1, 2)
-		]
-	 ),
-	("TXA", [
-		(0x8A, "IMP", 1, 2)
-		]
-	 ),
-	("TXS", [
-		(0x9A, "IMP", 1, 2)
-		]
-	 ),
-	("TYA", [
-		(0x98, "IMP", 1, 2)
-		]
-	 ),
+    ("STA", [
+        (0x85, "ZP", 2, 3),
+        (0x95, "ZPX", 2, 4),
+        (0x8D, "ABS", 3, 4),
+        (0x9D, "ABX", 3, 5),
+        (0x99, "ABY", 3, 5),
+        (0x81, "IIX", 2, 6),
+        (0x91, "IIY", 2, 6)
+        ]
+     ),
+    ("STX", [
+        (0x86, "ZP", 2, 3),
+        (0x96, "ZPY", 2, 4),
+        (0x8E, "ABS", 3, 4)
+        ]
+     ),
+    ("STY", [
+        (0x84, "ZP", 2, 3),
+        (0x94, "ZPX", 2, 4),
+        (0x8C, "ABS", 3, 4)
+        ]
+     ),
+    ("SAX", [
+        (0x87, "ZP", 2, 5, "*SAX"), 
+        (0x97, "ZPY", 2, 6, "*SAX"),
+        (0x83, "IIX", 2, 8, "*SAX"),
+        (0x8F, "ABS", 3, 6, "*SAX"),
+        ]
+    ),
+    ("SLO", [
+        (0x0F, "ABS", 3, 6, "*SLO"),
+        (0x1F, "ABX", 3, 7, "*SLO"),
+        (0x1B, "ABY", 3, 7, "*SLO"),
+        (0x07, "ZP", 2, 5, "*SLO"),
+        (0x17, "ZPX", 2, 6, "*SLO"),
+        (0x03, "IIX", 2, 8, "*SLO"),
+        (0x13, "IIY", 2, 8, "*SLO"),
+        ]
+    ),
+    ("SRE", [
+        (0x4F, "ABS", 3, 6, "*SRE"),
+        (0x5F, "ABX", 3, 7, "*SRE"),
+        (0x5B, "ABY", 3, 7, "*SRE"),
+        (0x47, "ZP", 2, 5, "*SRE"),
+        (0x57, "ZPX", 2, 6, "*SRE"),
+        (0x43, "IIX", 2, 8, "*SRE"),
+        (0x53, "IIY", 2, 8, "*SRE"),
+        ]
+    ),
+    ("TAX", [
+        (0xAA, "IMP", 1, 2)
+        ]
+     ),
+    ("TAY", [
+        (0xA8, "IMP", 1, 2)
+        ]
+     ),
+    ("TSX", [
+        (0xBA, "IMP", 1, 2)
+        ]
+     ),
+    ("TXA", [
+        (0x8A, "IMP", 1, 2)
+        ]
+     ),
+    ("TXS", [
+        (0x9A, "IMP", 1, 2)
+        ]
+     ),
+    ("TYA", [
+        (0x98, "IMP", 1, 2)
+        ]
+     ),
 ]
 
 table = {}
@@ -432,10 +432,10 @@ for x in range(0, 256):
 
 for op in opcodes:
     for version in op[1]:
-		if len(version) == 4:
-			table[version[0]] = (op[0], version[1], version[2], version[3], op[0])
-		else:
-			table[version[0]] = (op[0], version[1], version[2], version[3], version[4])
+        if len(version) == 4:
+            table[version[0]] = (op[0], version[1], version[2], version[3], op[0])
+        else:
+            table[version[0]] = (op[0], version[1], version[2], version[3], version[4])
 
 fi.write("const InstructionPack Table[] = {\n")
 for k,v in table.iteritems():

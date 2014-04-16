@@ -6,27 +6,12 @@
 #include <array>
 #include <cstdint>
 
-#include "fmod.hpp"
-
 class CPU;
 
 class APU
 {
 private:
 	std::array<uint8_t, 0x20> mData;
-	FMOD::System* fmodSystem;
-
-	FMOD::DSP
-		*pulse0,
-		*pulse1,
-		*triangle,
-		*noise;
-
-	FMOD::Channel
-		*pulse0Channel,
-		*pulse1Channel,
-		*triangleChannel,
-		*noiseChannel;
 
 public:
 	CPU* mCPU;

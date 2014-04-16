@@ -3,6 +3,7 @@
 #include "CPU.hpp"	
 #include "VMemory.hpp"
 #include "Renderer.hpp"
+static unsigned total_cycles = 0;
 
 
 uint8_t PPU::ReadPRG(int addr)
@@ -20,6 +21,8 @@ uint8_t PPU::ReadPRG(int addr)
 		temp = mRegisters[STATUS_REG];
 		temp = (0xF0 & temp) | (0x0F & LastRegisterWrite);
 		ClearVBlank();
+		//std::cout << "Total Cycles " << total_cycles << std::endl;
+		//std::cin.get();
 		LoopyW = false;
 		return temp;
 	case OAM_ADDR_REG:
@@ -384,18 +387,17 @@ void PPU::SpriteScanline8(uint8_t priority)
 	Render::CurrentScanline = CurrentLine;
 	SpriteOnScanline = 0;
 
+	if (CurrentLine < 8)
+		return;
 
 
 	for (int i = 252; i >= 0; i -= 4)
 	{
 
-		spriteY = mPrimaryOAM[i];
+		spriteY = mPrimaryOAM[i] + 1;
 		tileIndex = mPrimaryOAM[i + 1];
 		attribute = mPrimaryOAM[i + 2];
 		spriteX = mPrimaryOAM[i + 3] + LoopyX;
-
-		if (spriteY >= 0xFE)
-			continue;
 
 		if (mPrimaryOAM[i] == 239)
 		{
@@ -518,8 +520,8 @@ void PPU::BackgroundScanline()
 		{
 			paletteIndex = 0;
 
-			paletteIndex |= (patternLow & (0x8000 >> (0))) ? 1 : 0;
-			paletteIndex |= (patternHigh & (0x8000 >> (0))) ? 2 : 0;
+			paletteIndex |= (patternLow & (0x8000 >> (LoopyX))) ? 1 : 0;
+			paletteIndex |= (patternHigh & (0x8000 >> (LoopyX))) ? 2 : 0;
 
 			if ((paletteIndex & 0x03) == 0)
 			{
@@ -559,6 +561,7 @@ void PPU::StartDMA(int addr)
 void PPU::Cycle(unsigned nCycles)
 {
 	uint16_t cc = nCycles * 3;
+	total_cycles += nCycles;
 	CurrentCycle += cc;
 
 	if (CurrentCycle >= 341)
@@ -637,19 +640,21 @@ void PPU::Cycle(unsigned nCycles)
 			}
 		}
 	}
-	else if (CurrentLine == 240)
+	else if (CurrentLine == 241)
 	{
 		if (!WaitVBlank)
 		{
 			WaitVBlank = true;
 			mRegisters[STATUS_REG] |= 0x80;
+
 			LoopyLatch = true;
 		}
 	}
-	else if (CurrentLine > 261)
+	else if (CurrentLine >= 261)
 	{
 		mRegisters[STATUS_REG] &= ~0x40;
 		mRegisters[STATUS_REG] &= ~0x20;
+		mRegisters[STATUS_REG] &= ~0x80;
 
 		///Todo latches?
 

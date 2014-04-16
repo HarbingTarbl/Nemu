@@ -32,7 +32,8 @@ int main(int argc, const char* args[])
 
 	try
 	{
-		Nemu.mCart.LoadROM("../roms/smb.nes");
+		Nemu.mCart.LoadROM("../roms/ppu_vbl_nmi/rom_singles/01-vbl_basics.nes");
+		//Nemu.mCart.LoadROM("../roms/nestest.nes");
 		Nemu.mCPU.HardReset();
 		Nemu.mPPU.Reset();
 	}

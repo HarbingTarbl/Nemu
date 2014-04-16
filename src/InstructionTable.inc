@@ -1,5 +1,5 @@
 const InstructionPack Table[] = {
-	{ IMP , BRK , 2 , 2 , "BRK" }, //0x0
+	{ IMP , BRK , 1 , 7 , "BRK" }, //0x0
 	{ IIX , ORA , 2 , 6 , "ORA" }, //0x1
 	{ NOP , NOP , 0 , 0 , "BOP" }, //0x2
 	{ IIX , SLO , 2 , 8 , "*SLO" }, //0x3
