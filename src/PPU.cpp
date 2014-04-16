@@ -93,7 +93,7 @@ uint8_t PPU::WritePRG(int addr, uint8_t value)
 		{
 			LoopyT &= ~0x1F;
 			LoopyT |= (value >> 3);
-			LoopyX = value & 0x03;
+			LoopyX = value & 0x07;
 
 			//FineScrollX = value;
 		}
@@ -477,25 +477,66 @@ void PPU::SpriteScanline8(uint8_t priority)
 
 void PPU::BackgroundScanline()
 {
-	uint16_t tileAddr = 0, attrAddr = 0;
-	uint8_t attrByte = 0, tileIndex = 0, groupIndex = 0, paletteIndex = 0;
-	uint8_t paletteHigh = 0;
-	Render::CurrentScanline = CurrentLine;
-	uint16_t patternLow, patternHigh;
-
-	uint16_t bgaddr = BackgroundAddr + CurrentLine % 8;
-
-	tileAddr = 0x2000 | (LoopyV & 0x0FFF);
-	attrAddr = 0x23C0 | (LoopyV & 0x0C00) | ((LoopyV >> 4) & 0x38) | ((LoopyV >> 2) & 0x07);
-
-	tileIndex = ReadCHR(tileAddr);
-	attrByte = ReadCHR(attrAddr);
-
-	patternLow = ReadCHR(bgaddr + tileIndex * 16) << 8;
-	patternHigh = ReadCHR(bgaddr + tileIndex * 16 + 8) << 8;
+	uint16_t 
+		ntaddress, ataddress, tileaddress, attributeadress;
+	uint8_t
+		attribute, tileindex, groupindex, paletteindex, patternlow,
+		patternhigh, palettehigh, tilex, tiley, scrollx, scrolly;
 
 	for (int tile = 0; tile < 32; tile++)
 	{
+		ntaddress = (LoopyV & 0x0C00) | 0x2000;
+		ataddress = ntaddress + 0x3C0;
+		tilex = (LoopyV & 0x1F);
+		tiley = (LoopyV >> 5) & 0x1F;
+		scrolly = (LoopyV >> 12) & 0x7;
+		scrollx = LoopyX;
+		tileaddress = ntaddress | (LoopyV & 0x03FF);
+
+		for (int p = 0; p < 8; p++)
+		{
+			tileindex = BackgroundAddr + (ReadCHR(tileaddress) << 4) + scrolly;
+			patternlow = ReadCHR(tileindex);
+			patternhigh = ReadCHR(tileindex + 8);
+
+			attributeadress = ataddress | (((((tiley * 8) + scrolly) / 32) * 8) + (((tilex * 8) + scrollx) / 32));
+			attribute = ReadCHR(attributeadress);
+
+			groupindex = (((tilex % 4) & 2) >> 1) + ((tiley % 4) & 2);
+			palettehigh = ((attribute >> (groupindex << 1)) & 0x3) << 2;
+
+			paletteindex = palettehigh;
+			paletteindex |= ((patternlow & (0x80 >> scrollx)) ? 1 : 0);
+			paletteindex |= ((patternhigh & (0x80 >> scrollx)) ? 2 : 0);
+
+			if ((paletteindex & 0x03) == 0)
+			{
+				Render::PixelOut->Color = 0xFFFF;
+			}
+			else
+			{
+				Render::PixelOut->Color = ReadCHR(0x3F00 + paletteindex);
+			}
+
+			Render::PixelOut++;
+			scrollx++;
+
+			if (scrollx >= 8)
+			{
+				scrollx = 0;
+				tileaddress++;
+				tilex++;
+
+				if ((tileaddress & 0x1F) == 0)
+				{
+					tileaddress--;
+					tilex--;
+					tileaddress &= ~0x001F;
+					tileaddress ^= 0x0400;
+				}
+			}
+		}
+
 		if ((LoopyV & 0x001F) == 31)
 		{
 			LoopyV &= ~0x001F;
@@ -505,45 +546,33 @@ void PPU::BackgroundScanline()
 		{
 			LoopyV++;
 		}
+	}
 
-		tileAddr = 0x2000 | (LoopyV & 0x0FFF);
-		attrAddr = 0x23C0 | (LoopyV & 0x0C00) | ((LoopyV >> 4) & 0x38) | ((LoopyV >> 2) & 0x07);
-
-		tileIndex = ReadCHR(tileAddr);
-		attrByte = ReadCHR(attrAddr);
-
-		patternLow |= ReadCHR(bgaddr + tileIndex * 16);
-		patternHigh |= ReadCHR(bgaddr + tileIndex * 16 + 8);
-
-
-		for (int pixel = 0; pixel < 8; pixel++)
+	//Inc Vertical
+	if ((LoopyV & 0x7000) != 0x7000)
+		LoopyV += 0x1000;
+	else
+	{
+		LoopyV &= ~0x7000;
+		uint16_t what = (LoopyV & 0x03E0) >> 5;
+		if (what == 29)
 		{
-			paletteIndex = 0;
-
-			paletteIndex |= (patternLow & (0x8000 >> (LoopyX))) ? 1 : 0;
-			paletteIndex |= (patternHigh & (0x8000 >> (LoopyX))) ? 2 : 0;
-
-			if ((paletteIndex & 0x03) == 0)
-			{
-				Render::PixelOut->Color = 0xFFFF;
-			}
-			else
-			{
-				Render::PixelOut->Color = ReadCHR(0x3F00 + paletteIndex);
-			}
-
-			Render::PixelOut++;
-
-			patternLow <<= 1;
-			patternHigh <<= 1;
+			what = 0;
+			LoopyV ^= 0x0800;
+		}
+		else if (what == 31)
+		{
+			what = 0;
+		}
+		else
+		{
+			what++;
 		}
 
-		
+		LoopyV = (LoopyV & ~0x03E0) | (what << 5);
 	}
 
 
-
-	CurrentLine = Render::CurrentScanline;
 }
 
 void PPU::StartDMA(int addr)
@@ -574,8 +603,7 @@ void PPU::Cycle(unsigned nCycles)
 	{
 		if (LoopyLatch && (MaskBits[MASK_BACKGROUND] || MaskBits[MASK_SPRITES]))
 		{
-			LoopyV &= 0x41F;
-			LoopyV |= LoopyT & 0x7BE0;
+			LoopyV = LoopyT;
 			LoopyLatch = false;
 		}
 
@@ -609,30 +637,6 @@ void PPU::Cycle(unsigned nCycles)
 
 			if (MaskBits[MASK_BACKGROUND] || MaskBits[MASK_SPRITES])
 			{
-				//Inc Vertical
-				if ((LoopyV & 0x7000) != 0x7000)
-					LoopyV += 0x1000;
-				else
-				{
-					LoopyV &= ~0x7000;
-					int what = (LoopyV & 0x03E0) >> 5;
-					if (what == 29)
-					{
-						what = 0;
-						LoopyV ^= 0x0800;
-					}
-					else if (what == 31)
-					{
-						what = 0;
-					}
-					else
-					{
-						what++;
-					}
-
-					LoopyV = (LoopyV & ~0x03E0) | (what << 5);
-				}
-
 				//Copy Horizontal
 				LoopyV &= 0x7BE0;
 				LoopyV |= (LoopyT & 0x41F);
