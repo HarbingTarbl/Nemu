@@ -481,6 +481,7 @@ void PPU::BackgroundScanline()
 	uint16_t tileAddr = 0, attrAddr = 0;
 	uint8_t tileIndex = 0, groupIndex = 0, paletteIndex = 0;
 	uint8_t paletteHigh = 0;
+	uint8_t attributeByte;
 	Render::CurrentScanline = CurrentLine;
 	uint16_t patternLow, patternHigh, attribute;
 
@@ -491,7 +492,16 @@ void PPU::BackgroundScanline()
 
 	tileIndex = ReadCHR(tileAddr);
 
-	attribute = ReadCHR(attrAddr) << 8;
+	switch ((CurrentLine >> 4) & 0x1)
+	{
+	case 0:
+		attributeByte = (ReadCHR(attrAddr) & 0xF0);
+		break;
+	case 1:
+		attributeByte = (ReadCHR(attrAddr) << 4);
+		break;
+	}
+
 	patternLow = ReadCHR(bgaddr + tileIndex * 16) << 8;
 	patternHigh = ReadCHR(bgaddr + tileIndex * 16 + 8) << 8;
 
@@ -510,16 +520,34 @@ void PPU::BackgroundScanline()
 		tileAddr = 0x2000 | (LoopyV & 0x0FFF);
 		attrAddr = 0x23C0 | (LoopyV & 0x0C00) | ((LoopyV >> 4) & 0x38) | ((LoopyV >> 2) & 0x07);
 
+		switch ((CurrentLine >> 4) & 0x1)
+		{
+		case 0:
+			attributeByte |= (ReadCHR((attrAddr) & ~0x08) >> 4);
+			break;
+		case 1:
+			attributeByte |= (ReadCHR((attrAddr) & ~0x08) & 0x0F);
+			break;
+		}
+
 		tileIndex = ReadCHR(tileAddr);
 
-		attribute |= ReadCHR(attrAddr);
+		
 		patternLow |= ReadCHR(bgaddr + tileIndex * 16);
 		patternHigh |= ReadCHR(bgaddr + tileIndex * 16 + 8);
 
 
 		for (int pixel = 0; pixel < 8; pixel++)
 		{
-			paletteIndex = paletteHigh;
+			if ((tile & 1) && ((LoopyX + pixel) > 8))
+			{
+				paletteIndex = (attributeByte & 0x30) >> 2;
+			}
+			else
+			{
+				paletteIndex = (attributeByte & 0xC0) >> 4;
+			}
+
 			paletteIndex |= (patternLow & (0x8000 >> (LoopyX))) ? 1 : 0;
 			paletteIndex |= (patternHigh & (0x8000 >> (LoopyX))) ? 2 : 0;
 
@@ -538,6 +566,8 @@ void PPU::BackgroundScanline()
 			patternHigh <<= 1;
 		}
 
+		if ((tile & 3) == 3)
+			attribute <<= 4;
 		
 	}
 
