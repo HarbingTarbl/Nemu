@@ -90,7 +90,7 @@ uint8_t PPU::WritePRG(int addr, uint8_t value)
 		{
 			LoopyT &= ~0x1F;
 			LoopyT |= (value >> 3);
-			LoopyX = value & 0x03;
+			LoopyX = value & 0x07;
 
 			//FineScrollX = value;
 		}
@@ -384,7 +384,8 @@ void PPU::SpriteScanline8(uint8_t priority)
 	Render::CurrentScanline = CurrentLine;
 	SpriteOnScanline = 0;
 
-
+	if (CurrentLine < 8)
+		return;
 
 	for (int i = 252; i >= 0; i -= 4)
 	{
@@ -392,10 +393,12 @@ void PPU::SpriteScanline8(uint8_t priority)
 		spriteY = mPrimaryOAM[i];
 		tileIndex = mPrimaryOAM[i + 1];
 		attribute = mPrimaryOAM[i + 2];
-		spriteX = mPrimaryOAM[i + 3] + LoopyX;
+		spriteX = mPrimaryOAM[i + 3];
 
 		if (spriteY >= 0xFE)
 			continue;
+
+		spriteY++;
 
 		if (mPrimaryOAM[i] == 239)
 		{
@@ -476,10 +479,10 @@ void PPU::SpriteScanline8(uint8_t priority)
 void PPU::BackgroundScanline()
 {
 	uint16_t tileAddr = 0, attrAddr = 0;
-	uint8_t attrByte = 0, tileIndex = 0, groupIndex = 0, paletteIndex = 0;
+	uint8_t tileIndex = 0, groupIndex = 0, paletteIndex = 0;
 	uint8_t paletteHigh = 0;
 	Render::CurrentScanline = CurrentLine;
-	uint16_t patternLow, patternHigh;
+	uint16_t patternLow, patternHigh, attribute;
 
 	uint16_t bgaddr = BackgroundAddr + CurrentLine % 8;
 
@@ -487,8 +490,8 @@ void PPU::BackgroundScanline()
 	attrAddr = 0x23C0 | (LoopyV & 0x0C00) | ((LoopyV >> 4) & 0x38) | ((LoopyV >> 2) & 0x07);
 
 	tileIndex = ReadCHR(tileAddr);
-	attrByte = ReadCHR(attrAddr);
 
+	attribute = ReadCHR(attrAddr) << 8;
 	patternLow = ReadCHR(bgaddr + tileIndex * 16) << 8;
 	patternHigh = ReadCHR(bgaddr + tileIndex * 16 + 8) << 8;
 
@@ -508,18 +511,17 @@ void PPU::BackgroundScanline()
 		attrAddr = 0x23C0 | (LoopyV & 0x0C00) | ((LoopyV >> 4) & 0x38) | ((LoopyV >> 2) & 0x07);
 
 		tileIndex = ReadCHR(tileAddr);
-		attrByte = ReadCHR(attrAddr);
 
+		attribute |= ReadCHR(attrAddr);
 		patternLow |= ReadCHR(bgaddr + tileIndex * 16);
 		patternHigh |= ReadCHR(bgaddr + tileIndex * 16 + 8);
 
 
 		for (int pixel = 0; pixel < 8; pixel++)
 		{
-			paletteIndex = 0;
-
-			paletteIndex |= (patternLow & (0x8000 >> (0))) ? 1 : 0;
-			paletteIndex |= (patternHigh & (0x8000 >> (0))) ? 2 : 0;
+			paletteIndex = paletteHigh;
+			paletteIndex |= (patternLow & (0x8000 >> (LoopyX))) ? 1 : 0;
+			paletteIndex |= (patternHigh & (0x8000 >> (LoopyX))) ? 2 : 0;
 
 			if ((paletteIndex & 0x03) == 0)
 			{

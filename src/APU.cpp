@@ -7,18 +7,7 @@
 
 APU::APU()
 {
-	FMOD::System_Create(&fmodSystem);
-	fmodSystem->init(32, FMOD_INIT_NORMAL, 0);
 
-	fmodSystem->createDSPByType(FMOD_DSP_TYPE_OSCILLATOR, &pulse0);
-	fmodSystem->createDSPByType(FMOD_DSP_TYPE_OSCILLATOR, &pulse1);
-	fmodSystem->createDSPByType(FMOD_DSP_TYPE_OSCILLATOR, &triangle);
-	fmodSystem->createDSPByType(FMOD_DSP_TYPE_OSCILLATOR, &noise);
-
-	fmodSystem->playDSP(pulse0, nullptr, true, &pulse0Channel);
-	fmodSystem->playDSP(pulse1, nullptr, true, &pulse1Channel);
-	fmodSystem->playDSP(triangle, nullptr, true, &triangleChannel);
-	fmodSystem->playDSP(noise, nullptr, true, &noiseChannel);
 }
 
 uint8_t APU::Write(int addr, uint8_t value)
