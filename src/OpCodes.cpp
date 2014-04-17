@@ -54,19 +54,40 @@ namespace InstructionTable
 	void BCC(CPU& cpu)
 	{
 		if (!cpu.CarryFlag)
+		{
+			if ((cpu.PC & 0xFF00) != (cpu.Addr & 0xFF00))
+				cpu.CycleOffset += 2;
+			else
+				cpu.CycleOffset += 1;
+
 			cpu.PC = cpu.Addr & 0xFFFF;
+		}
 	}
 
 	void BCS(CPU& cpu)
 	{
 		if (cpu.CarryFlag)
+		{
+			if ((cpu.PC & 0xFF00) != (cpu.Addr & 0xFF00))
+				cpu.CycleOffset += 2;
+			else
+				cpu.CycleOffset += 1;
+
 			cpu.PC = cpu.Addr & 0xFFFF;
+		}
 	}
 
 	void BEQ(CPU& cpu)
 	{
 		if (cpu.ZeroFlag)
+		{
+			if ((cpu.PC & 0xFF00) != (cpu.Addr & 0xFF00))
+				cpu.CycleOffset += 2;
+			else
+				cpu.CycleOffset += 1;
+
 			cpu.PC = cpu.Addr & 0xFFFF;
+		}
 	}
 
 	void BIT(CPU& cpu)
@@ -83,19 +104,40 @@ namespace InstructionTable
 	void BMI(CPU& cpu)
 	{
 		if (cpu.SignFlag)
+		{
+			if ((cpu.PC & 0xFF00) != (cpu.Addr & 0xFF00))
+				cpu.CycleOffset += 2;
+			else
+				cpu.CycleOffset += 1;
+
 			cpu.PC = cpu.Addr & 0xFFFF;
+		}
 	}
 
 	void BNE(CPU& cpu)
 	{
 		if (!cpu.ZeroFlag)
+		{
+			if ((cpu.PC & 0xFF00) != (cpu.Addr & 0xFF00))
+				cpu.CycleOffset += 2;
+			else
+				cpu.CycleOffset += 1;
+
 			cpu.PC = cpu.Addr & 0xFFFF;
+		}
 	}
 
 	void BPL(CPU& cpu)
 	{
 		if (!cpu.SignFlag)
+		{
+			if ((cpu.PC & 0xFF00) != (cpu.Addr & 0xFF00))
+				cpu.CycleOffset += 2;
+			else
+				cpu.CycleOffset += 1;
+
 			cpu.PC = cpu.Addr & 0xFFFF;
+		}
 	}
 
 	void BRK(CPU& cpu)
@@ -106,13 +148,27 @@ namespace InstructionTable
 	void BVC(CPU& cpu)
 	{
 		if (!cpu.OverflowFlag)
+		{
+			if ((cpu.PC & 0xFF00) != (cpu.Addr & 0xFF00))
+				cpu.CycleOffset += 2;
+			else
+				cpu.CycleOffset += 1;
+
 			cpu.PC = cpu.Addr & 0xFFFF;
+		}
 	}
 
 	void BVS(CPU& cpu)
 	{
 		if (cpu.OverflowFlag)
+		{
+			if ((cpu.PC & 0xFF00) != (cpu.Addr & 0xFF00))
+				cpu.CycleOffset += 2;
+			else
+				cpu.CycleOffset += 1;
+
 			cpu.PC = cpu.Addr & 0xFFFF;
+		}
 	}
 
 
@@ -525,13 +581,25 @@ namespace AddressingModes
 
 	void ABX(CPU& cpu)
 	{
-		cpu.Addr = (cpu.X + (cpu.Memory->ReadPRG(cpu.PC) | cpu.Memory->ReadPRG(cpu.PC + 1) << 8));
+		unsigned l = cpu.X;
+		unsigned r = ((cpu.Memory->ReadPRG(cpu.PC) | cpu.Memory->ReadPRG(cpu.PC + 1) << 8));
+		unsigned a = l + r;
+		if ((a & 0xFF00) != (l & 0xFF00))
+			cpu.CycleOffset++;
+
+		cpu.Addr = a;
 		cpu.PC += 2;
 	}
 
 	void ABY(CPU& cpu)
 	{
-		cpu.Addr = (cpu.Y + (cpu.Memory->ReadPRG(cpu.PC) | cpu.Memory->ReadPRG(cpu.PC + 1) << 8));
+		unsigned l = cpu.Y;
+		unsigned r = ((cpu.Memory->ReadPRG(cpu.PC) | cpu.Memory->ReadPRG(cpu.PC + 1) << 8));
+		unsigned a = l + r;
+		if ((a & 0xFF00) != (l & 0xFF00))
+			cpu.CycleOffset++;
+
+		cpu.Addr = a;
 		cpu.PC += 2;
 	}
 
@@ -581,9 +649,16 @@ namespace AddressingModes
 
 	void IIY(CPU& cpu)
 	{
-		cpu.Addr = cpu.Memory->ReadPRG(cpu.PC);
-		cpu.Addr = (cpu.Memory->ReadPRG(cpu.Addr & 0xFF) | cpu.Memory->ReadPRG((cpu.Addr + 1) & 0xFF) << 8);
-		cpu.Addr += cpu.Y;
+		unsigned l;
+
+		l = cpu.Memory->ReadPRG(cpu.PC);
+		l = (cpu.Memory->ReadPRG(l & 0xFF) | cpu.Memory->ReadPRG((l + 1) & 0xFF) << 8);
+		unsigned r = cpu.Y;
+		unsigned a = r + l;
+		if ((a & 0xFF00) != (l & 0xFF00))
+			cpu.CycleOffset++;
+
+		cpu.Addr = a;
 		cpu.PC += 1;
 	}
 
