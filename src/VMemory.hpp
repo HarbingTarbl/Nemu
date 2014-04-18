@@ -3,15 +3,7 @@
 #ifndef _VMEM_H
 #define _VMEM_H
 
-#include <algorithm>
-#include <array>
-#include <limits>
 #include <cstdint>
-#include <iostream>
-#include <fstream>
-#include <iomanip>
-#include <map>
-#include <functional>
 
 
 class CPU;
