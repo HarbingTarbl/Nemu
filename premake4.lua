@@ -1,7 +1,6 @@
 solution "Nemu"
 	location "build"
-	debugdir "working"
-	buildoptions "-std=c++11"
+
 	configurations {"Debug", "Release"}
 	
 	project "Nemu"
@@ -11,15 +10,19 @@ solution "Nemu"
 		includedirs {"includes"}
 		libdirs {"libs"}
 		
+		buildoptions "-std=c++11"
+		
 		objdir "bin/obj"
 		targetdir "bin"
 
 		configuration "windows"
 			defines "WIN32"
+			debugdir "working"
 			links { "glfw3", "opengl32", "glu32" }
 
 		configuration "linux"
 			defines "LINUX"
+			links { "X11", "glfw3", "opengl32", "glu32" }
 			
 		configuration "Debug"
 			targetsuffix "D"

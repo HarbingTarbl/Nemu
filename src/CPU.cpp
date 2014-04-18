@@ -16,7 +16,6 @@ CPU::CPU()
 	State(CPU_STATE_STARTUP)
 {
 	AwaitingNMI = false;
-	logFile.open("cpu.log", logFile.out);
 }
 
 void CPU::DumpRegisters()

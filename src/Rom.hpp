@@ -76,7 +76,7 @@ public:
 		return CHRPages;
 	}
 
-	Mirroring Mirroring() const ///HACK 4 Screen VRAM
+	Mirroring GetMirroring() const ///HACK 4 Screen VRAM
 	{
 		return (Flags6 & 0x01) ? Mirroring::Vertical : Mirroring::Horizontal;
 	}

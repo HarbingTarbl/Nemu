@@ -111,7 +111,7 @@ public:
 	std::unique_ptr<MMC> CurrentMMC;
 	std::string Name;
 
-	Mirroring Mirroring;
+	Mirroring VMirroring;
 
 	uint8_t ReadPRG(int addr)
 	{
@@ -136,7 +136,7 @@ public:
 	void LoadROM(const string& filename)
 	{
 		RomInfo info = RomInfo::FromFile(filename);
-		Mirroring = info.Mirroring();
+		VMirroring = info.GetMirroring();
 		switch(info.MapperID())
 		{
 		case 0:

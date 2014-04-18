@@ -157,7 +157,7 @@ uint8_t PPU::ReadCHR(int addr)
 		addr &= 0x0EFF;
 	}
 
-	switch (Memory->mCart->Mirroring)
+	switch (Memory->mCart->VMirroring)
 	{
 	case Mirroring::Vertical:
 		if (addr >= 0x2C00 && addr <= 0x2FFF) //Todo nametable mirroring
@@ -248,7 +248,7 @@ uint8_t PPU::WriteCHR(int addr, uint8_t value)
 		addr &= 0x0EFF;
 	}
 
-	switch (Memory->mCart->Mirroring)
+	switch (Memory->mCart->VMirroring)
 	{
 	case Mirroring::Vertical:
 		if (addr >= 0x2C00 && addr <= 0x2FFF) //Todo nametable mirroring
@@ -477,8 +477,6 @@ void PPU::SpriteScanline8(uint8_t priority)
 
 void PPU::BackgroundScanline()
 {
-	static char totallyNotBad[32];
-
 	uint16_t tileAddr = 0, attrAddr = 0, oldAttrAddr = 0;
 	uint8_t attrByte = 0, tileIndex = 0, groupIndex = 0, paletteIndex = 0;
 	uint8_t paletteHigh = 0;
@@ -526,15 +524,10 @@ void PPU::BackgroundScanline()
 		{
 
 			oldAttrAddr = attrAddr;
-			//itoa(attrByte, totallyNotBad, 2);
-			//printf("%d %d %s ", (int)tileX, (int)tileY, totallyNotBad);
 			if (((CurrentLine / 16) % 2) == 0)
 				attrByte |= (ReadCHR(attrAddr) << 4); 
 			else
 				attrByte |= (ReadCHR(attrAddr) & 0xF0);
-			//itoa(attrByte, totallyNotBad, 2);
-			//printf("%s \n", totallyNotBad);
-			//getc(stdin);
 		}
 
 		patternLow |= ReadCHR(bgaddr + tileIndex * 16);

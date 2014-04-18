@@ -33,8 +33,6 @@ public:
 	int DMAAddr, DMACount;
 	int AllocatedCycles;
 
-	std::fstream logFile;
-
 	enum
 	{
 		CPU_STATE_STARTUP,
