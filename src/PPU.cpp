@@ -90,7 +90,7 @@ uint8_t PPU::WritePRG(int addr, uint8_t value)
 		{
 			LoopyT &= ~0x1F;
 			LoopyT |= (value >> 3);
-			LoopyX = value & 0x03;
+			LoopyX = value & 0x07;
 
 			//FineScrollX = value;
 		}
@@ -376,23 +376,25 @@ void PPU::DumpVRAM()
 	}
 }
 
+
+static bool raiseZeroHit = false;
 void PPU::SpriteScanline8(uint8_t priority)
 {
 	uint16_t ptAddr;
 	uint8_t patternLow, patternHigh, paletteHigh, paletteIndex;
 	uint8_t inRange, spriteX, spriteY, tileIndex, attribute;
-	Render::CurrentScanline = CurrentLine;
 	SpriteOnScanline = 0;
 
-
+	if (CurrentLine < 8)
+		return;
 
 	for (int i = 252; i >= 0; i -= 4)
 	{
 
-		spriteY = mPrimaryOAM[i];
+		spriteY = mPrimaryOAM[i] + 1;
 		tileIndex = mPrimaryOAM[i + 1];
 		attribute = mPrimaryOAM[i + 2];
-		spriteX = mPrimaryOAM[i + 3] + LoopyX;
+		spriteX = mPrimaryOAM[i + 3];
 
 		if (spriteY >= 0xFE)
 			continue;
@@ -451,14 +453,15 @@ void PPU::SpriteScanline8(uint8_t priority)
 				}
 				else
 				{
+
 					if ((i == 0 &&
 						MaskBits[MASK_BACKGROUND] &&
 						MaskBits[MASK_SPRITES]))
 					{
 						if (Render::BasePixel[spriteX + p + CurrentLine * 256].Color != 0xFFFF)
 						{
+							raiseZeroHit = true;
 							//Set Zero Hit
-							mRegisters[STATUS_REG] |= 0x40;
 						}
 					}
 
@@ -468,14 +471,15 @@ void PPU::SpriteScanline8(uint8_t priority)
 		}
 	}
 
-	CurrentLine = Render::CurrentScanline;
 
 }
 
 
 void PPU::BackgroundScanline()
 {
-	uint16_t tileAddr = 0, attrAddr = 0;
+	static char totallyNotBad[32];
+
+	uint16_t tileAddr = 0, attrAddr = 0, oldAttrAddr = 0;
 	uint8_t attrByte = 0, tileIndex = 0, groupIndex = 0, paletteIndex = 0;
 	uint8_t paletteHigh = 0;
 	Render::CurrentScanline = CurrentLine;
@@ -486,8 +490,17 @@ void PPU::BackgroundScanline()
 	tileAddr = 0x2000 | (LoopyV & 0x0FFF);
 	attrAddr = 0x23C0 | (LoopyV & 0x0C00) | ((LoopyV >> 4) & 0x38) | ((LoopyV >> 2) & 0x07);
 
+	uint8_t tileX = tileAddr & 0x1F;
+	uint8_t tileY = (tileAddr >> 5) & 0x1F;
+
 	tileIndex = ReadCHR(tileAddr);
-	attrByte = ReadCHR(attrAddr);
+
+	if (((CurrentLine / 16) % 2) == 0)
+		attrByte = ReadCHR(attrAddr) & 0x0F;
+	else
+		attrByte = ReadCHR(attrAddr) >> 4;
+
+	oldAttrAddr = attrAddr;
 
 	patternLow = ReadCHR(bgaddr + tileIndex * 16) << 8;
 	patternHigh = ReadCHR(bgaddr + tileIndex * 16 + 8) << 8;
@@ -508,18 +521,32 @@ void PPU::BackgroundScanline()
 		attrAddr = 0x23C0 | (LoopyV & 0x0C00) | ((LoopyV >> 4) & 0x38) | ((LoopyV >> 2) & 0x07);
 
 		tileIndex = ReadCHR(tileAddr);
-		attrByte = ReadCHR(attrAddr);
+
+		if (oldAttrAddr != attrAddr)//Prefetch NEXT tile
+		{
+
+			oldAttrAddr = attrAddr;
+			//itoa(attrByte, totallyNotBad, 2);
+			//printf("%d %d %s ", (int)tileX, (int)tileY, totallyNotBad);
+			if (((CurrentLine / 16) % 2) == 0)
+				attrByte |= (ReadCHR(attrAddr) << 4); 
+			else
+				attrByte |= (ReadCHR(attrAddr) & 0xF0);
+			//itoa(attrByte, totallyNotBad, 2);
+			//printf("%s \n", totallyNotBad);
+			//getc(stdin);
+		}
 
 		patternLow |= ReadCHR(bgaddr + tileIndex * 16);
 		patternHigh |= ReadCHR(bgaddr + tileIndex * 16 + 8);
-
-
 		for (int pixel = 0; pixel < 8; pixel++)
 		{
-			paletteIndex = 0;
+			uint8_t group = ((((tileX % 4) + ((LoopyX + pixel) / 8)) >> 1) << 1);
+			
+			paletteIndex = (((attrByte >> group) & 0x3) << 2);
 
-			paletteIndex |= (patternLow & (0x8000 >> (0))) ? 1 : 0;
-			paletteIndex |= (patternHigh & (0x8000 >> (0))) ? 2 : 0;
+			paletteIndex |= (patternLow & (0x8000 >> (LoopyX))) ? 1 : 0;
+			paletteIndex |= (patternHigh & (0x8000 >> (LoopyX))) ? 2 : 0;
 
 			if ((paletteIndex & 0x03) == 0)
 			{
@@ -536,7 +563,12 @@ void PPU::BackgroundScanline()
 			patternHigh <<= 1;
 		}
 
-		
+		tileX = tileAddr & 0x1F;
+		tileY = (tileAddr >> 5) & 0x1F;
+
+		if (tileX % 4 == 0)
+			attrByte >>= 4;
+
 	}
 
 
@@ -552,8 +584,10 @@ void PPU::StartDMA(int addr)
 		mPrimaryOAM[(spriteAddr + i) & 0xFF] = Memory->ReadPRG(addr * 0x100 + i);
 	}
 
-	CurrentCycle += 512 * 3;
-
+	for (int i = 0; i < 512; i++)
+	{
+		Cycle(1);
+	}
 }
 
 void PPU::Cycle(unsigned nCycles)
@@ -566,6 +600,8 @@ void PPU::Cycle(unsigned nCycles)
 		CurrentLine += CurrentCycle / 341;
 		CurrentCycle = CurrentCycle % 341;
 	}
+
+
 
 	if (CurrentLine >= 0 && CurrentLine <= 239)
 	{
@@ -585,6 +621,12 @@ void PPU::Cycle(unsigned nCycles)
 			if (MaskBits[MASK_SPRITES])
 			{
 				SpriteScanline8(0x20);
+			}
+
+			if (raiseZeroHit)
+			{
+				mRegisters[STATUS_REG] |= 0x40;
+				raiseZeroHit = false;
 			}
 
 			if (MaskBits[MASK_BACKGROUND])
@@ -633,7 +675,6 @@ void PPU::Cycle(unsigned nCycles)
 				//Copy Horizontal
 				LoopyV &= 0x7BE0;
 				LoopyV |= (LoopyT & 0x41F);
-
 			}
 		}
 	}
@@ -652,7 +693,7 @@ void PPU::Cycle(unsigned nCycles)
 		mRegisters[STATUS_REG] &= ~0x20;
 
 		///Todo latches?
-
+		mRegisters[STATUS_REG] &= ~0x80;
 		CurrentLine = LastLine = -1;
 		NMIGenerated = false;
 		LoopyW = false;

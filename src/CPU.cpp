@@ -51,7 +51,7 @@ void CPU::Execute()
 	DumpRegisters();
 	//Something something cycle timings
 	Instruction->Exec(*this);
-	CurrentCyle += Instruction->Cycles;
+	CurrentCyle += Instruction->Cycles + CycleOffset;
 }
 
 uint8_t CPU::Read(int addr)
