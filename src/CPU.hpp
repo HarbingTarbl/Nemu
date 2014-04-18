@@ -6,7 +6,6 @@
 #include <cstdint>
 #include <array>
 #include <deque>
-#include <fstream>
 
 class VMemory;
 
