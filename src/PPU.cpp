@@ -483,7 +483,7 @@ void PPU::BackgroundScanline()
 	uint8_t paletteHigh = 0;
 	uint8_t attributeByte;
 	Render::CurrentScanline = CurrentLine;
-	uint16_t patternLow, patternHigh, attribute;
+	uint16_t patternLow, patternHigh;
 
 	uint16_t bgaddr = BackgroundAddr + CurrentLine % 8;
 
@@ -492,14 +492,13 @@ void PPU::BackgroundScanline()
 
 	tileIndex = ReadCHR(tileAddr);
 
-	switch ((CurrentLine >> 4) & 0x1)
+	if ((CurrentLine >> 4) & 1)
 	{
-	case 0:
-		attributeByte = (ReadCHR(attrAddr) & 0xF0);
-		break;
-	case 1:
 		attributeByte = (ReadCHR(attrAddr) << 4);
-		break;
+	}
+	else
+	{
+		attributeByte = (ReadCHR(attrAddr) & 0xF0);
 	}
 
 	patternLow = ReadCHR(bgaddr + tileIndex * 16) << 8;
@@ -520,33 +519,32 @@ void PPU::BackgroundScanline()
 		tileAddr = 0x2000 | (LoopyV & 0x0FFF);
 		attrAddr = 0x23C0 | (LoopyV & 0x0C00) | ((LoopyV >> 4) & 0x38) | ((LoopyV >> 2) & 0x07);
 
-		switch ((CurrentLine >> 4) & 0x1)
+		uint8_t tileX = LoopyV & 0x1F;
+		uint8_t tileY = (LoopyV >> 5) & 0x1F;
+
+		if (tileX % 2 == 2)
 		{
-		case 0:
-			attributeByte |= (ReadCHR((attrAddr) & ~0x08) >> 4);
-			break;
-		case 1:
-			attributeByte |= (ReadCHR((attrAddr) & ~0x08) & 0x0F);
-			break;
+			if ((CurrentLine >> 4) & 1)
+			{
+				attributeByte |= (ReadCHR(attrAddr + 1) & 0x0F);
+			}
+			else
+			{
+				attributeByte |= (ReadCHR(attrAddr + 1) >> 4);
+			}
 		}
 
 		tileIndex = ReadCHR(tileAddr);
 
-		
 		patternLow |= ReadCHR(bgaddr + tileIndex * 16);
 		patternHigh |= ReadCHR(bgaddr + tileIndex * 16 + 8);
 
 
 		for (int pixel = 0; pixel < 8; pixel++)
 		{
-			if ((tile & 1) && ((LoopyX + pixel) > 8))
-			{
-				paletteIndex = (attributeByte & 0x30) >> 2;
-			}
-			else
-			{
-				paletteIndex = (attributeByte & 0xC0) >> 4;
-			}
+			uint8_t selector = (((LoopyX + pixel) >> 3) & (tileX % 2)) << 1;
+
+
 
 			paletteIndex |= (patternLow & (0x8000 >> (LoopyX))) ? 1 : 0;
 			paletteIndex |= (patternHigh & (0x8000 >> (LoopyX))) ? 2 : 0;
@@ -566,8 +564,8 @@ void PPU::BackgroundScanline()
 			patternHigh <<= 1;
 		}
 
-		if ((tile & 3) == 3)
-			attribute <<= 4;
+		if ((tile & 2) == 1)
+			attributeByte <<= 2;
 		
 	}
 
