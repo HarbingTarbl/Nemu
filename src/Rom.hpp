@@ -4,6 +4,7 @@
 #define _ROM_H
 
 #include <string>
+#include <iostream>
 #include <fstream>
 
 enum class Mirroring
