@@ -32,8 +32,8 @@ public:
 
 	MMC0128(RomInfo& info)
 	{
-		info.file.read((char*)PRGROM.data(), 0x4000);
-		info.file.read((char*)CHRROM.data(), 0x2000);
+		info.file->read((char*)PRGROM.data(), 0x4000);
+		info.file->read((char*)CHRROM.data(), 0x2000);
 	}
 
 	uint8_t WritePRG(int addr, uint8_t value)
@@ -74,8 +74,8 @@ public:
 
 	MMC0256(RomInfo& info)
 	{
-		info.file.read((char*)PRGROM.data(), 0x8000);
-		info.file.read((char*)CHRROM.data(), 0x2000);
+		info.file->read((char*)PRGROM.data(), 0x8000);
+		info.file->read((char*)CHRROM.data(), 0x2000);
 	}
 
 	uint8_t WritePRG(int addr, uint8_t value)

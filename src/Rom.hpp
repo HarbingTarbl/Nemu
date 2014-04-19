@@ -6,6 +6,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <memory>
 
 enum class Mirroring
 {
@@ -54,7 +55,7 @@ public:
 
 
 	string filename;
-	std::fstream file;
+	std::unique_ptr<std::fstream> file;
 
 
 
@@ -90,13 +91,13 @@ public:
 	static RomInfo FromFile(const string& name)
 	{
 		using std::fstream;
-		fstream file(name, fstream::in | fstream::binary);
+		auto file = std::unique_ptr<std::fstream>(new std::fstream(name, fstream::in | fstream::binary));
 		RomInfo info;
-		file.read(info.___, 4);
+		file->read(info.___, 4);
 		if(!info.IsRom())
 			throw std::logic_error("Must load a ROM");
 		else
-			file.read(info.___ + 4, 12);
+			file->read(info.___ + 4, 12);
 
 		info.filename = name;
 		info.file = std::move(file);
