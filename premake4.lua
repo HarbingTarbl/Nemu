@@ -17,12 +17,11 @@ solution "Nemu"
 
 		configuration "windows"
 			defines "WIN32"
-			debugdir "working"
-			links { "glfw3", "opengl32", "glu32" }
+			links { "glfw3", "gdi32", "glu32" }
 
 		configuration "linux"
 			defines "LINUX"
-			links { "X11", "glfw3", "opengl32", "glu32" }
+			links { "GL", "GLU", "glfw3", "X11", "Xxf86vm", "Xrandr", "pthread", "Xi", "m" }
 			
 		configuration "Debug"
 			targetsuffix "D"

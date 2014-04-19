@@ -364,7 +364,7 @@ void PPU::DumpVRAM()
 {
 	using namespace std;
 	FILE* f;
-	if (!fopen_s(&f, "VRAM-Dump.log", "w"))
+	if ((f = fopen("VRAM-Dump.log", "w")) != nullptr)
 	{
 		for (int i = 0; i < 0x4000; i++)
 		{

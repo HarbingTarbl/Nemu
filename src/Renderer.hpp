@@ -80,7 +80,7 @@ public:
 
 	static int ControllerStatus()
 	{
-#define BUTTON( mx ) case (unsigned)ButtonState::##mx: return glfwGetKey(window, ((int)ButtonTranslate::##mx))
+#define BUTTON( mx ) case (unsigned)ButtonState::mx: return glfwGetKey(window, ((int)ButtonTranslate::mx))
 		
 		switch (ControllerStrobe++)
 		{
