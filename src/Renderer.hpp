@@ -3,9 +3,16 @@
 #ifndef _RENDERER_H_
 #define _RENDERER_H_
 
+
 #define GLFW_INCLUDE_NONE
 #include "gl_core_3_3.hpp"
 #include <GLFW/glfw3.h>
+
+#ifdef _WIN32
+#pragma comment(lib, "XInput9_1_0.lib")
+#include <XInput.h>
+#endif
+
 #include <cstdint>
 #include <iostream>
 #include <fstream>
@@ -80,6 +87,34 @@ public:
 
 	static int ControllerStatus()
 	{
+#ifdef _WIN32
+		XINPUT_STATE state{ 0 };
+
+		if (XInputGetState(0, &state) == ERROR_SUCCESS)
+		{
+			switch ((ButtonState)ControllerStrobe++)
+			{
+			case ButtonState::A:
+				return (state.Gamepad.wButtons & XINPUT_GAMEPAD_A) != 0;
+			case ButtonState::B:
+				return (state.Gamepad.wButtons & XINPUT_GAMEPAD_B) != 0;
+			case ButtonState::SELECT:
+				return (state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) != 0;
+			case ButtonState::START:
+				return (state.Gamepad.wButtons & XINPUT_GAMEPAD_START) != 0;
+			case ButtonState::UP:
+				return (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP) != 0;
+			case ButtonState::DOWN:
+				return (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN) != 0;
+			case ButtonState::LEFT:
+				return (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT) != 0;
+			case ButtonState::RIGHT:
+				return (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) != 0;
+			}
+		}
+#endif
+
+
 #define BUTTON( mx ) case (unsigned)ButtonState::mx: return glfwGetKey(window, ((int)ButtonTranslate::mx))
 		
 		switch (ControllerStrobe++)
