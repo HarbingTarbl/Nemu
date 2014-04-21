@@ -27,7 +27,7 @@ solution "Nemu"
 		configuration "macosx"
 			defines "OSX"
 			links { "glfw3" }
-			linkoptions { "-framework Carbon -framework OpenGL -framework CoreVideo" }
+			linkoptions { "-framework Cocoa -framework OpenGL -framework CoreVideo -framework AGL" }
 			
 		configuration "Debug"
 			targetsuffix "D"
