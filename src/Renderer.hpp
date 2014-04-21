@@ -139,13 +139,22 @@ public:
 		if (!window)
 		{
 			CurrentFrame = 0;
-			glfwInit();
+			if(!glfwInit())
+				throw runtime_error("Unable to initalize GLFW3");
 
+			glfwDefaultWindowHints();
 			glfwWindowHint(GLFW_RESIZABLE, false);
-			//glfwWindowHint(GLFW_DECORATED, false);
-
+			glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+			glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, 0);
+			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_ANY_PROFILE);
+			
 
 			window = glfwCreateWindow(windowWidth, windowHeight, "NES Emulator", nullptr, nullptr);
+			if(!window)
+				throw runtime_error("Unable to create window");
+				
 			glfwMakeContextCurrent(window);
 			gl::sys::LoadFunctions();
 			cout << "Initalized " << gl::sys::GetMajorVersion() << "." << gl::sys::GetMinorVersion() << endl;
