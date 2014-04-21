@@ -20,8 +20,9 @@ solution "Nemu"
 			links { "glfw3", "opengl32", "glu32" }
 
 		configuration "linux"
+			postbuildcommands { "cp $@ ../working/Nemu" }
 			defines "LINUX"
-			links { "GL", "GLU", "glfw3", "X11", "Xxf86vm", "Xrandr", "pthread", "Xi", "m" }
+			links { "GL", "GLU", "glfw3", "X11", "Xxf86vm", "Xrandr", "Xcursor", "pthread", "Xi", "m" }
 			
 		configuration "macosx"
 			defines "OSX"
