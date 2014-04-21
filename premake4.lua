@@ -1,7 +1,6 @@
 solution "Nemu"
-	location "build"
-
 	configurations {"Debug", "Release"}
+	location ("build/" .. apr.platform_get())
 	
 	project "Nemu"
 		kind "ConsoleApp"
@@ -16,6 +15,7 @@ solution "Nemu"
 		targetdir "bin"
 
 		configuration "windows"
+			
 			defines "WIN32"
 			links { "glfw3", "gdi32", "glu32" }
 
