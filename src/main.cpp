@@ -32,7 +32,13 @@ int main(int argc, const char* args[])
 
 	try
 	{
-		Nemu.mCart.LoadROM("../roms/smb.nes");
+		if (argc != 2)
+		{
+			cout << "Usage: Nemu rom_file_path" << endl;
+			return 1;
+		}
+
+		Nemu.mCart.LoadROM(args[1]);
 		Nemu.mCPU.HardReset();
 		Nemu.mPPU.Reset();
 	}
