@@ -1,6 +1,6 @@
 solution "Nemu"
 	configurations {"Debug", "Release"}
-	location ("build/" .. apr.platform_get())
+	location ("build")
 	
 	project "Nemu"
 		kind "ConsoleApp"
@@ -15,9 +15,9 @@ solution "Nemu"
 		targetdir "bin"
 
 		configuration "windows"
-			postbuildcommands { "copy $(TargetPath) $(TargetDir)/../working/Nemu.exe" }
+			postbuildcommands { "copy $(TargetPath) $(TargetDir)..\\working\\Nemu.exe" }
 			defines "WIN32"
-			links { "glfw3", "gdi32", "glu32" }
+			links { "glfw3", "opengl32", "glu32" }
 
 		configuration "linux"
 			defines "LINUX"

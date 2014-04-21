@@ -1,9 +1,0 @@
-Cartridges turn out to be really complex. Those need to be implemented.
-Only a single mapper needs to be emulated, something that looks easy and is an official nintendo mapper.
-Mapper ID's that look promising : 0, 2, 3, 10, 4
-4 looks hard, but it supports all of the megaman games
-0 includes Super Mario
-
-
-
-PPU and APU need to be created. CPU is close to being done and can now be tested. 
