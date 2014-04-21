@@ -25,6 +25,7 @@ solution "Nemu"
 			links { "GL", "GLU", "GLEW", "glfw3", "X11", "Xxf86vm", "Xrandr", "Xcursor", "pthread", "Xi", "m" }
 			
 		configuration "macosx"
+			postbuildcommands { "cp $@ ../working/Nemu" }
 			defines "OSX"
 			links { "glfw3", "GLEW" }
 			linkoptions { "-framework Cocoa -framework OpenGL -framework CoreVideo -framework AGL -framework IOKit" }

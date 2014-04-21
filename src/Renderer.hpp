@@ -158,7 +158,7 @@ public:
 			if(glewResult != GLEW_OK)
 			{
 				printf("GLEW Issues :( %s\n", glewGetErrorString(glewResult));
-				throw runtime_error("GLEW broke");
+				throw runtime_error("GLEW");
 			}
 
 			int majorVersion, minorVersion;
