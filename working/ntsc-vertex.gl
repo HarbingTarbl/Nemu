@@ -57,7 +57,7 @@ vec3 NEStoRGB(in int pixel)
 			
 		signal = (signal - levels[1]) / (levels[7] - levels[1]);
 
-		signal *= Brightness / 12f;
+		signal *= Brightness / 12.0f;
 		
 		yiq.r += signal;
 		signal *= Saturation;
@@ -66,7 +66,7 @@ vec3 NEStoRGB(in int pixel)
 	}
 	
 	vec3 rgb = YIQtoRGB(yiq);
-	return min(vec3(255f), vec3(255.95f) * pow(max(vec3(0), rgb), vec3(2.2 / Gamma))) / vec3(255f);
+	return min(vec3(255.0f), vec3(255.95f) * pow(max(vec3(0), rgb), vec3(2.2 / Gamma))) / vec3(255.0f);
 }
 
 void main()
@@ -74,7 +74,7 @@ void main()
 	vec4 pos = PixelShape + vec4(gl_InstanceID % 256, gl_InstanceID / 256, 0, 0);
 	gl_Position = PMatrix * pos;
 	
-	if(uint(NESColor) == 0xFFFFFFFF)
+	if(int(NESColor) == 0xFFFFFFFF)
 		PixelColor = vec4(NEStoRGB(ClearColor),1);
 	else
 		PixelColor = vec4(NEStoRGB(NESColor), 1);
