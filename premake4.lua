@@ -23,6 +23,11 @@ solution "Nemu"
 			defines "LINUX"
 			links { "GL", "GLU", "glfw3", "X11", "Xxf86vm", "Xrandr", "pthread", "Xi", "m" }
 			
+		configuration "macosx"
+			defines "OSX"
+			links { "glfw3" }
+			linkoptions { "-framework Carbon -framework OpenGL" }
+			
 		configuration "Debug"
 			targetsuffix "D"
 			defines "_DEBUG"
