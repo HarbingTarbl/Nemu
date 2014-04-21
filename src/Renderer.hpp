@@ -146,11 +146,6 @@ public:
 
 			glfwDefaultWindowHints();
 			glfwWindowHint(GLFW_RESIZABLE, false);
-			glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
-			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-			glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, 0);
-			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_ANY_PROFILE);
 			
 
 			window = glfwCreateWindow(windowWidth, windowHeight, "NES Emulator", nullptr, nullptr);

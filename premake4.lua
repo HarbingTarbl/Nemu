@@ -22,11 +22,11 @@ solution "Nemu"
 		configuration "linux"
 			postbuildcommands { "cp $@ ../working/Nemu" }
 			defines "LINUX"
-			links { "GL", "GLU", "glfw3", "X11", "Xxf86vm", "Xrandr", "Xcursor", "pthread", "Xi", "m" }
+			links { "GL", "GLU", "GLEW", "glfw3", "X11", "Xxf86vm", "Xrandr", "Xcursor", "pthread", "Xi", "m" }
 			
 		configuration "macosx"
 			defines "OSX"
-			links { "glfw3" }
+			links { "glfw3", "GLEW" }
 			linkoptions { "-framework Cocoa -framework OpenGL -framework CoreVideo -framework AGL -framework IOKit" }
 			
 		configuration "Debug"
