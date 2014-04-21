@@ -15,7 +15,7 @@ solution "Nemu"
 		targetdir "bin"
 
 		configuration "windows"
-			
+			postbuildcommands { "copy $(TargetPath) $(TargetDir)/../working/Nemu.exe" }
 			defines "WIN32"
 			links { "glfw3", "gdi32", "glu32" }
 
@@ -36,3 +36,5 @@ solution "Nemu"
 		configuration "Release"
 			defines "NDEBUG"
 			flags {"OptimizeSpeed", "NoFramePointer", "ExtraWarnings", "NoEditAndContinue"}
+			
+	
