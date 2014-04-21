@@ -4,14 +4,10 @@
 #define _RENDERER_H_
 
 
-#define GLFW_INCLUDE_NONE
-#include "gl_core_3_3.hpp"
-#include <GLFW/glfw3.h>
 
-#ifdef _WIN32
-#pragma comment(lib, "XInput9_1_0.lib")
-#include <XInput.h>
-#endif
+
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 
 #include <cstdint>
 #include <iostream>
@@ -24,6 +20,12 @@
 #include <thread>
 
 #include "NES.hpp"
+
+#ifdef _WIN32
+#pragma comment(lib, "XInput9_1_0.lib")
+#define _X86_
+#include <XInput.h>
+#endif
 
 
 class Render
@@ -90,7 +92,7 @@ public:
 #ifdef _WIN32
 		XINPUT_STATE state{ 0 };
 
-		if (XInputGetState(0, &state) == ERROR_SUCCESS)
+		if (XInputGetState(0, &state) == 0)
 		{
 			switch ((ButtonState)ControllerStrobe++)
 			{
@@ -156,11 +158,17 @@ public:
 				throw runtime_error("Unable to create window");
 				
 			glfwMakeContextCurrent(window);
-			gl::sys::LoadFunctions();
-			cout << "Initalized " << gl::sys::GetMajorVersion() << "." << gl::sys::GetMinorVersion() << endl;
-			programId = gl::CreateProgram();
-			unsigned vertex = gl::CreateShader(gl::VERTEX_SHADER);
-			unsigned fragment = gl::CreateShader(gl::FRAGMENT_SHADER);
+			glewExperimental = true;
+			glewInit();
+
+			int majorVersion, minorVersion;
+			glGetIntegerv(GL_MAJOR_VERSION, &majorVersion);
+			glGetIntegerv(GL_MINOR_VERSION, &minorVersion);
+
+			cout << "Initalized " << majorVersion << "." << minorVersion << endl;
+			programId = glCreateProgram();
+			unsigned vertex = glCreateShader(GL_VERTEX_SHADER);
+			unsigned fragment = glCreateShader(GL_FRAGMENT_SHADER);
 		
 			vector<char> sourceBuffer;
 			fstream fileHandle;
@@ -174,7 +182,7 @@ public:
 
 			{
 				const char* b = sourceBuffer.data();
-				gl::ShaderSource(vertex, 1, &b, nullptr);
+				glShaderSource(vertex, 1, &b, nullptr);
 			}
 
 			fileHandle.open("ntsc-fragment.gl", fileHandle.in | fileHandle.binary);
@@ -187,44 +195,44 @@ public:
 
 			{
 				const char* b = sourceBuffer.data();
-				gl::ShaderSource(fragment, 1, &b, nullptr);
+				glShaderSource(fragment, 1, &b, nullptr);
 			}
 
 			int compileStatus;
-			gl::CompileShader(fragment);
-			gl::GetShaderiv(fragment, gl::COMPILE_STATUS, &compileStatus);
+			glCompileShader(fragment);
+			glGetShaderiv(fragment, GL_COMPILE_STATUS, &compileStatus);
 			if (!compileStatus)
 			{
 				int logSize;
-				gl::GetShaderiv(fragment, gl::INFO_LOG_LENGTH, &logSize);
+				glGetShaderiv(fragment, GL_INFO_LOG_LENGTH, &logSize);
 				string shaderError;
 				shaderError.resize(logSize);
-				gl::GetShaderInfoLog(fragment, logSize, nullptr, &shaderError[0]);
+				glGetShaderInfoLog(fragment, logSize, nullptr, &shaderError[0]);
 				throw runtime_error(shaderError);
 			}
 
-			gl::CompileShader(vertex);
-			gl::GetShaderiv(vertex, gl::COMPILE_STATUS, &compileStatus);
+			glCompileShader(vertex);
+			glGetShaderiv(vertex, GL_COMPILE_STATUS, &compileStatus);
 			if (!compileStatus)
 			{
 				int logSize;
-				gl::GetShaderiv(vertex, gl::INFO_LOG_LENGTH, &logSize);
+				glGetShaderiv(vertex, GL_INFO_LOG_LENGTH, &logSize);
 				string shaderError;
 				shaderError.resize(logSize);
-				gl::GetShaderInfoLog(vertex, logSize, nullptr, &shaderError[0]);
+				glGetShaderInfoLog(vertex, logSize, nullptr, &shaderError[0]);
 				throw runtime_error(shaderError);
 			}
 
-			gl::AttachShader(programId, fragment);
-			gl::AttachShader(programId, vertex);
+			glAttachShader(programId, fragment);
+			glAttachShader(programId, vertex);
 			
-			gl::LinkProgram(programId);
+			glLinkProgram(programId);
 		
-			gl::UseProgram(programId);
+			glUseProgram(programId);
 
-			gl::GenBuffers(colorburstBuffers.size(), colorburstBuffers.data());
-			gl::GenVertexArrays(colorburstVertexAO.size(), colorburstVertexAO.data());
-			gl::GenBuffers(1, &shapeBuffer);
+			glGenBuffers(colorburstBuffers.size(), colorburstBuffers.data());
+			glGenVertexArrays(colorburstVertexAO.size(), colorburstVertexAO.data());
+			glGenBuffers(1, &shapeBuffer);
 			const float shape[] = {
 				0, 0, 0, 1,
 				1, 0, 0, 1,
@@ -232,25 +240,25 @@ public:
 				1, 1, 0, 1
 			};
 
-			gl::BindBuffer(gl::ARRAY_BUFFER, shapeBuffer);
-			gl::BufferData(gl::ARRAY_BUFFER, sizeof(shape), shape, gl::STATIC_DRAW);
+			glBindBuffer(GL_ARRAY_BUFFER, shapeBuffer);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(shape), shape, GL_STATIC_DRAW);
 
 			auto& cbb = colorburstBuffers;
 			auto& cbv = colorburstVertexAO;
 
 			for (int i = 0; i < colorburstBuffers.size(); i++)
 			{
-				gl::BindBuffer(gl::ARRAY_BUFFER, cbb[i]);
-				gl::BufferData(gl::ARRAY_BUFFER, sizeof(Render::Pixel) * 256 * 240, nullptr, gl::STREAM_DRAW);
-				gl::BindVertexArray(cbv[i]);
+				glBindBuffer(GL_ARRAY_BUFFER, cbb[i]);
+				glBufferData(GL_ARRAY_BUFFER, sizeof(Render::Pixel) * 256 * 240, nullptr, GL_STREAM_DRAW);
+				glBindVertexArray(cbv[i]);
 				
-				gl::EnableVertexAttribArray(0);
-				gl::VertexAttribIPointer(0, 1, gl::SHORT, 0, 0);
-				gl::VertexAttribDivisor(0, 1);
+				glEnableVertexAttribArray(0);
+				glVertexAttribIPointer(0, 1, GL_SHORT, 0, 0);
+				glVertexAttribDivisor(0, 1);
 
-				gl::BindBuffer(gl::ARRAY_BUFFER, shapeBuffer);
-				gl::EnableVertexAttribArray(1);
-				gl::VertexAttribPointer(1, 4, gl::FLOAT, false, 0, 0);
+				glBindBuffer(GL_ARRAY_BUFFER, shapeBuffer);
+				glEnableVertexAttribArray(1);
+				glVertexAttribPointer(1, 4, GL_FLOAT, false, 0, 0);
 			}
 
 
@@ -262,19 +270,19 @@ public:
 			};
 
 
-			gl::UniformMatrix4fv(gl::GetUniformLocation(programId, "PMatrix"), 1, true, matrix);
-			scanlineIndexLocation = gl::GetUniformLocation(programId, "Scanline");
-			yiqMatrixLocation = gl::GetUniformLocation(programId, "YIQMatrix");
-			ppuPhaseLocation = gl::GetUniformLocation(programId, "PPUPhase");
-			clearColorLocation = gl::GetUniformLocation(programId, "ClearColor");
+			glUniformMatrix4fv(glGetUniformLocation(programId, "PMatrix"), 1, true, matrix);
+			scanlineIndexLocation = glGetUniformLocation(programId, "Scanline");
+			yiqMatrixLocation = glGetUniformLocation(programId, "YIQMatrix");
+			ppuPhaseLocation = glGetUniformLocation(programId, "PPUPhase");
+			clearColorLocation = glGetUniformLocation(programId, "ClearColor");
 
-			gl::Disable(gl::DEPTH_TEST);
-			gl::Disable(gl::CULL_FACE);
+			glDisable(GL_DEPTH_TEST);
+			glDisable(GL_CULL_FACE);
 
-			gl::Enable(gl::BLEND);
-			gl::BlendEquationSeparate(gl::FUNC_ADD, gl::MAX);
-			gl::BlendFuncSeparate(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA, gl::ONE, gl::ONE);
-			gl::ClearColor(0, 0, 0, 0);
+			glEnable(GL_BLEND);
+			glBlendEquationSeparate(GL_FUNC_ADD, GL_MAX);
+			glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
+			glClearColor(0, 0, 0, 0);
 			FrameComplete = true;
 			glfwSwapInterval(0);
 
@@ -318,17 +326,17 @@ public:
 
 		//gl::Uniform1i(ppuPhaseLocation, (PPUCycle * 12) % 12);
 
-		gl::BindBuffer(gl::ARRAY_BUFFER, colorburstBuffers[CurrentFrame % 2]);
+		glBindBuffer(GL_ARRAY_BUFFER, colorburstBuffers[CurrentFrame % 2]);
 
-		BasePixel = PixelOut = (Pixel*)gl::MapBufferRange(gl::ARRAY_BUFFER, 
+		BasePixel = PixelOut = (Pixel*)glMapBufferRange(GL_ARRAY_BUFFER,
 			0, 256 * 240 * sizeof(Render::Pixel),
-			gl::MAP_WRITE_BIT | gl::MAP_INVALIDATE_BUFFER_BIT | gl::MAP_UNSYNCHRONIZED_BIT);
+			GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
 		FrameComplete = false;
 	}
 
 	static void SetClearColor(unsigned color)
 	{
-		gl::Uniform1i(clearColorLocation, color);
+		glUniform1i(clearColorLocation, color);
 	}
 
 	static void EndScanline()
@@ -346,13 +354,13 @@ public:
 			if (FrameComplete)
 				return;
 
-			gl::BindBuffer(gl::ARRAY_BUFFER, colorburstBuffers[CurrentFrame % 2]);
-			gl::UnmapBuffer(gl::ARRAY_BUFFER);
+			glBindBuffer(GL_ARRAY_BUFFER, colorburstBuffers[CurrentFrame % 2]);
+			glUnmapBuffer(GL_ARRAY_BUFFER);
 
-			gl::BindVertexArray(colorburstVertexAO[CurrentFrame % 2]);
-			gl::DrawArraysInstanced(gl::TRIANGLE_STRIP, 0, 4, 256 * 240);
+			glBindVertexArray(colorburstVertexAO[CurrentFrame % 2]);
+			glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, 256 * 240);
 			glfwSwapBuffers(window);
-			gl::Clear(gl::COLOR_BUFFER_BIT);
+			glClear(GL_COLOR_BUFFER_BIT);
 			FrameComplete = true;
 			Render::CurrentFrame++;
 			auto old = lastFrame;

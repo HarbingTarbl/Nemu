@@ -17,7 +17,7 @@ solution "Nemu"
 		configuration "windows"
 			postbuildcommands { "copy $(TargetPath) $(TargetDir)..\\working\\Nemu.exe" }
 			defines "WIN32"
-			links { "glfw3", "opengl32", "glu32" }
+			links { "glfw3", "opengl32", "glu32", "glew32" }
 
 		configuration "linux"
 			postbuildcommands { "cp $@ ../working/Nemu" }
