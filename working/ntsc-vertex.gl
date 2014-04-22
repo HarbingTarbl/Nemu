@@ -74,7 +74,7 @@ void main()
 	vec4 pos = PixelShape + vec4(gl_InstanceID % 256, gl_InstanceID / 256, 0, 0);
 	gl_Position = PMatrix * pos;
 	
-	if(int(NESColor) == 0xFFFFFFFF)
+	if(NESColor == -1)
 		PixelColor = vec4(NEStoRGB(ClearColor),1);
 	else
 		PixelColor = vec4(NEStoRGB(NESColor), 1);
