@@ -28,7 +28,9 @@ solution "Nemu"
 			postbuildcommands { "cp $@ ../working/Nemu" }
 			defines "OSX"
 			links { "glfw3", "GLEW" }
-			linkoptions { "-framework Cocoa -framework OpenGL -framework CoreVideo -framework AGL -framework IOKit" }
+			linkoptions { "-stdlib=libc++" }
+			linkoptions { "-flto" }
+			linkoptions { "-framework Cocoa -framework CoreData -framework OpenGL -framework CoreVideo -framework AGL -framework IOKit" }
 			
 		configuration "Debug"
 			targetsuffix "D"
